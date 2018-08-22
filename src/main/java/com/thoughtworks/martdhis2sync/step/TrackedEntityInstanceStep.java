@@ -1,40 +1,43 @@
 package com.thoughtworks.martdhis2sync.step;
 
+import com.thoughtworks.martdhis2sync.processor.TrackedEntityInstanceProcessor;
+import com.thoughtworks.martdhis2sync.reader.MappingReader;
+import com.thoughtworks.martdhis2sync.writer.TrackedEntityInstanceWriter;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.ItemWriter;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 
 @Component
 public class TrackedEntityInstanceStep {
 
     @Autowired
-    public StepBuilderFactory stepBuilderFactory;
+    private StepBuilderFactory stepBuilderFactory;
 
-    public Step getStep() {
+    @Autowired
+    private MappingReader mappingReader;
+
+    @Autowired
+    private ObjectFactory<TrackedEntityInstanceProcessor> processorObjectFactory;
+
+    @Autowired
+    private TrackedEntityInstanceWriter trackedEntityInstanceWriter;
+
+    public Step get(String lookupTable, Object mappingObj) {
         return stepBuilderFactory.get("TrackedEntityInstanceStep")
-                .chunk(10)
-                .reader(new DummyItemReader())
-                .writer(new DummyItemWriter())
+                .chunk(500)
+                .reader(mappingReader.get(lookupTable))
+                .processor(getProcessor(mappingObj))
+                .writer(trackedEntityInstanceWriter)
                 .build();
     }
 
-    private class DummyItemReader implements ItemReader {
-        @Override
-        public Object read() throws Exception {
-            return null;
-        }
+    private TrackedEntityInstanceProcessor getProcessor(Object mappingObj) {
+        TrackedEntityInstanceProcessor processor = processorObjectFactory.getObject();
+        processor.setMappingObj(mappingObj);
+
+        return processor;
     }
-
-    private class DummyItemWriter implements ItemWriter {
-        @Override
-        public void write(List items) throws Exception {
-
-        }
-    }
-
 }
