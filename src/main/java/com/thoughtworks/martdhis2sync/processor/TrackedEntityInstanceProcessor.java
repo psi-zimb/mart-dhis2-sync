@@ -5,12 +5,19 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.Setter;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
 @Component
 public class TrackedEntityInstanceProcessor implements ItemProcessor {
+
+    @Value("${tracked.entity.uid}")
+    private String teUID;
+
+    @Value("${org.unit.uid}")
+    private String orgUnitUID;
 
     @Setter
     private Object mappingObj;
@@ -30,7 +37,7 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
         StringBuilder attributeSet = new StringBuilder(String.format("{\"trackedEntity\": \"%s\", " +
                 "\"trackedEntityInstance\": \"\", " +
                 "\"orgUnit\":\"%s\"," +
-                "\"attributes\":[", "trackedEntity", "orgUnit"));
+                "\"attributes\":[", teUID, orgUnitUID));
         for(String key: keys) {
             String attribute = mappingJsonObject.get(key).toString();
             String value = tableRowJsonObject.get(key).toString();
