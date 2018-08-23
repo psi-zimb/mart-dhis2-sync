@@ -13,6 +13,7 @@ import java.util.Set;
 @Component
 public class TrackedEntityInstanceProcessor implements ItemProcessor {
 
+    public static final String EMPTY_STRING = "\"\"";
     @Value("${tracked.entity.uid}")
     private String teUID;
 
@@ -34,15 +35,16 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
 
         Set<String> keys = tableRowJsonObject.keySet();
 
-        StringBuilder attributeSet = new StringBuilder(String.format("{\"trackedEntity\": \"%s\", " +
+        StringBuilder attributeSet = new StringBuilder(String.format("{\"trackedEntityType\": \"%s\", " +
                 "\"trackedEntityInstance\": \"\", " +
                 "\"orgUnit\":\"%s\"," +
                 "\"attributes\":[", teUID, orgUnitUID));
         for(String key: keys) {
             String attribute = mappingJsonObject.get(key).toString();
             String value = tableRowJsonObject.get(key).toString();
-
-            attributeSet.append(String.format("{\"attribute\": %s, \"value\": %s},", attribute, value));
+            if (!EMPTY_STRING.equals(attribute)) {
+                attributeSet.append(String.format("{\"attribute\": %s, \"value\": %s},", attribute, value));
+            }
         }
         if(attributeSet.length() > 0) {
             attributeSet.deleteCharAt(attributeSet.length() - 1);
