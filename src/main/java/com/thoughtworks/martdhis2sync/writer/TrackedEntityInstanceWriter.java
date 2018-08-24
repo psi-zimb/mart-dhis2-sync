@@ -18,7 +18,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     private SyncRepository syncRepository;
 
     @Override
-    public void write(List list) throws Exception {
+    public void write(List list) {
         StringBuilder instanceApiFormat = new StringBuilder("{\"trackedEntityInstances\":[");
 
         list.stream().forEach(item -> instanceApiFormat.append(item + ","));
