@@ -24,7 +24,7 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
     private Object mappingObj;
 
     @Override
-    public String process(Object tableRow) throws Exception {
+    public String process(Object tableRow) {
 
         Gson gson = new Gson();
         JsonElement tableRowJsonElement = gson.toJsonTree(tableRow);
@@ -46,13 +46,10 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
                 attributeSet.append(String.format("{\"attribute\": %s, \"value\": %s},", attribute, value));
             }
         }
-        if(attributeSet.length() > 0) {
-            attributeSet.deleteCharAt(attributeSet.length() - 1);
-        }
 
+        attributeSet.deleteCharAt(attributeSet.length() - 1);
         attributeSet.append("]}");
 
         return attributeSet.toString();
-
     }
 }
