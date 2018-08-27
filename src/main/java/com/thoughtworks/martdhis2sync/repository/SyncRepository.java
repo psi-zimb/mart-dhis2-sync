@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.repository;
 
+import com.thoughtworks.martdhis2sync.response.TrackedEntityResponse;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -15,13 +16,12 @@ public class SyncRepository {
     private String dhis2Url;
 
     public void sendData(String uri, String body) {
-        System.out.println("url" + dhis2Url+uri);
-        System.out.println("body" + body);
-
-        ResponseEntity<String> stringResponseEntity = null;
-            stringResponseEntity = new RestTemplate()
-                    .exchange(dhis2Url + uri, HttpMethod.POST, getRequestEntity(body), String.class);
-        System.out.println(stringResponseEntity);
+        try {
+            ResponseEntity<TrackedEntityResponse> responseEntity = new RestTemplate()
+                    .exchange(dhis2Url + uri, HttpMethod.POST, getRequestEntity(body), TrackedEntityResponse.class);
+        } catch (Exception e) {
+            //logger.error();
+        }
     }
 
     private HttpEntity getRequestEntity(String body) {
