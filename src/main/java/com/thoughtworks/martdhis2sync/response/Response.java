@@ -2,6 +2,8 @@ package com.thoughtworks.martdhis2sync.response;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class Response {
     String responseType;
@@ -10,6 +12,6 @@ public class Response {
     int updated;
     int deleted;
     int ignored;
-    Object importSummaries;
+    List<ImportSummary> importSummaries;
     int total;
 }

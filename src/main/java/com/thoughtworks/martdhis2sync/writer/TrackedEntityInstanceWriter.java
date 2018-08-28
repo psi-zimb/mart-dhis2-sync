@@ -20,9 +20,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     @Override
     public void write(List list) {
         StringBuilder instanceApiFormat = new StringBuilder("{\"trackedEntityInstances\":[");
-
-        list.stream().forEach(item -> instanceApiFormat.append(item + ","));
-
+        list.forEach(item -> instanceApiFormat.append(item).append(","));
         instanceApiFormat.replace(instanceApiFormat.length() - 1, instanceApiFormat.length(), "]}");
 
         syncRepository.sendData(teiUri, instanceApiFormat.toString());
