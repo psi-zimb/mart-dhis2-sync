@@ -16,9 +16,15 @@ public class MappingReader {
 
     public JdbcCursorItemReader<Map<String, Object>> get(String lookupTable) {
 
+        StringBuilder query = new StringBuilder();
+        query.append("SELECT lt.*, CASE WHEN i.instance_id is NULL THEN '' else i.instance_id END as instance_id ");
+        query.append(String.format(" FROM %s lt ", lookupTable));
+        query.append("LEFT join instance_tracker i ");
+        query.append("ON  lt.\"Patient_Identifier\" = i.patient_id ;");
+
         JdbcCursorItemReader<Map<String, Object>> reader = new JdbcCursorItemReader<>();
         reader.setDataSource(dataSource);
-        reader.setSql(String.format("SELECT * FROM %s", lookupTable));
+        reader.setSql(query.toString());
         reader.setRowMapper(new ColumnMapRowMapper());
 
         return reader;
