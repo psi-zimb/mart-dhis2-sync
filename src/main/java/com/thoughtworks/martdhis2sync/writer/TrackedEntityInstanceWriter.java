@@ -22,6 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import static com.thoughtworks.martdhis2sync.response.ImportSummary.RESPONSE_CONFLICT;
+import static com.thoughtworks.martdhis2sync.response.ImportSummary.RESPONSE_SUCCESS;
+
 @Component
 public class TrackedEntityInstanceWriter implements ItemWriter {
 
@@ -49,33 +52,37 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
 
         ResponseEntity<TrackedEntityResponse> responseEntity = syncRepository.sendData(teiUri, instanceApiFormat.toString());
 
-        if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
-            processResponse(responseEntity.getBody().getResponse().getImportSummaries());
-        } else if (HttpStatus.CONFLICT.equals(responseEntity.getStatusCode())) {
+        logger.info("TEI SYNC: Received " + responseEntity.getStatusCode() + " status code.");
+        if (HttpStatus.CONFLICT.equals(responseEntity.getStatusCode())) {
             System.out.println("Conflict ");
         } else if (HttpStatus.INTERNAL_SERVER_ERROR.equals(responseEntity.getStatusCode())) {
             System.out.println("Internal Server Error");
         }
-
+        processResponse(responseEntity.getBody().getResponse().getImportSummaries());
     }
 
     private void processResponse(List<ImportSummary> importSummaries) {
         Iterator<Entry<String, String>> mapIterator = TEIUtil.getPatientIdTEIUidMap().entrySet().iterator();
 
         importSummaries.forEach(importSummary -> {
-            if (importSummary.getImportCount().getImported() == 1) {
+            if (RESPONSE_SUCCESS.equals(importSummary.getStatus()) && importSummary.getImportCount().getImported() == 1) {
 
                 while (mapIterator.hasNext()) {
                     Entry<String, String> entry = mapIterator.next();
                     if (EMPTY_STRING.equals(entry.getValue())) {
-                        newPatientIdTEIUidMap.put(StringUtils.replace(entry.getKey(), "\"", ""), importSummary.getReference());
+                        newPatientIdTEIUidMap.put(StringUtils
+                                .replace(entry.getKey(), "\"", ""), importSummary.getReference());
                         break;
                     }
                 }
+            } else if (RESPONSE_SUCCESS.equals(importSummary.getStatus()) && !importSummary.getConflicts().isEmpty()) {
+                logger.error("TEI SYNC: " + importSummary.getConflicts().get(0).getValue());
+            } else if (RESPONSE_CONFLICT.equals(importSummary.getStatus())) {
+                logger.error("TEI SYNC: " + importSummary.getConflicts().get(0).getValue());
             }
         });
         int recordsCreated = updateTracker();
-        logger.info("Successfully inserted " + recordsCreated + " TrackedEntityInstance UIDs.");
+        logger.info("TEI SYNC: Successfully inserted " + recordsCreated + " TrackedEntityInstance UIDs.");
     }
 
     private int updateTracker() {
