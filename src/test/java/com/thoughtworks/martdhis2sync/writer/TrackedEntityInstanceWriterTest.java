@@ -1,19 +1,23 @@
 package com.thoughtworks.martdhis2sync.writer;
 
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
+import com.thoughtworks.martdhis2sync.response.TrackedEntityResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 public class TrackedEntityInstanceWriterTest {
@@ -53,7 +57,12 @@ public class TrackedEntityInstanceWriterTest {
         List<Object> list = Arrays.asList(patient1, patient2);
 
         String requestBody = "{\"trackedEntityInstances\":[" + patient1 + "," + patient2 + "]}";
-        doNothing().when(syncRepository).sendData(uri, requestBody);
+
+        TrackedEntityResponse trackedEntityResponse = new TrackedEntityResponse();
+        ResponseEntity<TrackedEntityResponse> responseEntity = new ResponseEntity<>(HttpStatus.OK);
+        when(responseEntity.getBody()).thenReturn(trackedEntityResponse);
+        when(trackedEntityResponse.getResponse().getImportSummaries()).thenReturn(new ArrayList<>());
+        when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
 
         writer.write(list);
 

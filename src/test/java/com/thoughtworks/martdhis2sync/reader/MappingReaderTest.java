@@ -43,7 +43,7 @@ public class MappingReaderTest {
     @Test
     public void shouldReturnReaderWithDetailsBasedOnInput() throws Exception {
         String lookupTable = "patient_identifier";
-        String sql = "SELECT * FROM patient_identifier";
+        String sql = "SELECT lt.*, CASE WHEN i.instance_id is NULL THEN '' else i.instance_id END as instance_id  FROM patient_identifier lt LEFT join instance_tracker i ON  lt.\"Patient_Identifier\" = i.patient_id ;";
 
         whenNew(JdbcCursorItemReader.class).withNoArguments().thenReturn(jdbcCursorItemReader);
         whenNew(ColumnMapRowMapper.class).withNoArguments().thenReturn(columnMapRowMapper);
