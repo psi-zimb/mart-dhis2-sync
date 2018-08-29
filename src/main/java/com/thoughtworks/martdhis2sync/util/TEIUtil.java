@@ -13,11 +13,10 @@ public class TEIUtil {
     private static Map<String, String> patientIdTEIUidMap = new LinkedHashMap<>();
 
     private static String jsonToString(JsonElement jsonElement) {
-        if (jsonElement == null) {
+        if (null == jsonElement) {
             return "";
-        } else {
-            return jsonElement.toString();
         }
+        return jsonElement.toString();
     }
 
     public static void setPatientIds(JsonObject tableRowJsonObject) {
