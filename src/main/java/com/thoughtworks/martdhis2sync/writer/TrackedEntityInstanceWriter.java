@@ -10,7 +10,6 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -22,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import static com.thoughtworks.martdhis2sync.response.ImportSummary.RESPONSE_CONFLICT;
 import static com.thoughtworks.martdhis2sync.response.ImportSummary.RESPONSE_SUCCESS;
 
 @Component
@@ -44,6 +42,8 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
 
     private Logger logger = LoggerFactory.getLogger(TrackedEntityInstanceWriter.class);
 
+    private static final String logPrefix = "TEI SYNC: ";
+
     @Override
     public void write(List list) {
         StringBuilder instanceApiFormat = new StringBuilder("{\"trackedEntityInstances\":[");
@@ -52,12 +52,10 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
 
         ResponseEntity<TrackedEntityResponse> responseEntity = syncRepository.sendData(teiUri, instanceApiFormat.toString());
 
-        logger.info("TEI SYNC: Received " + responseEntity.getStatusCode() + " status code.");
-        if (HttpStatus.CONFLICT.equals(responseEntity.getStatusCode())) {
-            System.out.println("Conflict ");
-        } else if (HttpStatus.INTERNAL_SERVER_ERROR.equals(responseEntity.getStatusCode())) {
-            System.out.println("Internal Server Error");
+        if (null == responseEntity) {
+            return;
         }
+        logger.info(logPrefix + "Received " + responseEntity.getStatusCode() + " status code.");
         processResponse(responseEntity.getBody().getResponse().getImportSummaries());
     }
 
@@ -76,16 +74,18 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
                     }
                 }
             } else if (RESPONSE_SUCCESS.equals(importSummary.getStatus()) && !importSummary.getConflicts().isEmpty()) {
-                logger.error("TEI SYNC: " + importSummary.getConflicts().get(0).getValue());
-            } else if (RESPONSE_CONFLICT.equals(importSummary.getStatus())) {
-                logger.error("TEI SYNC: " + importSummary.getConflicts().get(0).getValue());
+                importSummary.getConflicts().forEach(conflict -> logger.error(logPrefix + "" + conflict.getValue()));
             }
         });
         int recordsCreated = updateTracker();
-        logger.info("TEI SYNC: Successfully inserted " + recordsCreated + " TrackedEntityInstance UIDs.");
+        logger.info(logPrefix + "Successfully inserted " + recordsCreated + " TrackedEntityInstance UIDs.");
     }
 
     private int updateTracker() {
+
+        if (newPatientIdTEIUidMap.isEmpty()) {
+            return 0;
+        }
         StringBuilder query = new StringBuilder();
         query.append("INSERT INTO public.instance_tracker(patient_id, instance_id) values");
 
