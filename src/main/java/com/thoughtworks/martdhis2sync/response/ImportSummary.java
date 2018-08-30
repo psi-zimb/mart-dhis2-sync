@@ -1,11 +1,13 @@
 package com.thoughtworks.martdhis2sync.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@AllArgsConstructor
 public class ImportSummary {
 
     public static final String RESPONSE_SUCCESS = "SUCCESS";
