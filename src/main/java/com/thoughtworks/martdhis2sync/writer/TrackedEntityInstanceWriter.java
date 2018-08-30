@@ -8,13 +8,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,19 +32,18 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     private String teiUri;
 
     @Autowired
-    @Qualifier("jdbcTemplate")
-    private JdbcTemplate jdbcTemplate;
+    private DataSource dataSource;
 
     @Autowired
     private SyncRepository syncRepository;
 
     private static final String EMPTY_STRING = "\"\"";
 
-    private static Map<String, String> newPatientIdTEIUidMap = new LinkedHashMap<>();
+    private static Map<String, String> newTEIUIDs = new LinkedHashMap<>();
 
     private Logger logger = LoggerFactory.getLogger(TrackedEntityInstanceWriter.class);
 
-    private static final String logPrefix = "TEI SYNC: ";
+    private static final String LOG_PREFIX = "TEI SYNC: ";
 
     @Override
     public void write(List list) {
@@ -55,7 +56,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
         if (null == responseEntity) {
             return;
         }
-        logger.info(logPrefix + "Received " + responseEntity.getStatusCode() + " status code.");
+        logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
         processResponse(responseEntity.getBody().getResponse().getImportSummaries());
     }
 
@@ -68,31 +69,40 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
                 while (mapIterator.hasNext()) {
                     Entry<String, String> entry = mapIterator.next();
                     if (EMPTY_STRING.equals(entry.getValue())) {
-                        newPatientIdTEIUidMap.put(StringUtils
+                        newTEIUIDs.put(StringUtils
                                 .replace(entry.getKey(), "\"", ""), importSummary.getReference());
                         break;
                     }
                 }
             } else if (RESPONSE_SUCCESS.equals(importSummary.getStatus()) && !importSummary.getConflicts().isEmpty()) {
-                importSummary.getConflicts().forEach(conflict -> logger.error(logPrefix + "" + conflict.getValue()));
+                importSummary.getConflicts().forEach(conflict -> logger.error(LOG_PREFIX + "" + conflict.getValue()));
             }
         });
-        int recordsCreated = updateTracker();
-        logger.info(logPrefix + "Successfully inserted " + recordsCreated + " TrackedEntityInstance UIDs.");
+        try {
+            if (!newTEIUIDs.isEmpty()) {
+                int recordsCreated = updateTracker();
+                logger.info(LOG_PREFIX + "Successfully inserted " + recordsCreated + " TrackedEntityInstance UIDs.");
+            }
+        } catch (SQLException e) {
+            logger.error(LOG_PREFIX + "Exception occurred while inserting TrackedEntityInstance UIDs:" + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
-    private int updateTracker() {
+    private int updateTracker() throws SQLException {
 
-        if (newPatientIdTEIUidMap.isEmpty()) {
-            return 0;
+        String sqlQuery = "INSERT INTO public.instance_tracker(patient_id, instance_id) values (? , ?)";
+        int updateCount;
+        try (Connection connection = dataSource.getConnection()) {
+            try (PreparedStatement ps = connection.prepareStatement(sqlQuery)) {
+                updateCount = 0;
+                for (Entry entry : newTEIUIDs.entrySet()) {
+                    ps.setString(1, entry.getKey().toString());
+                    ps.setString(2, entry.getValue().toString());
+                    updateCount += ps.executeUpdate();
+                }
+            }
         }
-        StringBuilder query = new StringBuilder();
-        query.append("INSERT INTO public.instance_tracker(patient_id, instance_id) values");
-
-        Iterator<Entry<String, String>> iterator = newPatientIdTEIUidMap.entrySet().iterator();
-        iterator.forEachRemaining(entry -> query.append(String.format("('%s', '%s'),", entry.getKey(), entry.getValue())));
-        query.replace(query.length() - 1, query.length(), "");
-
-        return jdbcTemplate.update(query.toString());
+        return updateCount;
     }
 }
