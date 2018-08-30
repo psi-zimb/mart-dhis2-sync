@@ -21,4 +21,20 @@
             );
         </sql>
     </changeSet>
+    <changeSet id="035730082018" author="Mahitha">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="marker" schemaName="public"/>
+            </not>
+        </preConditions>
+        <comment>Creating Marker table to track last sync date time in public schema</comment>
+        <sql>
+            CREATE TABLE public.marker(
+                marker_id SERIAL PRIMARY KEY,
+                program_name TEXT,
+                category TEXT,
+                last_synced_date TIMESTAMP
+            );
+        </sql>
+    </changeSet>
 </databaseChangeLog>
