@@ -6,7 +6,7 @@ import com.thoughtworks.martdhis2sync.service.TEIService;
 import com.thoughtworks.martdhis2sync.util.LookupTable;
 import com.thoughtworks.martdhis2sync.util.MappingJson;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,7 +22,7 @@ public class PushController {
     @Autowired
     private TEIService teiService;
 
-    @GetMapping(value = "/pushData")
+    @PutMapping(value = "/pushData")
     public Map<String, String> pushData(@RequestParam String service) {
 
         Map<String, Object> mapping = mappingService.getMapping(service);
