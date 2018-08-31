@@ -6,6 +6,7 @@ import com.thoughtworks.martdhis2sync.response.TrackedEntityResponse;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,10 +27,14 @@ import java.util.Map.Entry;
 import static com.thoughtworks.martdhis2sync.response.ImportSummary.RESPONSE_SUCCESS;
 
 @Component
+@StepScope
 public class TrackedEntityInstanceWriter implements ItemWriter {
 
     @Value("${tei.uri}")
     private String teiUri;
+
+    @Value("#{jobParameters['user']}")
+    private String user;
 
     @Autowired
     private DataSource dataSource;
@@ -91,7 +96,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
 
     private int updateTracker() throws SQLException {
 
-        String sqlQuery = "INSERT INTO public.instance_tracker(patient_id, instance_id) values (? , ?)";
+        String sqlQuery = "INSERT INTO public.instance_tracker(patient_id, instance_id, created_by, created_date) values (? , ?, ?, ?)";
         int updateCount;
         try (Connection connection = dataSource.getConnection()) {
             try (PreparedStatement ps = connection.prepareStatement(sqlQuery)) {
@@ -99,6 +104,8 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
                 for (Entry entry : newTEIUIDs.entrySet()) {
                     ps.setString(1, entry.getKey().toString());
                     ps.setString(2, entry.getValue().toString());
+                    ps.setString(3, user);
+                    ps.setDate(4, new java.sql.Date(new java.util.Date().getTime()));
                     updateCount += ps.executeUpdate();
                 }
             }
