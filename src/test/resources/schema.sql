@@ -14,3 +14,11 @@ CREATE TABLE "public"."hts_instance"(
   first_name text,
   last_name text
 );
+
+DROP TABLE IF EXISTS instance_tracker CASCADE;
+CREATE TABLE "public"."instance_tracker"(
+  patient_id text,
+  instance_id text PRIMARY KEY,
+  created_by text,
+  created_date date
+);
