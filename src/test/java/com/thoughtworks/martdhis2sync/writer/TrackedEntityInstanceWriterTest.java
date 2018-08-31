@@ -4,6 +4,7 @@ import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.response.*;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import lombok.SneakyThrows;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,7 +28,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({TEIUtil.class, TrackedEntityInstanceWriter.class})
+@PrepareForTest({TEIUtil.class})
 public class TrackedEntityInstanceWriterTest {
 
     @Mock
@@ -49,7 +50,7 @@ public class TrackedEntityInstanceWriterTest {
     private List<ImportSummary> importSummaries;
 
     @Mock
-    private LinkedHashMap<String, String> patientUIDMap;
+    private Map<String, String> patientUIDMap = new LinkedHashMap<>();
 
     @Mock
     private Connection connection;
@@ -66,7 +67,7 @@ public class TrackedEntityInstanceWriterTest {
 
     private static List<String> patientIDs = Arrays.asList("NAH0000000001", "NAH0000000002");
 
-    private String patient1, patient2, requestBody;
+    private String requestBody;
 
     private List<Object> list;
 
@@ -78,7 +79,7 @@ public class TrackedEntityInstanceWriterTest {
         setValuesForMemberFields(writer, "teiUri", uri);
         setValuesForMemberFields(writer, "syncRepository", syncRepository);
 
-        patient1 = "{\"trackedEntity\": \"%teUID\", " +
+        String patient1 = "{\"trackedEntity\": \"%teUID\", " +
                 "\"trackedEntityInstance\": \"\", " +
                 "\"orgUnit\":\"orgUnitUID\"," +
                 "\"attributes\":[" +
@@ -86,7 +87,7 @@ public class TrackedEntityInstanceWriterTest {
                 "{\"attribute\": \"rOb2gUg43\", \"value\": \"412\"}" +
                 "]}";
 
-        patient2 = "{\"trackedEntity\": \"%teUID\", " +
+        String patient2 = "{\"trackedEntity\": \"%teUID\", " +
                 "\"trackedEntityInstance\": \"\", " +
                 "\"orgUnit\":\"orgUnitUID\"," +
                 "\"attributes\":[" +
@@ -97,6 +98,13 @@ public class TrackedEntityInstanceWriterTest {
         list = Arrays.asList(patient1, patient2);
 
         requestBody = "{\"trackedEntityInstances\":[" + patient1 + "," + patient2 + "]}";
+
+        mockStatic(TEIUtil.class);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        patientUIDMap.clear();
     }
 
     @Test
@@ -125,6 +133,31 @@ public class TrackedEntityInstanceWriterTest {
 
     @Test
     @SneakyThrows
+    public void shouldNotUpdateInstanceTrackerTableAfterSendingUpdatedTEISync() {
+
+        importSummaries = Arrays.asList(
+                new ImportSummary("", RESPONSE_SUCCESS,
+                        new ImportCount(0, 1, 0, 0), new ArrayList<>(), referenceUIDs.get(0)),
+                new ImportSummary("", RESPONSE_SUCCESS,
+                        new ImportCount(0, 1, 0, 0), new ArrayList<>(), referenceUIDs.get(1)));
+
+        when(responseEntity.getBody()).thenReturn(trackedEntityResponse);
+        when(trackedEntityResponse.getResponse()).thenReturn(response);
+        when(response.getImportSummaries()).thenReturn(importSummaries);
+        when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
+
+        patientUIDMap.put(patientIDs.get(0), referenceUIDs.get(0));
+        patientUIDMap.put(patientIDs.get(0), referenceUIDs.get(1));
+        when(TEIUtil.getPatientIdTEIUidMap()).thenReturn(patientUIDMap);
+
+        writer.write(list);
+
+        verify(syncRepository, times(1)).sendData(uri, requestBody);
+        verify(dataSource, times(0)).getConnection();
+    }
+
+    @Test
+    @SneakyThrows
     public void shouldSuccessfullyProcessResponse() {
 
         importSummaries = Arrays.asList(
@@ -141,8 +174,6 @@ public class TrackedEntityInstanceWriterTest {
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(any())).thenReturn(preparedStatement);
 
-        mockStatic(TEIUtil.class);
-        patientUIDMap = new LinkedHashMap<>();
         patientUIDMap.put(patientIDs.get(0), referenceUIDs.get(0));
         patientUIDMap.put(patientIDs.get(1), EMPTY_STRING);
         when(TEIUtil.getPatientIdTEIUidMap()).thenReturn(patientUIDMap);
@@ -157,7 +188,9 @@ public class TrackedEntityInstanceWriterTest {
     public void shouldHandleConflictsInTheResponseMessage() {
 
         List<Conflict> conflicts = Collections.singletonList(new Conflict("", "Invalid org unit ID: SxgCPPeiq3c_"));
-        importSummaries = Collections.singletonList(
+        importSummaries = Arrays.asList(
+                new ImportSummary("", RESPONSE_SUCCESS,
+                        new ImportCount(0, 0, 0, 0), conflicts, referenceUIDs.get(1)),
                 new ImportSummary("", RESPONSE_SUCCESS,
                         new ImportCount(0, 0, 0, 0), conflicts, referenceUIDs.get(1)));
 
@@ -169,8 +202,6 @@ public class TrackedEntityInstanceWriterTest {
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(any())).thenReturn(preparedStatement);
 
-        mockStatic(TEIUtil.class);
-        patientUIDMap = new LinkedHashMap<>();
         patientUIDMap.put(patientIDs.get(0), referenceUIDs.get(0));
         patientUIDMap.put(patientIDs.get(1), EMPTY_STRING);
         when(TEIUtil.getPatientIdTEIUidMap()).thenReturn(patientUIDMap);
@@ -184,10 +215,11 @@ public class TrackedEntityInstanceWriterTest {
     @SneakyThrows
     public void shouldHandleSQLException() {
 
-        List<Conflict> conflicts = Collections.singletonList(new Conflict("", "Invalid org unit ID: SxgCPPeiq3c_"));
-        importSummaries = Collections.singletonList(
+        importSummaries = Arrays.asList(
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(1, 0, 0, 0), conflicts, referenceUIDs.get(1)));
+                        new ImportCount(1, 0, 0, 0), new ArrayList<>(), referenceUIDs.get(0)),
+                new ImportSummary("", RESPONSE_SUCCESS,
+                        new ImportCount(1, 0, 0, 0), new ArrayList<>(), referenceUIDs.get(1)));
 
         when(responseEntity.getBody()).thenReturn(trackedEntityResponse);
         when(trackedEntityResponse.getResponse()).thenReturn(response);
@@ -196,9 +228,7 @@ public class TrackedEntityInstanceWriterTest {
 
         when(dataSource.getConnection()).thenThrow(new SQLException());
 
-        mockStatic(TEIUtil.class);
-        patientUIDMap = new LinkedHashMap<>();
-        patientUIDMap.put(patientIDs.get(0), referenceUIDs.get(0));
+        patientUIDMap.put(patientIDs.get(0), EMPTY_STRING);
         patientUIDMap.put(patientIDs.get(1), EMPTY_STRING);
         when(TEIUtil.getPatientIdTEIUidMap()).thenReturn(patientUIDMap);
 
