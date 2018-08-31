@@ -2,6 +2,8 @@ package com.thoughtworks.martdhis2sync.service;
 
 import com.thoughtworks.martdhis2sync.listener.JobCompletionNotificationListener;
 import com.thoughtworks.martdhis2sync.step.TrackedEntityInstanceStep;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.JobParametersInvalidException;
@@ -31,23 +33,24 @@ public class TEIService {
     @Autowired
     private TrackedEntityInstanceStep trackedEntityInstanceStep;
 
+    private Logger logger = LoggerFactory.getLogger(TEIService.class);
 
-    public void triggerJob(String service, String lookupTable, Object mappingObj) {
+    private static final String LOG_PREFIX = "TEI Service: ";
+
+    public void triggerJob(String service, String user, String lookupTable, Object mappingObj)
+            throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
+            JobRestartException, JobInstanceAlreadyCompleteException {
 
         try {
             jobLauncher.run(syncTrackedEntityInstanceJob(lookupTable, mappingObj),
                     new JobParametersBuilder()
                             .addDate("date", new Date())
                             .addString("service", service)
+                            .addString("user", user)
                             .toJobParameters());
-        } catch (JobExecutionAlreadyRunningException e) {
-            e.printStackTrace();
-        } catch (JobRestartException e) {
-            e.printStackTrace();
-        } catch (JobInstanceAlreadyCompleteException e) {
-            e.printStackTrace();
-        } catch (JobParametersInvalidException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            logger.error(LOG_PREFIX + e.getMessage());
+            throw e;
         }
     }
 
