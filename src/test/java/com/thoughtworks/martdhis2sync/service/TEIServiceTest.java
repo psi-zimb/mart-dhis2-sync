@@ -91,12 +91,13 @@ public class TEIServiceTest {
         String lookUpTable = "patient_identifier";
         Object mappingObj = "";
         String service = "serviceName";
+        String user = "Admin";
 
         jobMocks(lookUpTable, mappingObj);
-        jobParametersMocks(service);
+        jobParametersMocks(service, user);
         when(jobLauncher.run(job, jobParameters)).thenReturn(execution);
 
-        teiService.triggerJob(service, lookUpTable, mappingObj);
+        teiService.triggerJob(service, user, lookUpTable, mappingObj);
 
         verify(jobBuilderFactory, times(1)).get("syncTrackedEntityInstance");
         verifyNew(RunIdIncrementer.class, times(1)).withNoArguments();
@@ -114,18 +115,19 @@ public class TEIServiceTest {
         verify(jobLauncher, times(1)).run(job, jobParameters);
     }
 
-    @Test
+    @Test (expected = JobExecutionAlreadyRunningException.class)
     public void shouldThrowJobExecutionAlreadyRunningException() throws Exception {
         String lookUpTable = "patient_identifier";
         Object mappingObj = "";
         String service = "serviceName";
+        String user = "Admin";
 
         jobMocks(lookUpTable, mappingObj);
-        jobParametersMocks(service);
+        jobParametersMocks(service, user);
         when(jobLauncher.run(job, jobParameters))
                 .thenThrow(new JobExecutionAlreadyRunningException("Job Execution Already Running"));
 
-        teiService.triggerJob(service, lookUpTable, mappingObj);
+        teiService.triggerJob(service, user, lookUpTable, mappingObj);
     }
 
     private void jobMocks(String lookUpTable, Object mappingObj) throws Exception {
@@ -139,10 +141,11 @@ public class TEIServiceTest {
         when(flowJobBuilder.build()).thenReturn(job);
     }
 
-    private void jobParametersMocks(String service) throws Exception {
+    private void jobParametersMocks(String service, String user) throws Exception {
         whenNew(JobParametersBuilder.class).withNoArguments().thenReturn(parametersBuilder);
         when(parametersBuilder.addDate(anyString(), any(Date.class))).thenReturn(parametersBuilder);
         when(parametersBuilder.addString("service", service)).thenReturn(parametersBuilder);
+        when(parametersBuilder.addString("user", user)).thenReturn(parametersBuilder);
         when(parametersBuilder.toJobParameters()).thenReturn(jobParameters);
     }
 }

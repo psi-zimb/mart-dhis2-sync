@@ -2,6 +2,7 @@ package com.thoughtworks.martdhis2sync.controller;
 
 import com.thoughtworks.martdhis2sync.MartDhis2SyncApplication;
 import com.thoughtworks.martdhis2sync.SystemPropertyActiveProfileResolver;
+import lombok.SneakyThrows;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,10 +31,12 @@ public class PushControllerIT {
     protected JdbcTemplate jdbcTemplate;
 
     @Test
+    @SneakyThrows
     @Sql(scripts = {"classpath:mapping/mapping.sql"})
     public void shouldReturnJobStatusAsExecuted() {
         String service = "HTS Service";
-        Map<String, String> actual = pushController.pushData(service);
+        String user = "Admin";
+        Map<String, String> actual = pushController.pushData(service, user);
 
         assertEquals("Executed", actual.get("Job Status"));
     }
