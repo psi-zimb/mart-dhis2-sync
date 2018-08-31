@@ -5,6 +5,10 @@ import com.thoughtworks.martdhis2sync.service.MappingService;
 import com.thoughtworks.martdhis2sync.service.TEIService;
 import com.thoughtworks.martdhis2sync.util.LookupTable;
 import com.thoughtworks.martdhis2sync.util.MappingJson;
+import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,7 +27,9 @@ public class PushController {
     private TEIService teiService;
 
     @PutMapping(value = "/pushData")
-    public Map<String, String> pushData(@RequestParam String service) {
+    public Map<String, String> pushData(@RequestParam String service, @RequestParam String user)
+            throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
+            JobRestartException, JobInstanceAlreadyCompleteException {
 
         Map<String, Object> mapping = mappingService.getMapping(service);
 
@@ -31,7 +37,7 @@ public class PushController {
         LookupTable lookupTable = gson.fromJson(mapping.get("lookup_table").toString(), LookupTable.class);
         MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
 
-        teiService.triggerJob(service, lookupTable.getInstance(), mappingJson.getInstance());
+        teiService.triggerJob(service, user, lookupTable.getInstance(), mappingJson.getInstance());
 
         Map<String, String> result = new HashMap<>();
         result.put("Job Status", "Executed");
