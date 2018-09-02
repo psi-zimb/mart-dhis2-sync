@@ -15,6 +15,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
+apply plugin: 'jacoco'
 
 group = 'com.thoughtworks'
 version = '0.0.1-SNAPSHOT'
@@ -50,6 +51,39 @@ dependencies {
 	testCompile "org.powermock:powermock-module-junit4-rule:1.6.4"
 	testCompile "org.powermock:powermock-api-mockito:1.6.4"
 }
+
+jacoco {
+	toolVersion = "0.7.9"
+}
+
+jacocoTestReport {
+	dependsOn "test"
+}
+
+test {
+	systemProperties System.properties
+}
+
+jacocoTestCoverageVerification {
+	dependsOn "jacocoTestReport"
+	violationRules {
+		rule {
+			limit {
+				minimum = 0.940
+			}
+		}
+
+		rule {
+			limit {
+				counter = 'BRANCH'
+				value = 'COVEREDRATIO'
+				minimum = 0.850
+			}
+		}
+	}
+}
+
+check.dependsOn jacocoTestCoverageVerification
 
 jar {
 	manifest {
