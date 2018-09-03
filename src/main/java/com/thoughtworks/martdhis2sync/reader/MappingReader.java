@@ -1,11 +1,18 @@
 package com.thoughtworks.martdhis2sync.reader;
 
+import com.thoughtworks.martdhis2sync.util.BatchUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
+import java.io.IOException;
+import java.util.Date;
 import java.util.Map;
 
 @Component
@@ -14,19 +21,21 @@ public class MappingReader {
     @Autowired
     private DataSource dataSource;
 
-    public JdbcCursorItemReader<Map<String, Object>> get(String lookupTable) {
+    @Value("classpath:sql/Reader.sql")
+    private Resource resource;
 
-        StringBuilder query = new StringBuilder();
-        query.append("SELECT lt.*, CASE WHEN i.instance_id is NULL THEN '' else i.instance_id END as instance_id ");
-        query.append(String.format(" FROM %s lt ", lookupTable));
-        query.append("LEFT join instance_tracker i ");
-        query.append("ON  lt.\"Patient_Identifier\" = i.patient_id ;");
+    private Logger logger = LoggerFactory.getLogger(MappingReader.class);
 
+    public JdbcCursorItemReader<Map<String, Object>> get(String lookupTable, Date date, String category, String programName) {
         JdbcCursorItemReader<Map<String, Object>> reader = new JdbcCursorItemReader<>();
-        reader.setDataSource(dataSource);
-        reader.setSql(query.toString());
-        reader.setRowMapper(new ColumnMapRowMapper());
-
+        try {
+            String sql = BatchUtil.convertResourceOutputToString(resource);
+            reader.setDataSource(dataSource);
+            reader.setSql(String.format(sql, lookupTable, category, programName, date.toString()));
+            reader.setRowMapper(new ColumnMapRowMapper());
+        } catch (IOException e) {
+            logger.error("Error in converting sql to string : " + e.getMessage());
+        }
         return reader;
     }
 }
