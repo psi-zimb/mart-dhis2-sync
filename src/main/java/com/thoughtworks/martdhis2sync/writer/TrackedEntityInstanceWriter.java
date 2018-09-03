@@ -3,10 +3,11 @@ package com.thoughtworks.martdhis2sync.writer;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.response.ImportSummary;
 import com.thoughtworks.martdhis2sync.response.TrackedEntityResponse;
+import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,14 +29,17 @@ import java.util.Map.Entry;
 import static com.thoughtworks.martdhis2sync.response.ImportSummary.RESPONSE_SUCCESS;
 
 @Component
-@StepScope
 public class TrackedEntityInstanceWriter implements ItemWriter {
+
+    private static final String EMPTY_STRING = "\"\"";
+    private static Map<String, String> newTEIUIDs = new LinkedHashMap<>();
+    private Logger logger = LoggerFactory.getLogger(TrackedEntityInstanceWriter.class);
+    private static final String LOG_PREFIX = "TEI SYNC: ";
 
     @Value("${tei.uri}")
     private String teiUri;
 
-    @Value("#{jobParameters['user']}")
-    private String user;
+    private String user = "superman";
 
     @Autowired
     private DataSource dataSource;
@@ -42,13 +47,14 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     @Autowired
     private SyncRepository syncRepository;
 
-    private static final String EMPTY_STRING = "\"\"";
+    @Autowired
+    private MarkerUtil markerUtil;
 
-    private static Map<String, String> newTEIUIDs = new LinkedHashMap<>();
+    @Setter
+    private Date syncedDate;
 
-    private Logger logger = LoggerFactory.getLogger(TrackedEntityInstanceWriter.class);
-
-    private static final String LOG_PREFIX = "TEI SYNC: ";
+    @Setter
+    private String programName;
 
     @Override
     public void write(List list) {
@@ -63,6 +69,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
         }
         logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
         processResponse(responseEntity.getBody().getResponse().getImportSummaries());
+        updateMarker();
     }
 
     private void processResponse(List<ImportSummary> importSummaries) {
@@ -111,5 +118,9 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
             }
         }
         return updateCount;
+    }
+
+    private void updateMarker() {
+        markerUtil.updateMarkerEntry(syncedDate.toString(), programName, "instance");
     }
 }

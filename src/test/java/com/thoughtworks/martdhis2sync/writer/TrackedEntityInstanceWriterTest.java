@@ -1,7 +1,12 @@
 package com.thoughtworks.martdhis2sync.writer;
 
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
-import com.thoughtworks.martdhis2sync.response.*;
+import com.thoughtworks.martdhis2sync.response.Conflict;
+import com.thoughtworks.martdhis2sync.response.ImportCount;
+import com.thoughtworks.martdhis2sync.response.ImportSummary;
+import com.thoughtworks.martdhis2sync.response.Response;
+import com.thoughtworks.martdhis2sync.response.TrackedEntityResponse;
+import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import lombok.SneakyThrows;
 import org.junit.After;
@@ -17,13 +22,21 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static com.thoughtworks.martdhis2sync.response.ImportSummary.RESPONSE_SUCCESS;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -54,8 +67,15 @@ public class TrackedEntityInstanceWriterTest {
 
     @Mock
     private Connection connection;
+
     @Mock
     private PreparedStatement preparedStatement;
+
+    @Mock
+    private MarkerUtil markerUtil;
+
+    @Mock
+    private Date date;
 
     private TrackedEntityInstanceWriter writer;
 
@@ -71,6 +91,8 @@ public class TrackedEntityInstanceWriterTest {
 
     private List<Object> list;
 
+    private String programName = "HTS Service";
+
     @Before
     public void setUp() throws Exception {
         writer = new TrackedEntityInstanceWriter();
@@ -78,6 +100,9 @@ public class TrackedEntityInstanceWriterTest {
         setValuesForMemberFields(writer, "dataSource", dataSource);
         setValuesForMemberFields(writer, "teiUri", uri);
         setValuesForMemberFields(writer, "syncRepository", syncRepository);
+        setValuesForMemberFields(writer, "markerUtil", markerUtil);
+        setValuesForMemberFields(writer, "syncedDate", date);
+        setValuesForMemberFields(writer, "programName", programName);
 
         String patient1 = "{\"trackedEntity\": \"%teUID\", " +
                 "\"trackedEntityInstance\": \"\", " +
@@ -114,11 +139,13 @@ public class TrackedEntityInstanceWriterTest {
         when(trackedEntityResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(new ArrayList<>());
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
-
+        doNothing().when(markerUtil).updateMarkerEntry(anyString(), anyString(), anyString());
 
         writer.write(list);
 
         verify(syncRepository, times(1)).sendData(uri, requestBody);
+        verify(markerUtil, times(1))
+                .updateMarkerEntry(date.toString(), programName, "instance");
     }
 
     @Test
