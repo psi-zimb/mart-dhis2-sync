@@ -5,7 +5,6 @@ import com.thoughtworks.martdhis2sync.reader.MappingReader;
 import com.thoughtworks.martdhis2sync.writer.TrackedEntityInstanceWriter;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,15 +27,14 @@ public class TrackedEntityInstanceStep {
     private ObjectFactory<TrackedEntityInstanceProcessor> processorObjectFactory;
 
     @Autowired
-    private ObjectFactory<TrackedEntityInstanceWriter> writerObjectFactory;
+    private TrackedEntityInstanceWriter writer;
 
-    public Step get(String lookupTable, Object mappingObj, String programName) {
-        Date date = new Date();
+    public Step get(String lookupTable, Object mappingObj, String programName, Date syncedDate) {
         return stepBuilderFactory.get("TrackedEntityInstanceStep")
                 .chunk(500)
-                .reader(mappingReader.get(lookupTable, date, INSTANCE, programName))
+                .reader(mappingReader.get(lookupTable, syncedDate, INSTANCE, programName))
                 .processor(getProcessor(mappingObj))
-                .writer(getWriter(date, programName))
+                .writer(writer)
                 .build();
     }
 
@@ -45,12 +43,5 @@ public class TrackedEntityInstanceStep {
         processor.setMappingObj(mappingObj);
 
         return processor;
-    }
-
-    private ItemWriter getWriter(Date date, String programName) {
-        TrackedEntityInstanceWriter writer = writerObjectFactory.getObject();
-        writer.setSyncedDate(date);
-        writer.setProgramName(programName);
-        return writer;
     }
 }

@@ -56,13 +56,9 @@ public class TrackedEntityInstanceStepTest {
     @Mock
     private TaskletStep step;
 
-    @Mock
-    private ObjectFactory<TrackedEntityInstanceWriter> writerObjectFactory;
-
-    @Mock
-    private Date date;
 
     private TrackedEntityInstanceStep teiStep;
+    private Date syncedDate = new Date();
 
     @Before
     public void setUp() throws Exception {
@@ -70,7 +66,7 @@ public class TrackedEntityInstanceStepTest {
         setValuesForMemberFields(teiStep, "stepBuilderFactory", stepBuilderFactory);
         setValuesForMemberFields(teiStep, "mappingReader", mappingReader);
         setValuesForMemberFields(teiStep, "processorObjectFactory", processorObjectFactory);
-        setValuesForMemberFields(teiStep, "writerObjectFactory", writerObjectFactory);
+        setValuesForMemberFields(teiStep, "writer", writer);
     }
 
     @Test
@@ -85,13 +81,10 @@ public class TrackedEntityInstanceStepTest {
         when(simpleStepBuilder.reader(jdbcCursorItemReader)).thenReturn(simpleStepBuilder);
         when(processorObjectFactory.getObject()).thenReturn(processor);
         when(simpleStepBuilder.processor(processor)).thenReturn(simpleStepBuilder);
-        when(writerObjectFactory.getObject()).thenReturn(writer);
-        doNothing().when(writer).setProgramName(programName);
-        doNothing().when(writer).setSyncedDate(date);
         when(simpleStepBuilder.writer(writer)).thenReturn(simpleStepBuilder);
         when(simpleStepBuilder.build()).thenReturn(step);
 
-        teiStep.get(lookupTable, mappingObj, programName);
+        teiStep.get(lookupTable, mappingObj, programName, syncedDate);
 
         verify(stepBuilderFactory, times(1)).get("TrackedEntityInstanceStep");
         verify(stepBuilder, times(1)).chunk(500);
