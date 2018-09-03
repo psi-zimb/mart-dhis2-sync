@@ -15,11 +15,14 @@ import org.springframework.batch.core.step.tasklet.TaskletStep;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.beans.factory.ObjectFactory;
 
+import java.util.Date;
 import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
@@ -52,6 +55,12 @@ public class TrackedEntityInstanceStepTest {
     @Mock
     private TaskletStep step;
 
+    @Mock
+    private ObjectFactory<TrackedEntityInstanceWriter> writerObjectFactory;
+
+    @Mock
+    private Date date;
+
     private TrackedEntityInstanceStep teiStep;
 
     @Before
@@ -60,28 +69,32 @@ public class TrackedEntityInstanceStepTest {
         setValuesForMemberFields(teiStep, "stepBuilderFactory", stepBuilderFactory);
         setValuesForMemberFields(teiStep, "mappingReader", mappingReader);
         setValuesForMemberFields(teiStep, "processorObjectFactory", processorObjectFactory);
-        setValuesForMemberFields(teiStep, "trackedEntityInstanceWriter", writer);
+        setValuesForMemberFields(teiStep, "writerObjectFactory", writerObjectFactory);
     }
 
     @Test
-    public void shouldReturnStep() {
+    public void shouldReturnStep() throws Exception {
         String lookupTable = "patient_identifier";
         Object mappingObj = "";
+        String programName = "TB Service";
 
         when(stepBuilderFactory.get("TrackedEntityInstanceStep")).thenReturn(stepBuilder);
         when(stepBuilder.chunk(500)).thenReturn(simpleStepBuilder);
-        when(mappingReader.get(lookupTable)).thenReturn(jdbcCursorItemReader);
+        when(mappingReader.get(anyString())).thenReturn(jdbcCursorItemReader);
         when(simpleStepBuilder.reader(jdbcCursorItemReader)).thenReturn(simpleStepBuilder);
         when(processorObjectFactory.getObject()).thenReturn(processor);
         when(simpleStepBuilder.processor(processor)).thenReturn(simpleStepBuilder);
+        when(writerObjectFactory.getObject()).thenReturn(writer);
+        doNothing().when(writer).setProgramName(programName);
+        doNothing().when(writer).setSyncedDate(date);
         when(simpleStepBuilder.writer(writer)).thenReturn(simpleStepBuilder);
         when(simpleStepBuilder.build()).thenReturn(step);
 
-        teiStep.get(lookupTable, mappingObj);
+        teiStep.get(lookupTable, mappingObj, programName);
 
         verify(stepBuilderFactory, times(1)).get("TrackedEntityInstanceStep");
         verify(stepBuilder, times(1)).chunk(500);
-        verify(mappingReader, times(1)).get(lookupTable);
+        verify(mappingReader, times(1)).get(anyString());
         verify(simpleStepBuilder, times(1)).reader(jdbcCursorItemReader);
         verify(processorObjectFactory, times(1)).getObject();
         verify(simpleStepBuilder, times(1)).processor(processor);
