@@ -16,6 +16,8 @@ import java.util.Date;
 @Component
 public class TrackedEntityInstanceStep {
 
+    private static final String INSTANCE = "instance";
+
     @Autowired
     private StepBuilderFactory stepBuilderFactory;
 
@@ -32,7 +34,7 @@ public class TrackedEntityInstanceStep {
         Date date = new Date();
         return stepBuilderFactory.get("TrackedEntityInstanceStep")
                 .chunk(500)
-                .reader(mappingReader.get(lookupTable))
+                .reader(mappingReader.get(lookupTable, date, INSTANCE, programName))
                 .processor(getProcessor(mappingObj))
                 .writer(getWriter(date, programName))
                 .build();
