@@ -8,6 +8,7 @@ import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +30,7 @@ import java.util.Map.Entry;
 import static com.thoughtworks.martdhis2sync.response.ImportSummary.RESPONSE_SUCCESS;
 
 @Component
+@StepScope
 public class TrackedEntityInstanceWriter implements ItemWriter {
 
     private static final String EMPTY_STRING = "\"\"";
@@ -39,7 +41,8 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     @Value("${tei.uri}")
     private String teiUri;
 
-    private String user = "superman";
+    @Value("#{jobParameters['user']}")
+    private String user;
 
     @Autowired
     private DataSource dataSource;
@@ -50,10 +53,10 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     @Autowired
     private MarkerUtil markerUtil;
 
-    @Setter
+    @Value("#{jobParameters['date']}")
     private Date syncedDate;
 
-    @Setter
+    @Value("#{jobParameters['service']}")
     private String programName;
 
     @Override
