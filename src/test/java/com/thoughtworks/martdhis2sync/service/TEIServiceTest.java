@@ -93,7 +93,7 @@ public class TEIServiceTest {
         String service = "serviceName";
         String user = "Admin";
 
-        jobMocks(lookUpTable, mappingObj);
+        jobMocks(lookUpTable, mappingObj, service);
         jobParametersMocks(service, user);
         when(jobLauncher.run(job, jobParameters)).thenReturn(execution);
 
@@ -103,7 +103,7 @@ public class TEIServiceTest {
         verifyNew(RunIdIncrementer.class, times(1)).withNoArguments();
         verify(jobBuilder, times(1)).incrementer(runIdIncrementer);
         verify(jobBuilder, times(1)).listener(listener);
-        verify(instanceStep, times(1)).get(lookUpTable, mappingObj);
+        verify(instanceStep, times(1)).get(lookUpTable, mappingObj, service);
         verify(jobBuilder, times(1)).flow(step);
         verify(flowBuilder, times(1)).end();
         verify(flowJobBuilder, times(1)).build();
@@ -122,7 +122,7 @@ public class TEIServiceTest {
         String service = "serviceName";
         String user = "Admin";
 
-        jobMocks(lookUpTable, mappingObj);
+        jobMocks(lookUpTable, mappingObj, service);
         jobParametersMocks(service, user);
         when(jobLauncher.run(job, jobParameters))
                 .thenThrow(new JobExecutionAlreadyRunningException("Job Execution Already Running"));
@@ -130,12 +130,12 @@ public class TEIServiceTest {
         teiService.triggerJob(service, user, lookUpTable, mappingObj);
     }
 
-    private void jobMocks(String lookUpTable, Object mappingObj) throws Exception {
+    private void jobMocks(String lookUpTable, Object mappingObj, String service) throws Exception {
         when(jobBuilderFactory.get("syncTrackedEntityInstance")).thenReturn(jobBuilder);
         whenNew(RunIdIncrementer.class).withNoArguments().thenReturn(runIdIncrementer);
         when(jobBuilder.incrementer(runIdIncrementer)).thenReturn(jobBuilder);
         when(jobBuilder.listener(listener)).thenReturn(jobBuilder);
-        when(instanceStep.get(lookUpTable, mappingObj)).thenReturn(step);
+        when(instanceStep.get(lookUpTable, mappingObj, service)).thenReturn(step);
         when(jobBuilder.flow(step)).thenReturn(flowBuilder);
         when(flowBuilder.end()).thenReturn(flowJobBuilder);
         when(flowJobBuilder.build()).thenReturn(job);
