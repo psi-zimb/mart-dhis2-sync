@@ -42,9 +42,10 @@ public class TEIService {
             JobRestartException, JobInstanceAlreadyCompleteException {
 
         try {
-            jobLauncher.run(syncTrackedEntityInstanceJob(lookupTable, mappingObj, service),
+            Date syncedDate = new Date();
+            jobLauncher.run(syncTrackedEntityInstanceJob(lookupTable, mappingObj, service, syncedDate),
                     new JobParametersBuilder()
-                            .addDate("date", new Date())
+                            .addDate("date", syncedDate)
                             .addString("service", service)
                             .addString("user", user)
                             .toJobParameters());
@@ -54,11 +55,11 @@ public class TEIService {
         }
     }
 
-    private Job syncTrackedEntityInstanceJob(String lookupTable, Object mappingObj, String service) {
+    private Job syncTrackedEntityInstanceJob(String lookupTable, Object mappingObj, String service, Date syncedDate) {
         return jobBuilderFactory.get("syncTrackedEntityInstance")
                 .incrementer(new RunIdIncrementer())
                 .listener(listener)
-                .flow(trackedEntityInstanceStep.get(lookupTable, mappingObj, service))
+                .flow(trackedEntityInstanceStep.get(lookupTable, mappingObj, service, syncedDate))
                 .end()
                 .build();
     }
