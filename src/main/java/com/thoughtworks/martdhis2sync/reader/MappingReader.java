@@ -21,7 +21,7 @@ public class MappingReader {
     @Autowired
     private DataSource dataSource;
 
-    @Value("classpath:sql/Reader.sql")
+    @Value("classpath:sql/InstanceReader.sql")
     private Resource resource;
 
     private Logger logger = LoggerFactory.getLogger(MappingReader.class);
@@ -31,7 +31,7 @@ public class MappingReader {
         try {
             String sql = BatchUtil.convertResourceOutputToString(resource);
             reader.setDataSource(dataSource);
-            reader.setSql(String.format(sql, lookupTable, category, programName, date.toString()));
+            reader.setSql(String.format(sql, lookupTable, programName, date.toString()));
             reader.setRowMapper(new ColumnMapRowMapper());
         } catch (IOException e) {
             logger.error("Error in converting sql to string : " + e.getMessage());
