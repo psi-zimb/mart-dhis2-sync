@@ -66,10 +66,10 @@ public class MappingReaderTest {
 
         String sql = String.format("SELECT lt.*, CASE WHEN i.instance_id is NULL THEN '' else i.instance_id END as instance_id  " +
                 "FROM patient_identifier lt LEFT join instance_tracker i ON  lt.\"Patient_Identifier\" = i.patient_id " +
-                "WHERE date_created BETWEEN COALESCE((SELECT max(last_synced_date)\n" +
+                "WHERE date_created > COALESCE((SELECT last_synced_date\n" +
                 "                                    FROM marker\n" +
-                "                                    WHERE category='%s' AND program_name='%s'), '-infinity') AND '%s';",
-                                                    category, programName, date);
+                "                                    WHERE category='instance' AND program_name='%s'), '-infinity');",
+                                                     programName, date);
 
         whenNew(JdbcCursorItemReader.class).withNoArguments().thenReturn(jdbcCursorItemReader);
         whenNew(ColumnMapRowMapper.class).withNoArguments().thenReturn(columnMapRowMapper);
