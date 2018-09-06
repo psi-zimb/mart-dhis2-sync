@@ -9,13 +9,9 @@ import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-
 
 @Component
 public class TrackedEntityInstanceStep {
-
-    private static final String INSTANCE = "instance";
 
     @Autowired
     private StepBuilderFactory stepBuilderFactory;
@@ -29,10 +25,10 @@ public class TrackedEntityInstanceStep {
     @Autowired
     private TrackedEntityInstanceWriter writer;
 
-    public Step get(String lookupTable, Object mappingObj, String programName, Date syncedDate) {
+    public Step get(String lookupTable, Object mappingObj, String programName) {
         return stepBuilderFactory.get("TrackedEntityInstanceStep")
                 .chunk(500)
-                .reader(mappingReader.get(lookupTable, syncedDate, INSTANCE, programName))
+                .reader(mappingReader.get(lookupTable, programName))
                 .processor(getProcessor(mappingObj))
                 .writer(writer)
                 .build();

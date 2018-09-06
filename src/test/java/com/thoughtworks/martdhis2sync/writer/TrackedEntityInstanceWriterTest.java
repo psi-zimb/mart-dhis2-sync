@@ -26,7 +26,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,9 +75,6 @@ public class TrackedEntityInstanceWriterTest {
     @Mock
     private MarkerUtil markerUtil;
 
-    @Mock
-    private Date date;
-
     private TrackedEntityInstanceWriter writer;
 
     private static final String uri = "/api/trackedEntityInstance";
@@ -103,7 +99,6 @@ public class TrackedEntityInstanceWriterTest {
         setValuesForMemberFields(writer, "teiUri", uri);
         setValuesForMemberFields(writer, "syncRepository", syncRepository);
         setValuesForMemberFields(writer, "markerUtil", markerUtil);
-        setValuesForMemberFields(writer, "syncedDate", date);
         setValuesForMemberFields(writer, "programName", programName);
 
         String patient1 = "{\"trackedEntity\": \"%teUID\", " +
@@ -141,13 +136,13 @@ public class TrackedEntityInstanceWriterTest {
         when(trackedEntityResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(new ArrayList<>());
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
-        doNothing().when(markerUtil).updateMarkerEntry(anyString(), anyString(), anyString());
+        doNothing().when(markerUtil).updateMarkerEntry(anyString(), anyString());
 
         writer.write(list);
 
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(markerUtil, times(1))
-                .updateMarkerEntry(date.toString(), programName, "instance");
+                .updateMarkerEntry(programName, "instance");
     }
 
     @Test

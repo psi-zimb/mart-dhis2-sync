@@ -21,7 +21,10 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import static com.thoughtworks.martdhis2sync.response.ImportSummary.RESPONSE_SUCCESS;
@@ -49,9 +52,6 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
 
     @Autowired
     private MarkerUtil markerUtil;
-
-    @Value("#{jobParameters['date']}")
-    private Date syncedDate;
 
     @Value("#{jobParameters['service']}")
     private String programName;
@@ -122,6 +122,6 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     }
 
     private void updateMarker() {
-        markerUtil.updateMarkerEntry(syncedDate.toString(), programName, "instance");
+        markerUtil.updateMarkerEntry(programName, "instance");
     }
 }

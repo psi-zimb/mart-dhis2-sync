@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 import java.io.IOException;
-import java.util.Date;
 import java.util.Map;
 
 @Component
@@ -26,12 +25,12 @@ public class MappingReader {
 
     private Logger logger = LoggerFactory.getLogger(MappingReader.class);
 
-    public JdbcCursorItemReader<Map<String, Object>> get(String lookupTable, Date date, String category, String programName) {
+    public JdbcCursorItemReader<Map<String, Object>> get(String lookupTable, String programName) {
         JdbcCursorItemReader<Map<String, Object>> reader = new JdbcCursorItemReader<>();
         try {
             String sql = BatchUtil.convertResourceOutputToString(resource);
             reader.setDataSource(dataSource);
-            reader.setSql(String.format(sql, lookupTable, programName, date.toString()));
+            reader.setSql(String.format(sql, lookupTable, programName));
             reader.setRowMapper(new ColumnMapRowMapper());
         } catch (IOException e) {
             logger.error("Error in converting sql to string : " + e.getMessage());

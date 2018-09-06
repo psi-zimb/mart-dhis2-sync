@@ -79,8 +79,6 @@ public class TEIServiceTest {
 
     private TEIService teiService;
 
-    private Date syncedDate = new Date();
-
     @Before
     public void setUp() throws Exception {
         teiService = new TEIService();
@@ -100,7 +98,6 @@ public class TEIServiceTest {
         jobMocks(lookUpTable, mappingObj, service);
         jobParametersMocks(service, user);
         when(jobLauncher.run(job, jobParameters)).thenReturn(execution);
-        whenNew(Date.class).withNoArguments().thenReturn(syncedDate);
 
         teiService.triggerJob(service, user, lookUpTable, mappingObj);
 
@@ -108,7 +105,7 @@ public class TEIServiceTest {
         verifyNew(RunIdIncrementer.class, times(1)).withNoArguments();
         verify(jobBuilder, times(1)).incrementer(runIdIncrementer);
         verify(jobBuilder, times(1)).listener(listener);
-        verify(instanceStep, times(1)).get(lookUpTable, mappingObj, service, syncedDate);
+        verify(instanceStep, times(1)).get(lookUpTable, mappingObj, service);
         verify(jobBuilder, times(1)).flow(step);
         verify(flowBuilder, times(1)).end();
         verify(flowJobBuilder, times(1)).build();
@@ -131,7 +128,6 @@ public class TEIServiceTest {
         jobParametersMocks(service, user);
         when(jobLauncher.run(job, jobParameters))
                 .thenThrow(new JobExecutionAlreadyRunningException("Job Execution Already Running"));
-        whenNew(Date.class).withNoArguments().thenReturn(syncedDate);
 
         teiService.triggerJob(service, user, lookUpTable, mappingObj);
     }
@@ -141,7 +137,7 @@ public class TEIServiceTest {
         whenNew(RunIdIncrementer.class).withNoArguments().thenReturn(runIdIncrementer);
         when(jobBuilder.incrementer(runIdIncrementer)).thenReturn(jobBuilder);
         when(jobBuilder.listener(listener)).thenReturn(jobBuilder);
-        when(instanceStep.get(lookUpTable, mappingObj, service, syncedDate)).thenReturn(step);
+        when(instanceStep.get(lookUpTable, mappingObj, service)).thenReturn(step);
         when(jobBuilder.flow(step)).thenReturn(flowBuilder);
         when(flowBuilder.end()).thenReturn(flowJobBuilder);
         when(flowJobBuilder.build()).thenReturn(job);
