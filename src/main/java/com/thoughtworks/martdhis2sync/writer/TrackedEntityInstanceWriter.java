@@ -5,7 +5,6 @@ import com.thoughtworks.martdhis2sync.response.ImportSummary;
 import com.thoughtworks.martdhis2sync.response.TrackedEntityResponse;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
-import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -20,11 +19,9 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.Map.Entry;
 
 import static com.thoughtworks.martdhis2sync.response.ImportSummary.RESPONSE_SUCCESS;
@@ -76,6 +73,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     }
 
     private void processResponse(List<ImportSummary> importSummaries) {
+        newTEIUIDs.clear();
         Iterator<Entry<String, String>> mapIterator = TEIUtil.getPatientIdTEIUidMap().entrySet().iterator();
 
         importSummaries.forEach(importSummary -> {
@@ -115,7 +113,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
                     ps.setString(1, entry.getKey().toString());
                     ps.setString(2, entry.getValue().toString());
                     ps.setString(3, user);
-                    ps.setDate(4, new java.sql.Date(new java.util.Date().getTime()));
+                    ps.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
                     updateCount += ps.executeUpdate();
                 }
             }
