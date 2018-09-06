@@ -18,9 +18,6 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
     @Value("${tracked.entity.uid}")
     private String teUID;
 
-    @Value("${org.unit.uid}")
-    private String orgUnitUID;
-
     @Setter
     private Object mappingObj;
 
@@ -41,8 +38,9 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
         StringBuilder attributeSet = new StringBuilder(
                 String.format("{\"trackedEntityType\": \"%s\", " +
                                 "\"trackedEntityInstance\": %s, " +
-                                "\"orgUnit\":\"%s\", \"attributes\":[",
-                        teUID, tableRowJsonObject.get("instance_id").toString(), orgUnitUID));
+                                "\"orgUnit\":%s, \"attributes\":[",
+                        teUID, tableRowJsonObject.get("instance_id").toString(),
+                        tableRowJsonObject.get("OrgUnit").toString()));
         for (String key : keys) {
             if (null != mappingJsonObject.get(key)) {
                 String attribute = mappingJsonObject.get(key).toString();
