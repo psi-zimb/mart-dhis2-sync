@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -13,6 +14,7 @@ import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
+@PrepareForTest(TEIUtil.class)
 public class MarkerUtilTest {
 
     @Mock
@@ -28,7 +30,7 @@ public class MarkerUtilTest {
 
     @Test
     public void shouldUpdateMarkerTable() {
-        String syncedDate = "2018-06-19 13:53:28.000000";
+        String syncedDate = "Sun Dec 02 22:17:04 IST 292269055";
         String programName = "HTS Service";
         String category = "instance";
 
@@ -37,7 +39,7 @@ public class MarkerUtilTest {
 
         when(jdbcTemplate.update(sql)).thenReturn(1);
 
-        markerUtil.updateMarkerEntry(syncedDate, programName, category);
+        markerUtil.updateMarkerEntry(programName, category);
 
         verify(jdbcTemplate, times(1)).update(sql);
     }

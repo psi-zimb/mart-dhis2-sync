@@ -15,7 +15,6 @@ import org.springframework.jdbc.core.ColumnMapRowMapper;
 
 import javax.sql.DataSource;
 import java.io.IOException;
-import java.util.Date;
 import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
@@ -61,15 +60,13 @@ public class MappingReaderTest {
     public void shouldReturnReaderWithDetailsBasedOnInput() throws Exception {
         String lookupTable = "patient_identifier";
         String programName = "HTS Service";
-        Date date = new Date();
-        String category = "instance";
 
         String sql = String.format("SELECT lt.*, CASE WHEN i.instance_id is NULL THEN '' else i.instance_id END as instance_id  " +
                 "FROM patient_identifier lt LEFT join instance_tracker i ON  lt.\"Patient_Identifier\" = i.patient_id " +
                 "WHERE date_created > COALESCE((SELECT last_synced_date\n" +
                 "                                    FROM marker\n" +
                 "                                    WHERE category='instance' AND program_name='%s'), '-infinity');",
-                                                     programName, date);
+                                                     programName);
 
         whenNew(JdbcCursorItemReader.class).withNoArguments().thenReturn(jdbcCursorItemReader);
         whenNew(ColumnMapRowMapper.class).withNoArguments().thenReturn(columnMapRowMapper);
@@ -78,7 +75,7 @@ public class MappingReaderTest {
         doNothing().when(jdbcCursorItemReader).setSql(sql);
         doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
 
-        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.get(lookupTable, date, category, programName);
+        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.get(lookupTable, programName);
 
         assertEquals(jdbcCursorItemReader, actual);
 
@@ -91,8 +88,6 @@ public class MappingReaderTest {
     public void shouldLogWhenResourceCanNotBeConvertedToString() throws Exception {
         String lookupTable = "patient_identifier";
         String programName = "HTS Service";
-        Date date = new Date();
-        String category = "instance";
 
         setValuesForMemberFields(mappingReader, "logger", logger);
         whenNew(JdbcCursorItemReader.class).withNoArguments().thenReturn(jdbcCursorItemReader);
@@ -100,7 +95,7 @@ public class MappingReaderTest {
                 .thenThrow(new IOException("Could not convert sql file to string"));
 
         try {
-            mappingReader.get(lookupTable, date, category, programName);
+            mappingReader.get(lookupTable, programName);
         } catch (Exception e) {
             verify(logger, times(1))
                     .error("Error in converting sql to string : Could not convert sql file to string");

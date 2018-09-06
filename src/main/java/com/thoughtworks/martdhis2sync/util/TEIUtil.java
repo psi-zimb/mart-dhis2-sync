@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.Getter;
 
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -11,6 +12,8 @@ public class TEIUtil {
 
     @Getter
     private static Map<String, String> patientIdTEIUidMap = new LinkedHashMap<>();
+
+    public static Date date = new Date(Long.MIN_VALUE);
 
     private static String jsonToString(JsonElement jsonElement) {
         if (null == jsonElement) {

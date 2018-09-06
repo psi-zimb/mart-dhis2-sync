@@ -20,7 +20,6 @@ import java.util.Date;
 import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -78,18 +77,18 @@ public class TrackedEntityInstanceStepTest {
 
         when(stepBuilderFactory.get("TrackedEntityInstanceStep")).thenReturn(stepBuilder);
         when(stepBuilder.chunk(500)).thenReturn(simpleStepBuilder);
-        when(mappingReader.get(anyString(), any(Date.class), anyString(), anyString())).thenReturn(jdbcCursorItemReader);
+        when(mappingReader.get(anyString(), anyString())).thenReturn(jdbcCursorItemReader);
         when(simpleStepBuilder.reader(jdbcCursorItemReader)).thenReturn(simpleStepBuilder);
         when(processorObjectFactory.getObject()).thenReturn(processor);
         when(simpleStepBuilder.processor(processor)).thenReturn(simpleStepBuilder);
         when(simpleStepBuilder.writer(writer)).thenReturn(simpleStepBuilder);
         when(simpleStepBuilder.build()).thenReturn(step);
 
-        teiStep.get(lookupTable, mappingObj, programName, syncedDate);
+        teiStep.get(lookupTable, mappingObj, programName);
 
         verify(stepBuilderFactory, times(1)).get("TrackedEntityInstanceStep");
         verify(stepBuilder, times(1)).chunk(500);
-        verify(mappingReader, times(1)).get(anyString(), any(Date.class), anyString(), anyString());
+        verify(mappingReader, times(1)).get(anyString(), anyString());
         verify(simpleStepBuilder, times(1)).reader(jdbcCursorItemReader);
         verify(processorObjectFactory, times(1)).getObject();
         verify(simpleStepBuilder, times(1)).processor(processor);
