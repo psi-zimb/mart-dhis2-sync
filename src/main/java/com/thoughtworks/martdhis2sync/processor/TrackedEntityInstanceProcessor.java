@@ -22,7 +22,7 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
 
     public static final String EMPTY_STRING = "\"\"";
     private static final int ONE = 1;
-    @Value("${tracked.entity.uid}")
+    @Value("${tracked.entity.type.person.uid}")
     private String teUID;
 
     @Setter

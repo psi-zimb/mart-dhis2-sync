@@ -17,6 +17,12 @@ public class SyncRepository {
     @Value("${dhis2.url}")
     private String dhis2Url;
 
+    @Value("${dhis2.user}")
+    private String dhisUser;
+
+    @Value("${dhis2.password}")
+    private String dhisPassword;
+
     private Logger logger = LoggerFactory.getLogger(SyncRepository.class);
 
     private static final String logPrefix = "SyncRepository: ";
@@ -36,7 +42,7 @@ public class SyncRepository {
     }
 
     private HttpEntity getRequestEntity(String body) {
-        String auth = "admin" + ":" + "district";
+        String auth = dhisUser + ":" + dhisPassword;
         byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(Charset.forName("US-ASCII")));
         String authHeader = "Basic " + new String(encodedAuth);
 
