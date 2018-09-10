@@ -28,4 +28,8 @@ public class TEIUtil {
                 jsonToString(tableRowJsonObject.get("instance_id"))
         );
     }
+
+    public static void resetPatientTEIUidMap() {
+        patientIdTEIUidMap.clear();
+    }
 }
