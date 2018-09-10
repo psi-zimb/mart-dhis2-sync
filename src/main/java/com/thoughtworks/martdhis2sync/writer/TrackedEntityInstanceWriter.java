@@ -82,7 +82,6 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
                 while (mapIterator.hasNext()) {
                     Entry<String, String> entry = mapIterator.next();
                     if (EMPTY_STRING.equals(entry.getValue())) {
-                        entry.setValue(importSummary.getReference());
                         newTEIUIDs.put(StringUtils
                                 .replace(entry.getKey(), "\"", ""), importSummary.getReference());
                         break;
