@@ -37,4 +37,23 @@
             );
         </sql>
     </changeSet>
+    <changeSet id="145410092018" author="Pratibha">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="enrolment_tracker" schemaName="public"/>
+            </not>
+        </preConditions>
+        <comment>Creating tracker table for program enrolment in public schema</comment>
+        <sql>
+            CREATE TABLE public.enrolment_tracker(
+                enrolment_id text PRIMARY KEY,
+                instance_id text,
+                program_name text,
+                program_start_date TIMESTAMP,
+                status text,
+                created_by text,
+                created_date TIMESTAMP
+            );
+        </sql>
+    </changeSet>
 </databaseChangeLog>
