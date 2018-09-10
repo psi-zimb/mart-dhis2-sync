@@ -29,7 +29,6 @@ public class TrackedEntityInstanceStep {
     private TrackedEntityInstanceWriter writer;
 
     public Step get(String lookupTable, Object mappingObj, String programName) {
-        TEIUtil.date = new Date(Long.MIN_VALUE);
         return stepBuilderFactory.get("TrackedEntityInstanceStep")
                 .chunk(500)
                 .reader(mappingReader.get(lookupTable, programName))
