@@ -12,12 +12,21 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
 @EnableScheduling
 public class OrgUnitService {
+
+    @Autowired
+    private DataSource dataSource;
 
     @Autowired
     private SyncRepository syncRepository;
@@ -29,7 +38,7 @@ public class OrgUnitService {
     private static final String LOG_PREFIX = "OrgUnit Service: ";
 
     @Scheduled(cron = "${org.unit.cron.interval}")
-    public void getOrgUnitsList() {
+    public void getOrgUnitsList() throws SQLException {
 
         logger.info(LOG_PREFIX + "Started.");
         orgUnits.clear();
@@ -47,9 +56,29 @@ public class OrgUnitService {
         } while (null != uri);
 
         OrgUnitUtil.getOrgUnitMap().clear();
-        for (OrgUnit ou : orgUnits) {
-            OrgUnitUtil.getOrgUnitMap().put(ou.getDisplayName(), ou.getId());
+        int count = updateTracker();
+        logger.info(LOG_PREFIX + "Saved " + count + " Org Units");
+    }
+
+    private int updateTracker() throws SQLException {
+
+        String deleteQuery = "DELETE FROM public.orgunit_tracker";
+        String insertQuery = "INSERT INTO public.orgunit_tracker(orgunit, id, created_date) values (?, ?, ?)";
+        int updateCount = 0;
+
+        try (Connection connection = dataSource.getConnection()) {
+            try (PreparedStatement ps = connection.prepareStatement(deleteQuery)) {
+                ps.executeUpdate();
+            }
+            try (PreparedStatement ps = connection.prepareStatement(insertQuery)) {
+                for (OrgUnit ou : orgUnits) {
+                    ps.setString(1, ou.getDisplayName());
+                    ps.setString(2, ou.getId());
+                    ps.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
+                    updateCount += ps.executeUpdate();
+                }
+            }
         }
-        logger.info(LOG_PREFIX + "Successfully received and cached "+ OrgUnitUtil.getOrgUnitMap().size() +" Org Units");
+        return updateCount;
     }
 }
