@@ -56,4 +56,19 @@
             );
         </sql>
     </changeSet>
+    <changeSet id="145411092018" author="Pratibha">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="orgunit_tracker" schemaName="public"/>
+            </not>
+        </preConditions>
+        <comment>Creating tracker table for organisation units in public schema</comment>
+        <sql>
+            CREATE TABLE public.orgunit_tracker(
+                orgunit text  PRIMARY KEY,
+                id text,
+                created_date TIMESTAMP
+            );
+        </sql>
+    </changeSet>
 </databaseChangeLog>
