@@ -38,7 +38,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     private Logger logger = LoggerFactory.getLogger(TrackedEntityInstanceWriter.class);
     private static final String LOG_PREFIX = "TEI SYNC: ";
 
-    @Value("${tei.uri}")
+    @Value("${uri.tei}")
     private String teiUri;
 
     @Value("#{jobParameters['user']}")
