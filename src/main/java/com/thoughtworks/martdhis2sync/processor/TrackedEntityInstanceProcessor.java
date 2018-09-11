@@ -3,6 +3,7 @@ package com.thoughtworks.martdhis2sync.processor;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.thoughtworks.martdhis2sync.util.OrgUnitUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -20,7 +21,7 @@ import java.util.Set;
 @Component
 public class TrackedEntityInstanceProcessor implements ItemProcessor {
 
-    public static final String EMPTY_STRING = "\"\"";
+    private static final String EMPTY_STRING = "\"\"";
     private static final int ONE = 1;
     @Value("${tracked.entity.type.person.uid}")
     private String teUID;
@@ -56,13 +57,14 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
         }
 
         Set<String> keys = tableRowJsonObject.keySet();
+        String orgUnit = tableRowJsonObject.get("OrgUnit").toString();
 
         StringBuilder attributeSet = new StringBuilder(
                 String.format("{\"trackedEntityType\": \"%s\", " +
                                 "\"trackedEntityInstance\": %s, " +
-                                "\"orgUnit\":%s, \"attributes\":[",
+                                "\"orgUnit\":\"%s\", \"attributes\":[",
                         teUID, tableRowJsonObject.get("instance_id").toString(),
-                        tableRowJsonObject.get("OrgUnit").toString()));
+                        OrgUnitUtil.getOrgUnitMap().get(orgUnit.substring(ONE, orgUnit.length() - ONE))));
         for (String key : keys) {
             if (null != mappingJsonObject.get(key)) {
                 String attribute = mappingJsonObject.get(key).toString();
