@@ -37,6 +37,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     private static Map<String, String> newTEIUIDs = new LinkedHashMap<>();
     private Logger logger = LoggerFactory.getLogger(TrackedEntityInstanceWriter.class);
     private static final String LOG_PREFIX = "TEI SYNC: ";
+    private static boolean IS_SYNC_SUCCESS = true;
 
     @Value("${uri.tei}")
     private String teiUri;
@@ -68,8 +69,11 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
             return;
         }
         logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
+        IS_SYNC_SUCCESS = true;
         processResponse(responseEntity.getBody().getResponse().getImportSummaries());
-        updateMarker();
+        if(IS_SYNC_SUCCESS) {
+            updateMarker();
+        }
     }
 
     private void processResponse(List<ImportSummary> importSummaries) {
@@ -88,6 +92,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
                     }
                 }
             } else if (RESPONSE_SUCCESS.equals(importSummary.getStatus()) && !importSummary.getConflicts().isEmpty()) {
+                IS_SYNC_SUCCESS = false;
                 importSummary.getConflicts().forEach(conflict -> logger.error(LOG_PREFIX + "" + conflict.getValue()));
             }
         });
