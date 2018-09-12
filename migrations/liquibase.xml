@@ -17,7 +17,7 @@
                 patient_id text,
                 instance_id text PRIMARY KEY,
                 created_by text,
-                created_date TIMESTAMP
+                date_created TIMESTAMP
             );
         </sql>
     </changeSet>
@@ -52,7 +52,7 @@
                 program_start_date TIMESTAMP,
                 status text,
                 created_by text,
-                created_date TIMESTAMP
+                date_created TIMESTAMP
             );
         </sql>
     </changeSet>
@@ -67,7 +67,7 @@
             CREATE TABLE public.orgunit_tracker(
                 orgunit text  PRIMARY KEY,
                 id text,
-                created_date TIMESTAMP
+                date_created TIMESTAMP
             );
         </sql>
     </changeSet>

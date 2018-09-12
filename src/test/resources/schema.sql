@@ -20,5 +20,12 @@ CREATE TABLE "public"."instance_tracker"(
   patient_id text,
   instance_id text PRIMARY KEY,
   created_by text,
-  created_date date
+  date_created TIMESTAMP
+);
+
+DROP TABLE IF EXISTS orgunit_tracker CASCADE;
+CREATE TABLE "public"."orgunit_tracker"(
+  orgunit text  PRIMARY KEY,
+  id text,
+  date_created TIMESTAMP
 );

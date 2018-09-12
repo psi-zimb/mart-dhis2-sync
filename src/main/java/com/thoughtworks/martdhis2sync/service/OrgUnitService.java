@@ -3,6 +3,7 @@ package com.thoughtworks.martdhis2sync.service;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.response.OrgUnit;
 import com.thoughtworks.martdhis2sync.response.OrgUnitResponse;
+import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.OrgUnitUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +18,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,7 +63,7 @@ public class OrgUnitService {
     private int updateTracker() throws SQLException {
 
         String deleteQuery = "DELETE FROM public.orgunit_tracker";
-        String insertQuery = "INSERT INTO public.orgunit_tracker(orgunit, id, created_date) values (?, ?, ?)";
+        String insertQuery = "INSERT INTO public.orgunit_tracker(orgunit, id, date_created) values (?, ?, ?)";
         int updateCount = 0;
 
         try (Connection connection = dataSource.getConnection()) {
@@ -74,7 +74,7 @@ public class OrgUnitService {
                 for (OrgUnit ou : orgUnits) {
                     ps.setString(1, ou.getDisplayName());
                     ps.setString(2, ou.getId());
-                    ps.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
+                    ps.setTimestamp(3, Timestamp.valueOf(BatchUtil.GetUTCdatetimeAsString()));
                     updateCount += ps.executeUpdate();
                 }
             }

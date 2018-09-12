@@ -3,6 +3,7 @@ package com.thoughtworks.martdhis2sync.writer;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.response.ImportSummary;
 import com.thoughtworks.martdhis2sync.response.TrackedEntityResponse;
+import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.slf4j.Logger;
@@ -20,7 +21,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -104,7 +104,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
 
     private int updateTracker() throws SQLException {
 
-        String sqlQuery = "INSERT INTO public.instance_tracker(patient_id, instance_id, created_by, created_date) values (? , ?, ?, ?)";
+        String sqlQuery = "INSERT INTO public.instance_tracker(patient_id, instance_id, created_by, date_created) values (? , ?, ?, ?)";
         int updateCount;
         try (Connection connection = dataSource.getConnection()) {
             try (PreparedStatement ps = connection.prepareStatement(sqlQuery)) {
@@ -113,7 +113,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
                     ps.setString(1, entry.getKey().toString());
                     ps.setString(2, entry.getValue().toString());
                     ps.setString(3, user);
-                    ps.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
+                    ps.setTimestamp(4, Timestamp.valueOf(BatchUtil.GetUTCdatetimeAsString()));
                     updateCount += ps.executeUpdate();
                 }
             }
