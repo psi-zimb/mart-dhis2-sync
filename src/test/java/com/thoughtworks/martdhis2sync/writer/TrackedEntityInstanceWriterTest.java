@@ -259,4 +259,24 @@ public class TrackedEntityInstanceWriterTest {
         writer.write(list);
         verify(syncRepository, times(1)).sendData(uri, requestBody);
     }
+
+    @Test
+    public void shouldNotUpdateMarkerWhenSyncResponseHasConflicts() {
+        List<Conflict> conflicts = Collections.singletonList(new Conflict("", "Invalid org unit ID: SxgCPPeiq3c_"));
+        importSummaries = Arrays.asList(
+                new ImportSummary("", RESPONSE_SUCCESS,
+                        new ImportCount(0, 0, 0, 0), conflicts, referenceUIDs.get(1)),
+                new ImportSummary("", RESPONSE_SUCCESS,
+                        new ImportCount(0, 0, 0, 0), new ArrayList<>(), referenceUIDs.get(1)));
+
+        when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
+        when(responseEntity.getBody()).thenReturn(trackedEntityResponse);
+        when(trackedEntityResponse.getResponse()).thenReturn(response);
+        when(response.getImportSummaries()).thenReturn(importSummaries);
+
+        writer.write(list);
+
+        verify(markerUtil, times(0))
+                .updateMarkerEntry(programName, "instance");
+    }
 }
