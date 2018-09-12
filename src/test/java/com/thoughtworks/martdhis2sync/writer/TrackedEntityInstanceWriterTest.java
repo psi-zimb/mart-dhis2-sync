@@ -214,9 +214,9 @@ public class TrackedEntityInstanceWriterTest {
         List<Conflict> conflicts = Collections.singletonList(new Conflict("", "Invalid org unit ID: SxgCPPeiq3c_"));
         importSummaries = Arrays.asList(
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(0, 0, 0, 0), conflicts, referenceUIDs.get(1)),
+                        new ImportCount(1, 0, 0, 0), conflicts, null),
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(0, 0, 0, 0), conflicts, referenceUIDs.get(1)));
+                        new ImportCount(0, 0, 0, 0), new ArrayList<>(), referenceUIDs.get(1)));
 
         when(responseEntity.getBody()).thenReturn(trackedEntityResponse);
         when(trackedEntityResponse.getResponse()).thenReturn(response);
@@ -226,8 +226,7 @@ public class TrackedEntityInstanceWriterTest {
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(any())).thenReturn(preparedStatement);
 
-        patientUIDMap.put(patientIDs.get(0), referenceUIDs.get(0));
-        patientUIDMap.put(patientIDs.get(1), EMPTY_STRING);
+        patientUIDMap.put(patientIDs.get(1), referenceUIDs.get(1));
         when(TEIUtil.getPatientIdTEIUidMap()).thenReturn(patientUIDMap);
 
         writer.write(list);
