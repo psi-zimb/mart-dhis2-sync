@@ -94,6 +94,9 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
             } else if (RESPONSE_SUCCESS.equals(importSummary.getStatus()) && !importSummary.getConflicts().isEmpty()) {
                 IS_SYNC_SUCCESS = false;
                 importSummary.getConflicts().forEach(conflict -> logger.error(LOG_PREFIX + "" + conflict.getValue()));
+                if (mapIterator.hasNext()) {
+                    mapIterator.next();
+                }
             }
         });
         try {
