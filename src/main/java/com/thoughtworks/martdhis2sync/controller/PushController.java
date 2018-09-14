@@ -2,6 +2,7 @@ package com.thoughtworks.martdhis2sync.controller;
 
 import com.google.gson.Gson;
 import com.thoughtworks.martdhis2sync.service.MappingService;
+import com.thoughtworks.martdhis2sync.service.ProgramEnrollmentService;
 import com.thoughtworks.martdhis2sync.service.TEIService;
 import com.thoughtworks.martdhis2sync.model.LookupTable;
 import com.thoughtworks.martdhis2sync.model.MappingJson;
@@ -26,6 +27,9 @@ public class PushController {
     @Autowired
     private TEIService teiService;
 
+    @Autowired
+    private ProgramEnrollmentService programEnrollmentService;
+
     @PutMapping(value = "/pushData")
     public Map<String, String> pushData(@RequestParam String service, @RequestParam String user)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
@@ -38,6 +42,7 @@ public class PushController {
         MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
 
         teiService.triggerJob(service, user, lookupTable.getInstance(), mappingJson.getInstance());
+        programEnrollmentService.triggerJob(lookupTable.getEnrollments());
 
         Map<String, String> result = new HashMap<>();
         result.put("Job Status", "Executed");
