@@ -14,7 +14,7 @@ public class MarkerUtil {
 
     public void updateMarkerEntry(String programName, String category) {
         String sql = String.format("UPDATE marker SET last_synced_date = '%s' WHERE program_name = '%s' AND category = '%s'",
-                TEIUtil.date.toString(), programName, category);
+                BatchUtil.getStringFromDate(TEIUtil.date), programName, category);
         jdbcTemplate.update(sql);
     }
 }
