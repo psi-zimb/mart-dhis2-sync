@@ -1,7 +1,7 @@
 package com.thoughtworks.martdhis2sync.repository;
 
-import com.thoughtworks.martdhis2sync.response.OrgUnitResponse;
-import com.thoughtworks.martdhis2sync.response.TrackedEntityResponse;
+import com.thoughtworks.martdhis2sync.model.OrgUnitResponse;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityResponse;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

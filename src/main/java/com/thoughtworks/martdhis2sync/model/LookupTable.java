@@ -1,4 +1,4 @@
-package com.thoughtworks.martdhis2sync.util;
+package com.thoughtworks.martdhis2sync.model;
 
 
 import lombok.Data;
