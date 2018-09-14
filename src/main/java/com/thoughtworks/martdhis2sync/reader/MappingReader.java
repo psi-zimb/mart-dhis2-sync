@@ -21,16 +21,32 @@ public class MappingReader {
     private DataSource dataSource;
 
     @Value("classpath:sql/InstanceReader.sql")
-    private Resource resource;
+    private Resource instanceResource;
+
+    @Value("classpath:sql/EnrollmentReader.sql")
+    private Resource enrollmentResource;
 
     private Logger logger = LoggerFactory.getLogger(MappingReader.class);
 
     public JdbcCursorItemReader<Map<String, Object>> get(String lookupTable, String programName) {
         JdbcCursorItemReader<Map<String, Object>> reader = new JdbcCursorItemReader<>();
         try {
-            String sql = BatchUtil.convertResourceOutputToString(resource);
+            String sql = BatchUtil.convertResourceOutputToString(instanceResource);
             reader.setDataSource(dataSource);
             reader.setSql(String.format(sql, lookupTable, programName));
+            reader.setRowMapper(new ColumnMapRowMapper());
+        } catch (IOException e) {
+            logger.error("Error in converting sql to string : " + e.getMessage());
+        }
+        return reader;
+    }
+
+    public JdbcCursorItemReader<Map<String, Object>> getEnrollmentReader(String lookupTable) {
+        JdbcCursorItemReader<Map<String, Object>> reader = new JdbcCursorItemReader<>();
+        try {
+            String sql = BatchUtil.convertResourceOutputToString(enrollmentResource);
+            reader.setDataSource(dataSource);
+            reader.setSql(String.format(sql, lookupTable));
             reader.setRowMapper(new ColumnMapRowMapper());
         } catch (IOException e) {
             logger.error("Error in converting sql to string : " + e.getMessage());
