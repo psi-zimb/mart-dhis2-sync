@@ -1,11 +1,11 @@
 package com.thoughtworks.martdhis2sync.writer;
 
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
-import com.thoughtworks.martdhis2sync.response.Conflict;
-import com.thoughtworks.martdhis2sync.response.ImportCount;
-import com.thoughtworks.martdhis2sync.response.ImportSummary;
-import com.thoughtworks.martdhis2sync.response.Response;
-import com.thoughtworks.martdhis2sync.response.TrackedEntityResponse;
+import com.thoughtworks.martdhis2sync.model.Conflict;
+import com.thoughtworks.martdhis2sync.model.ImportCount;
+import com.thoughtworks.martdhis2sync.model.ImportSummary;
+import com.thoughtworks.martdhis2sync.model.Response;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityResponse;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import lombok.SneakyThrows;
@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
-import static com.thoughtworks.martdhis2sync.response.ImportSummary.RESPONSE_SUCCESS;
+import static com.thoughtworks.martdhis2sync.model.ImportSummary.RESPONSE_SUCCESS;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;

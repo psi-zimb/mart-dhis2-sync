@@ -1,8 +1,8 @@
 package com.thoughtworks.martdhis2sync.writer;
 
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
-import com.thoughtworks.martdhis2sync.response.ImportSummary;
-import com.thoughtworks.martdhis2sync.response.TrackedEntityResponse;
+import com.thoughtworks.martdhis2sync.model.ImportSummary;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityResponse;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import static com.thoughtworks.martdhis2sync.response.ImportSummary.RESPONSE_SUCCESS;
+import static com.thoughtworks.martdhis2sync.model.ImportSummary.RESPONSE_SUCCESS;
 
 @Component
 @StepScope

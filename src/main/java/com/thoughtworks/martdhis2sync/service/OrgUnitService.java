@@ -1,8 +1,8 @@
 package com.thoughtworks.martdhis2sync.service;
 
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
-import com.thoughtworks.martdhis2sync.response.OrgUnit;
-import com.thoughtworks.martdhis2sync.response.OrgUnitResponse;
+import com.thoughtworks.martdhis2sync.model.OrgUnit;
+import com.thoughtworks.martdhis2sync.model.OrgUnitResponse;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.OrgUnitUtil;
 import org.slf4j.Logger;
