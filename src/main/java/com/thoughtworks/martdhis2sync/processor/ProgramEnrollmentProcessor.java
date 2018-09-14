@@ -1,6 +1,7 @@
 package com.thoughtworks.martdhis2sync.processor;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.springframework.batch.item.ItemProcessor;
@@ -23,7 +24,7 @@ public class ProgramEnrollmentProcessor implements ItemProcessor {
     @Override
     public String process(Object tableRow) {
 
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
         JsonElement tableRowJsonElement = gson.toJsonTree(tableRow);
         JsonObject tableRowJsonObject = tableRowJsonElement.getAsJsonObject();
 
