@@ -7,6 +7,6 @@ import lombok.Data;
 public class LookupTable {
 
     private String instance;
-    private String enrolment;
+    private String enrollments;
     private String event;
 }
