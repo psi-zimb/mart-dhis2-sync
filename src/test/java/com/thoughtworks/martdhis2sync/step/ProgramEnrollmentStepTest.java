@@ -2,6 +2,7 @@ package com.thoughtworks.martdhis2sync.step;
 
 import com.thoughtworks.martdhis2sync.processor.ProgramEnrollmentProcessor;
 import com.thoughtworks.martdhis2sync.reader.MappingReader;
+import com.thoughtworks.martdhis2sync.writer.ProgramEnrollmentWriter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,6 +45,9 @@ public class ProgramEnrollmentStepTest {
     private ProgramEnrollmentProcessor processor;
 
     @Mock
+    private ProgramEnrollmentWriter writer;
+
+    @Mock
     private TaskletStep step;
 
 
@@ -55,6 +59,7 @@ public class ProgramEnrollmentStepTest {
         setValuesForMemberFields(programEnrollmentStep, "stepBuilderFactory", stepBuilderFactory);
         setValuesForMemberFields(programEnrollmentStep, "mappingReader", mappingReader);
         setValuesForMemberFields(programEnrollmentStep, "processor", processor);
+        setValuesForMemberFields(programEnrollmentStep, "writer", writer);
     }
 
     @Test
@@ -66,6 +71,7 @@ public class ProgramEnrollmentStepTest {
         when(mappingReader.getEnrollmentReader(lookupTable)).thenReturn(jdbcCursorItemReader);
         when(simpleStepBuilder.reader(jdbcCursorItemReader)).thenReturn(simpleStepBuilder);
         when(simpleStepBuilder.processor(processor)).thenReturn(simpleStepBuilder);
+        when(simpleStepBuilder.writer(writer)).thenReturn(simpleStepBuilder);
         when(simpleStepBuilder.build()).thenReturn(step);
 
         programEnrollmentStep.get(lookupTable);
@@ -75,6 +81,7 @@ public class ProgramEnrollmentStepTest {
         verify(mappingReader, times(1)).getEnrollmentReader(lookupTable);
         verify(simpleStepBuilder, times(1)).reader(jdbcCursorItemReader);
         verify(simpleStepBuilder, times(1)).processor(processor);
+        verify(simpleStepBuilder, times(1)).writer(writer);
         verify(simpleStepBuilder, times(1)).build();
     }
 

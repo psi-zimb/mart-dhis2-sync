@@ -2,6 +2,7 @@ package com.thoughtworks.martdhis2sync.step;
 
 import com.thoughtworks.martdhis2sync.processor.ProgramEnrollmentProcessor;
 import com.thoughtworks.martdhis2sync.reader.MappingReader;
+import com.thoughtworks.martdhis2sync.writer.ProgramEnrollmentWriter;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +19,16 @@ public class ProgramEnrollmentStep {
 
     @Autowired
     private ProgramEnrollmentProcessor processor;
-    
+
+    @Autowired
+    private ProgramEnrollmentWriter writer;
+
     public Step get(String lookupTable) {
         return stepBuilderFactory.get("ProgramEnrollmentStep")
                 .chunk(500)
                 .reader(mappingReader.getEnrollmentReader(lookupTable))
                 .processor(processor)
+                .writer(writer)
                 .build();
     }
 }
