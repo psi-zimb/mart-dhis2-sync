@@ -23,5 +23,8 @@ public class BatchUtil {
         return  sdf.format(new Date());
     }
 
-
+    public static String getStringFromDate(Date date) {
+        SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+        return outputFormat.format(date);
+    }
 }

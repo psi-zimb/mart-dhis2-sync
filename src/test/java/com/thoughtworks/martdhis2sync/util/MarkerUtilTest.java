@@ -30,12 +30,11 @@ public class MarkerUtilTest {
 
     @Test
     public void shouldUpdateMarkerTable() {
-        String syncedDate = "Sun Dec 02 22:17:04 IST 292269055";
         String programName = "HTS Service";
         String category = "instance";
 
         String sql = String.format("UPDATE marker SET last_synced_date = '%s' WHERE program_name = '%s' AND category = '%s'",
-                syncedDate, programName, category);
+                "292269055-12-02 22:17:04", programName, category);
 
         when(jdbcTemplate.update(sql)).thenReturn(1);
 
