@@ -43,8 +43,12 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
         JsonObject mappingJsonObject = mappingObjJsonElement.getAsJsonObject();
 
         TEIUtil.setPatientIds(tableRowJsonObject);
+        updateLatestDateCreated(tableRowJsonObject.get("date_created").toString());
 
-        String dateCreated = tableRowJsonObject.get("date_created").toString();
+        return createRequestBodyForTrackedEntityInstance(tableRowJsonObject, mappingJsonObject);
+    }
+
+    private void updateLatestDateCreated(String dateCreated) {
         String substring = dateCreated.substring(ONE, dateCreated.length() - ONE);
 
         try {
@@ -56,7 +60,9 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
         } catch (ParseException e) {
             logger.error("TrackedEntityProcessor: " + e);
         }
+    }
 
+    private String createRequestBodyForTrackedEntityInstance(JsonObject tableRowJsonObject, JsonObject mappingJsonObject) {
         Set<String> keys = tableRowJsonObject.keySet();
 
         StringBuilder attributeSet = new StringBuilder(
@@ -74,10 +80,8 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
                 }
             }
         }
-
         attributeSet.deleteCharAt(attributeSet.length() - 1);
         attributeSet.append("]}");
-
         return attributeSet.toString();
     }
 }
