@@ -52,21 +52,22 @@ public class MappingReaderTest {
     public void setUp() throws Exception {
         mappingReader = new MappingReader();
         setValuesForMemberFields(mappingReader, "dataSource", dataSource);
-        setValuesForMemberFields(mappingReader, "resource", resource);
+        setValuesForMemberFields(mappingReader, "instanceResource", resource);
+        setValuesForMemberFields(mappingReader, "enrollmentResource", resource);
         mockStatic(BatchUtil.class);
     }
 
     @Test
-    public void shouldReturnReaderWithDetailsBasedOnInput() throws Exception {
+    public void shouldReturnInstanceReaderWithDetailsBasedOnInput() throws Exception {
         String lookupTable = "patient_identifier";
         String programName = "HTS Service";
 
         String sql = String.format("SELECT lt.*, CASE WHEN i.instance_id is NULL THEN '' else i.instance_id END as instance_id  " +
-                "FROM patient_identifier lt LEFT join instance_tracker i ON  lt.\"Patient_Identifier\" = i.patient_id " +
-                "WHERE date_created > COALESCE((SELECT last_synced_date\n" +
-                "                                    FROM marker\n" +
-                "                                    WHERE category='instance' AND program_name='%s'), '-infinity');",
-                                                     programName);
+                        "FROM patient_identifier lt LEFT join instance_tracker i ON  lt.\"Patient_Identifier\" = i.patient_id " +
+                        "WHERE date_created > COALESCE((SELECT last_synced_date\n" +
+                        "                                    FROM marker\n" +
+                        "                                    WHERE category='instance' AND program_name='%s'), '-infinity');",
+                programName);
 
         whenNew(JdbcCursorItemReader.class).withNoArguments().thenReturn(jdbcCursorItemReader);
         whenNew(ColumnMapRowMapper.class).withNoArguments().thenReturn(columnMapRowMapper);
@@ -100,5 +101,34 @@ public class MappingReaderTest {
             verify(logger, times(1))
                     .error("Error in converting sql to string : Could not convert sql file to string");
         }
+    }
+
+    @Test
+    public void shouldReturnReaderForProgramEnrollment() throws Exception {
+        String lookupTable = "programs";
+        String programName = "HTS Service";
+
+        String sql = String.format("SELECT lt.*,\n" +
+                        "  CASE WHEN i.instance_id is NULL THEN '' ELSE i.instance_id END as instance_id,\n" +
+                        "  CASE WHEN o.id is NULL THEN '' ELSE o.id END as orgunit_id\n" +
+                        "FROM %s lt\n" +
+                        "  LEFT join instance_tracker i ON  lt.\"Patient_Identifier\" = i.patient_id\n" +
+                        "  LEFT join orgunit_tracker o ON  lt.\"OrgUnit\" = o.orgUnit;",
+                lookupTable);
+
+        whenNew(JdbcCursorItemReader.class).withNoArguments().thenReturn(jdbcCursorItemReader);
+        whenNew(ColumnMapRowMapper.class).withNoArguments().thenReturn(columnMapRowMapper);
+        when(BatchUtil.convertResourceOutputToString(resource)).thenReturn(sql);
+        doNothing().when(jdbcCursorItemReader).setDataSource(dataSource);
+        doNothing().when(jdbcCursorItemReader).setSql(sql);
+        doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
+
+        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getEnrollmentReader(lookupTable);
+
+        assertEquals(jdbcCursorItemReader, actual);
+
+        verify(jdbcCursorItemReader, times(1)).setDataSource(dataSource);
+        verify(jdbcCursorItemReader, times(1)).setSql(sql);
+        verify(jdbcCursorItemReader, times(1)).setRowMapper(columnMapRowMapper);
     }
 }
