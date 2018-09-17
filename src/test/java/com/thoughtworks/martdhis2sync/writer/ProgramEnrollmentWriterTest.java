@@ -1,8 +1,7 @@
 package com.thoughtworks.martdhis2sync.writer;
 
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
-import com.thoughtworks.martdhis2sync.response.Response;
-import com.thoughtworks.martdhis2sync.response.TrackedEntityResponse;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityResponse;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.junit.Before;
 import org.junit.Test;
