@@ -4,14 +4,17 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
+
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITHOUT_TIME;
 
 @Component
 public class ProgramEnrollmentProcessor implements ItemProcessor {
     private static final String EMPTY_STRING = "\"\"";
 
-    public static final String ENROLLMENT_API_FORMAT = "{\"enrollment\": " + EMPTY_STRING + ", " +
+    private static final String ENROLLMENT_API_FORMAT = "{\"enrollment\": " + EMPTY_STRING + ", " +
             "\"trackedEntityInstance\": %s, " +
             "\"orgUnit\":%s," +
             "\"program\":%s," +
@@ -24,9 +27,11 @@ public class ProgramEnrollmentProcessor implements ItemProcessor {
     @Override
     public String process(Object tableRow) {
 
-        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
+        Gson gson = new GsonBuilder().setDateFormat(DATEFORMAT_WITHOUT_TIME).create();
         JsonElement tableRowJsonElement = gson.toJsonTree(tableRow);
         JsonObject tableRowJsonObject = tableRowJsonElement.getAsJsonObject();
+
+        EnrollmentUtil.addEnrollment(tableRowJsonObject);
 
         return String.format(
                 ENROLLMENT_API_FORMAT,

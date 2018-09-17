@@ -37,13 +37,14 @@ public class ProgramEnrollmentService {
 
     private static final String LOG_PREFIX = "Program Enrollment Service: ";
 
-    public void triggerJob(String lookupTable) throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
+    public void triggerJob(String user, String lookupTable) throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
             JobRestartException, JobInstanceAlreadyCompleteException {
 
         try {
             jobLauncher.run(syncProgramEnrollmentJob(lookupTable),
                     new JobParametersBuilder()
                             .addDate("date", new Date())
+                            .addString("user", user)
                             .toJobParameters());
         } catch (Exception e) {
             logger.error(LOG_PREFIX + e.getMessage());

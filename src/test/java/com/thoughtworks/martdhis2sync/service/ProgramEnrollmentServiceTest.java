@@ -84,12 +84,13 @@ public class ProgramEnrollmentServiceTest {
     @Test
     public void shouldTriggerTheJob() throws Exception {
         String lookUpTable = "patient_program_enrollment";
+        String user = "testUser";
 
         jobMocks(lookUpTable);
         jobParametersMocks();
         when(jobLauncher.run(job, jobParameters)).thenReturn(execution);
 
-        programEnrollmentService.triggerJob(lookUpTable);
+        programEnrollmentService.triggerJob(user, lookUpTable);
 
         verify(jobBuilderFactory, times(1)).get("syncProgramEnrollment");
         verifyNew(RunIdIncrementer.class, times(1)).withNoArguments();
