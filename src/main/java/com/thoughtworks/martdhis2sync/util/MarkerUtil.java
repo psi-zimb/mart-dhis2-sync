@@ -9,6 +9,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
+
 @Component
 public class MarkerUtil {
 
@@ -33,6 +35,6 @@ public class MarkerUtil {
             return new Date(Long.MIN_VALUE);
         }
 
-        return BatchUtil.getDateFromString(lastSyncedDate.toString());
+        return BatchUtil.getDateFromString(lastSyncedDate.toString(), DATEFORMAT_WITH_24HR_TIME);
     }
 }

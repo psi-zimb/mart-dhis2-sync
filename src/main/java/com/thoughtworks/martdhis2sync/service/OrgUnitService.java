@@ -74,7 +74,7 @@ public class OrgUnitService {
                 for (OrgUnit ou : orgUnits) {
                     ps.setString(1, ou.getDisplayName());
                     ps.setString(2, ou.getId());
-                    ps.setTimestamp(3, Timestamp.valueOf(BatchUtil.GetUTCdatetimeAsString()));
+                    ps.setTimestamp(3, Timestamp.valueOf(BatchUtil.GetUTCDateTimeAsString()));
                     updateCount += ps.executeUpdate();
                 }
             }

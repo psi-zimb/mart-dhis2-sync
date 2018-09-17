@@ -71,4 +71,25 @@
             );
         </sql>
     </changeSet>
+    <changeSet id="185417092018" author="Pratibha">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="enrollment_tracker" schemaName="public"/>
+            </not>
+        </preConditions>
+        <comment>Rename the table enrolment_tracker to enrollment_tracker</comment>
+        <sql>
+            ALTER TABLE enrolment_tracker RENAME TO enrollment_tracker;
+        </sql>
+    </changeSet>
+    <changeSet id="185517092018" author="Pratibha">
+        <preConditions onFail="MARK_RAN">
+            <columnExists columnName="enrolment_id" tableName="enrollment_tracker"/>
+        </preConditions>
+        <comment>Rename the column from enrolment_id to enrollment_id in enrollment_tracker table</comment>
+        <sql>
+            ALTER TABLE enrollment_tracker DROP COLUMN enrolment_id;
+            ALTER TABLE enrollment_tracker ADD COLUMN enrollment_id;
+        </sql>
+    </changeSet>
 </databaseChangeLog>
