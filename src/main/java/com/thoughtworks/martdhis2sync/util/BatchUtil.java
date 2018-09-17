@@ -4,6 +4,7 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
@@ -26,5 +27,15 @@ public class BatchUtil {
     public static String getStringFromDate(Date date) {
         SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
         return outputFormat.format(date);
+    }
+
+    public static Date getDateFromString(String date) {
+        SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+        try {
+            return outputFormat.parse(date);
+        } catch (ParseException ignored) {
+
+        }
+        return new Date(Long.MIN_VALUE);
     }
 }

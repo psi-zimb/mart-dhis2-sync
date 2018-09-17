@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.util;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -7,6 +8,11 @@ import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static org.mockito.Mockito.times;
@@ -41,5 +47,39 @@ public class MarkerUtilTest {
         markerUtil.updateMarkerEntry(programName, category);
 
         verify(jdbcTemplate, times(1)).update(sql);
+    }
+
+    @Test
+    public void shouldReturnMinDateValueWhenSqlResponseIsNull() {
+        String expected = "Sun Dec 02 22:17:04 IST 292269055";
+        String programName = "HTS Service";
+        String category = "instance";
+        Map<String, Object> syncedDate = new HashMap<>();
+        syncedDate.put("last_synced_date", null);
+        String sql = String.format("SELECT last_synced_date FROM marker WHERE program_name='%s' AND category='%s'",
+                programName, category);
+
+        when(jdbcTemplate.queryForList(sql)).thenReturn(Collections.singletonList(syncedDate));
+
+        Date lastSyncedDate = markerUtil.getLastSyncedDate(programName, category);
+
+        Assert.assertEquals(expected, lastSyncedDate.toString());
+    }
+
+    @Test
+    public void shouldReturnDateObjectFromSqlResponse() {
+        String expected = "Sun Dec 02 22:17:04 IST 2018";
+        String programName = "HTS Service";
+        String category = "instance";
+        Map<String, Object> syncedDate = new HashMap<>();
+        syncedDate.put("last_synced_date", "2018-12-02 22:17:04");
+        String sql = String.format("SELECT last_synced_date FROM marker WHERE program_name='%s' AND category='%s'",
+                programName, category);
+
+        when(jdbcTemplate.queryForList(sql)).thenReturn(Collections.singletonList(syncedDate));
+
+        Date lastSyncedDate = markerUtil.getLastSyncedDate(programName, category);
+
+        Assert.assertEquals(expected, lastSyncedDate.toString());
     }
 }

@@ -2,6 +2,8 @@ package com.thoughtworks.martdhis2sync.step;
 
 import com.thoughtworks.martdhis2sync.processor.TrackedEntityInstanceProcessor;
 import com.thoughtworks.martdhis2sync.reader.MappingReader;
+import com.thoughtworks.martdhis2sync.util.MarkerUtil;
+import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import com.thoughtworks.martdhis2sync.writer.TrackedEntityInstanceWriter;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +22,7 @@ import java.util.Date;
 import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -56,9 +59,11 @@ public class TrackedEntityInstanceStepTest {
     @Mock
     private TaskletStep step;
 
+    @Mock
+    private MarkerUtil markerUtil;
+
 
     private TrackedEntityInstanceStep teiStep;
-    private Date syncedDate = new Date();
 
     @Before
     public void setUp() throws Exception {
@@ -67,6 +72,7 @@ public class TrackedEntityInstanceStepTest {
         setValuesForMemberFields(teiStep, "mappingReader", mappingReader);
         setValuesForMemberFields(teiStep, "processorObjectFactory", processorObjectFactory);
         setValuesForMemberFields(teiStep, "writer", writer);
+        setValuesForMemberFields(teiStep, "markerUtil", markerUtil);
     }
 
     @Test
@@ -75,6 +81,7 @@ public class TrackedEntityInstanceStepTest {
         Object mappingObj = "";
         String programName = "TB Service";
 
+        when(markerUtil.getLastSyncedDate(programName, "instance")).thenReturn(new Date(Long.MIN_VALUE));
         when(stepBuilderFactory.get("TrackedEntityInstanceStep")).thenReturn(stepBuilder);
         when(stepBuilder.chunk(500)).thenReturn(simpleStepBuilder);
         when(mappingReader.get(anyString(), anyString())).thenReturn(jdbcCursorItemReader);
@@ -94,5 +101,7 @@ public class TrackedEntityInstanceStepTest {
         verify(simpleStepBuilder, times(1)).processor(processor);
         verify(simpleStepBuilder, times(1)).writer(writer);
         verify(simpleStepBuilder, times(1)).build();
+
+        assertEquals("Sun Dec 02 22:17:04 IST 292269055", TEIUtil.date.toString());
     }
 }
