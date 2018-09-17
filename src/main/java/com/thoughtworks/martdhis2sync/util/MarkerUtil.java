@@ -5,6 +5,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
 @Component
 public class MarkerUtil {
 
@@ -16,5 +20,19 @@ public class MarkerUtil {
         String sql = String.format("UPDATE marker SET last_synced_date = '%s' WHERE program_name = '%s' AND category = '%s'",
                 BatchUtil.getStringFromDate(TEIUtil.date), programName, category);
         jdbcTemplate.update(sql);
+    }
+
+    public Date getLastSyncedDate(String programName, String category) {
+        String sql = String.format("SELECT last_synced_date FROM marker WHERE program_name='%s' AND category='%s'",
+                programName, category);
+
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql);
+        Object lastSyncedDate = list.get(0).get("last_synced_date");
+
+        if(lastSyncedDate == null) {
+            return new Date(Long.MIN_VALUE);
+        }
+
+        return BatchUtil.getDateFromString(lastSyncedDate.toString());
     }
 }
