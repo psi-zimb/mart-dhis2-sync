@@ -15,6 +15,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.convertResourceOutputToString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
 import static org.junit.Assert.assertEquals;
@@ -65,7 +66,7 @@ public class BatchUtilTest {
         whenNew(SimpleDateFormat.class).withArguments("yyyy-MM-dd kk:mm:ss").thenReturn(simpleDateFormat);
         when(simpleDateFormat.parse(null)).thenThrow(ParseException.class);
 
-        Date actual = getDateFromString(null);
+        Date actual = getDateFromString(null, DATEFORMAT_WITH_24HR_TIME);
 
         Assert.assertEquals(expected, actual.toString());
     }

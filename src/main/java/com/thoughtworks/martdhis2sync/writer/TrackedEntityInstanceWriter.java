@@ -1,8 +1,8 @@
 package com.thoughtworks.martdhis2sync.writer;
 
-import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.model.ImportSummary;
 import com.thoughtworks.martdhis2sync.model.TrackedEntityResponse;
+import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -28,6 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.RESPONSE_SUCCESS;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
 
 @Component
 @StepScope
@@ -86,8 +86,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
                 while (mapIterator.hasNext()) {
                     Entry<String, String> entry = mapIterator.next();
                     if (EMPTY_STRING.equals(entry.getValue())) {
-                        newTEIUIDs.put(StringUtils
-                                .replace(entry.getKey(), "\"", ""), importSummary.getReference());
+                        newTEIUIDs.put(getUnquotedString(entry.getKey()), importSummary.getReference());
                         break;
                     }
                 }
@@ -121,7 +120,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
                     ps.setString(1, entry.getKey().toString());
                     ps.setString(2, entry.getValue().toString());
                     ps.setString(3, user);
-                    ps.setTimestamp(4, Timestamp.valueOf(BatchUtil.GetUTCdatetimeAsString()));
+                    ps.setTimestamp(4, Timestamp.valueOf(BatchUtil.GetUTCDateTimeAsString()));
                     updateCount += ps.executeUpdate();
                 }
             }
