@@ -1,5 +1,7 @@
 package com.thoughtworks.martdhis2sync.writer;
 
+import com.thoughtworks.martdhis2sync.model.ImportSummary;
+import com.thoughtworks.martdhis2sync.model.Response;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.model.TrackedEntityResponse;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
@@ -26,7 +28,13 @@ public class ProgramEnrollmentWriterTest {
     private SyncRepository syncRepository;
 
     @Mock
+    private TrackedEntityResponse trackedEntityResponse;
+
+    @Mock
     private ResponseEntity<TrackedEntityResponse> responseEntity;
+
+    @Mock
+    private Response response;
 
     private ProgramEnrollmentWriter writer;
 
@@ -72,6 +80,9 @@ public class ProgramEnrollmentWriterTest {
 
     @Test
     public void shouldCallSyncRepoToSendData() {
+        when(responseEntity.getBody()).thenReturn(trackedEntityResponse);
+        when(trackedEntityResponse.getResponse()).thenReturn(response);
+        when(response.getImportSummaries()).thenReturn(new ArrayList<>());
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
 
         writer.write(list);

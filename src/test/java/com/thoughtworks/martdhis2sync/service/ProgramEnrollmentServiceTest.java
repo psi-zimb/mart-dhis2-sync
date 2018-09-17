@@ -121,6 +121,7 @@ public class ProgramEnrollmentServiceTest {
     private void jobParametersMocks() throws Exception {
         whenNew(JobParametersBuilder.class).withNoArguments().thenReturn(parametersBuilder);
         when(parametersBuilder.addDate(anyString(), any(Date.class))).thenReturn(parametersBuilder);
+        when(parametersBuilder.addString(anyString(), any(String.class))).thenReturn(parametersBuilder);
         when(parametersBuilder.toJobParameters()).thenReturn(jobParameters);
     }
 }
