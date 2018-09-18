@@ -72,17 +72,8 @@ public class ProgramEnrollmentWriter implements ItemWriter {
                         newEnrollmentsToSave.add(enrollment);
                     }
                 }
-            } else if (isConflicted(importSummary)) {
-                importSummary.getConflicts().forEach(conflict -> logger.error(LOG_PREFIX + "" + conflict.getValue()));
-                if (mapIterator.hasNext()) {
-                    mapIterator.next();
-                }
             }
         });
-    }
-
-    private boolean isConflicted(ImportSummary importSummary) {
-        return RESPONSE_SUCCESS.equals(importSummary.getStatus()) && !importSummary.getConflicts().isEmpty();
     }
 
     private boolean isImported(ImportSummary importSummary) {
@@ -98,7 +89,7 @@ public class ProgramEnrollmentWriter implements ItemWriter {
         try {
             if (!newEnrollmentsToSave.isEmpty()) {
                 int recordsCreated = getUpdateCount(sqlQuery);
-                logger.info(LOG_PREFIX + "Successfully inserted " + recordsCreated + " TrackedEntityInstance UIDs.");
+                logger.info(LOG_PREFIX + "Successfully inserted " + recordsCreated + " Enrollment UIDs.");
             }
         } catch (SQLException e) {
             logger.error(LOG_PREFIX + "Exception occurred while inserting Program Enrollment UIDs:" + e.getMessage());
