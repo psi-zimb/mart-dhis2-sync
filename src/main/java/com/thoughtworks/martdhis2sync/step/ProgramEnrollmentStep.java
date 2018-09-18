@@ -5,15 +5,11 @@ import com.thoughtworks.martdhis2sync.reader.MappingReader;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import com.thoughtworks.martdhis2sync.writer.ProgramEnrollmentWriter;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ProgramEnrollmentStep {
-
-    @Autowired
-    private StepBuilderFactory stepBuilderFactory;
+public class ProgramEnrollmentStep implements StepBuilderContract {
 
     @Autowired
     private MappingReader mappingReader;
@@ -24,13 +20,15 @@ public class ProgramEnrollmentStep {
     @Autowired
     private ProgramEnrollmentWriter writer;
 
-    public Step get(String lookupTable) {
+    @Autowired
+    private StepFactory stepFactory;
+
+    private static final String PE_STEP_NAME = "Program Enrollment Step";
+
+    @Override
+    public Step get(String lookupTable, String programName, Object mappingObj) {
         EnrollmentUtil.resetEnrollmentsList();
-        return stepBuilderFactory.get("ProgramEnrollmentStep")
-                .chunk(500)
-                .reader(mappingReader.getEnrollmentReader(lookupTable))
-                .processor(processor)
-                .writer(writer)
-                .build();
+
+        return stepFactory.build(PE_STEP_NAME, mappingReader.getEnrollmentReader(lookupTable, programName), processor, writer);
     }
 }

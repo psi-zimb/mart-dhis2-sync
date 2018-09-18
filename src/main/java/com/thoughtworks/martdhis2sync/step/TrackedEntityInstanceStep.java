@@ -6,17 +6,13 @@ import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import com.thoughtworks.martdhis2sync.writer.TrackedEntityInstanceWriter;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 
 @Component
-public class TrackedEntityInstanceStep {
-
-    @Autowired
-    private StepBuilderFactory stepBuilderFactory;
+public class TrackedEntityInstanceStep implements StepBuilderContract {
 
     @Autowired
     private MappingReader mappingReader;
@@ -30,15 +26,17 @@ public class TrackedEntityInstanceStep {
     @Autowired
     private MarkerUtil markerUtil;
 
-    public Step get(String lookupTable, Object mappingObj, String programName) {
+    @Autowired
+    private StepFactory stepFactory;
+
+    private static final String TEI_STEP_NAME = "Tracked Entity Step";
+
+    @Override
+    public Step get(String lookupTable, String programName, Object mappingObj) {
         TEIUtil.resetPatientTEIUidMap();
         TEIUtil.date = markerUtil.getLastSyncedDate(programName, "instance");
-        return stepBuilderFactory.get("TrackedEntityInstanceStep")
-                .chunk(500)
-                .reader(mappingReader.get(lookupTable, programName))
-                .processor(getProcessor(mappingObj))
-                .writer(writer)
-                .build();
+
+        return stepFactory.build(TEI_STEP_NAME, mappingReader.getInstanceReader(lookupTable, programName), getProcessor(mappingObj), writer);
     }
 
     private TrackedEntityInstanceProcessor getProcessor(Object mappingObj) {
