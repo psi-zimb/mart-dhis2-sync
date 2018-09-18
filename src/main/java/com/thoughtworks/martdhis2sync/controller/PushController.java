@@ -42,7 +42,7 @@ public class PushController {
         MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
 
         teiService.triggerJob(service, user, lookupTable.getInstance(), mappingJson.getInstance());
-        programEnrollmentService.triggerJob(user, lookupTable.getEnrollments());
+        programEnrollmentService.triggerJob(service, user, lookupTable.getEnrollments());
 
         Map<String, String> result = new HashMap<>();
         result.put("Job Status", "Executed");
