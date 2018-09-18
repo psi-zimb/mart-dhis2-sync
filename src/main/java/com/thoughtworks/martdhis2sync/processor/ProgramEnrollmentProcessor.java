@@ -14,7 +14,7 @@ import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITHOUT_T
 public class ProgramEnrollmentProcessor implements ItemProcessor {
     private static final String EMPTY_STRING = "\"\"";
 
-    private static final String ENROLLMENT_API_FORMAT = "{\"enrollment\": " + EMPTY_STRING + ", " +
+    private static final String ENROLLMENT_API_FORMAT = "{\"enrollment\": %s, " +
             "\"trackedEntityInstance\": %s, " +
             "\"orgUnit\":%s," +
             "\"program\":%s," +
@@ -35,6 +35,7 @@ public class ProgramEnrollmentProcessor implements ItemProcessor {
 
         return String.format(
                 ENROLLMENT_API_FORMAT,
+                tableRowJsonObject.get("enrollment_id").toString(),
                 tableRowJsonObject.get("instance_id").toString(),
                 tableRowJsonObject.get(ORGUNIT_UID).toString(),
                 tableRowJsonObject.get("program").toString(),
