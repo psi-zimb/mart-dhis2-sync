@@ -81,7 +81,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
         Iterator<Entry<String, String>> mapIterator = TEIUtil.getPatientIdTEIUidMap().entrySet().iterator();
 
         importSummaries.forEach(importSummary -> {
-            if (RESPONSE_SUCCESS.equals(importSummary.getStatus()) && importSummary.getImportCount().getImported() == 1) {
+            if (isImported(importSummary)) {
 
                 while (mapIterator.hasNext()) {
                     Entry<String, String> entry = mapIterator.next();
@@ -90,7 +90,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
                         break;
                     }
                 }
-            } else if (RESPONSE_SUCCESS.equals(importSummary.getStatus()) && !importSummary.getConflicts().isEmpty()) {
+            } else if (isConflicted(importSummary)) {
                 IS_SYNC_SUCCESS = false;
                 importSummary.getConflicts().forEach(conflict -> logger.error(LOG_PREFIX + "" + conflict.getValue()));
                 if (mapIterator.hasNext()) {
@@ -107,6 +107,14 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
             logger.error(LOG_PREFIX + "Exception occurred while inserting TrackedEntityInstance UIDs:" + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private boolean isConflicted(ImportSummary importSummary) {
+        return RESPONSE_SUCCESS.equals(importSummary.getStatus()) && !importSummary.getConflicts().isEmpty();
+    }
+
+    private boolean isImported(ImportSummary importSummary) {
+        return RESPONSE_SUCCESS.equals(importSummary.getStatus()) && importSummary.getImportCount().getImported() == 1;
     }
 
     private int updateTracker() throws SQLException {
