@@ -76,7 +76,7 @@ public class MappingReaderTest {
         doNothing().when(jdbcCursorItemReader).setSql(sql);
         doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
 
-        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.get(lookupTable, programName);
+        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getInstanceReader(lookupTable, programName);
 
         assertEquals(jdbcCursorItemReader, actual);
 
@@ -96,7 +96,7 @@ public class MappingReaderTest {
                 .thenThrow(new IOException("Could not convert sql file to string"));
 
         try {
-            mappingReader.get(lookupTable, programName);
+            mappingReader.getInstanceReader(lookupTable, programName);
         } catch (Exception e) {
             verify(logger, times(1))
                     .error("Error in converting sql to string : Could not convert sql file to string");
@@ -106,6 +106,7 @@ public class MappingReaderTest {
     @Test
     public void shouldReturnReaderForProgramEnrollment() throws Exception {
         String lookupTable = "programs";
+        String programName = "Enrollment Service";
 
         String sql = String.format("SELECT mappedTable.*, insTracker.instance_id, orgTracker.id as orgunit_id,\n" +
                         "  CASE WHEN enrTracker.enrollment_id is NULL THEN '' ELSE enrTracker.enrollment_id END AS enrollment_id\n" +
@@ -116,8 +117,11 @@ public class MappingReaderTest {
                         "  ON orgTracker.orgUnit = mappedTable.\"OrgUnit\"\n" +
                         "LEFT JOIN enrollment_tracker enrTracker\n" +
                         "  ON enrTracker.instance_id = insTracker.instance_id\n" +
-                        "  AND date(enrTracker.program_start_date) = date(mappedTable.enrollment_date);\n",
-                lookupTable);
+                        "  AND date(enrTracker.program_start_date) = date(mappedTable.enrollment_date);\n" +
+                        "  WHERE i.instance_id IS NOT NULL AND lt.date_created > COALESCE((SELECT last_synced_date\n" +
+                        "                                    FROM marker\n" +
+                        "                                    WHERE category='enrollment' AND program_name='%s'), '-infinity');\n",
+                        lookupTable, programName);
 
         whenNew(JdbcCursorItemReader.class).withNoArguments().thenReturn(jdbcCursorItemReader);
         whenNew(ColumnMapRowMapper.class).withNoArguments().thenReturn(columnMapRowMapper);
@@ -126,7 +130,7 @@ public class MappingReaderTest {
         doNothing().when(jdbcCursorItemReader).setSql(sql);
         doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
 
-        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getEnrollmentReader(lookupTable);
+        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getEnrollmentReader(lookupTable, programName);
 
         assertEquals(jdbcCursorItemReader, actual);
 
