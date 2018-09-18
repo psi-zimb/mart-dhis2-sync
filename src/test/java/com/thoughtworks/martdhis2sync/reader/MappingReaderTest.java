@@ -106,7 +106,7 @@ public class MappingReaderTest {
     @Test
     public void shouldReturnReaderForProgramEnrollment() throws Exception {
         String lookupTable = "programs";
-        String programName = "Enrollment Service";
+        String programName = "HTS Service";
 
         String sql = String.format("SELECT mappedTable.*, insTracker.instance_id, orgTracker.id as orgunit_id,\n" +
                         "  CASE WHEN enrTracker.enrollment_id is NULL THEN '' ELSE enrTracker.enrollment_id END AS enrollment_id\n" +
@@ -117,8 +117,8 @@ public class MappingReaderTest {
                         "  ON orgTracker.orgUnit = mappedTable.\"OrgUnit\"\n" +
                         "LEFT JOIN enrollment_tracker enrTracker\n" +
                         "  ON enrTracker.instance_id = insTracker.instance_id\n" +
-                        "  AND date(enrTracker.program_start_date) = date(mappedTable.enrollment_date);\n" +
-                        "  WHERE i.instance_id IS NOT NULL AND lt.date_created > COALESCE((SELECT last_synced_date\n" +
+                        "  AND date(enrTracker.program_start_date) = date(mappedTable.enrollment_date)\n" +
+                        "WHERE lt.date_created > COALESCE((SELECT last_synced_date\n" +
                         "                                    FROM marker\n" +
                         "                                    WHERE category='enrollment' AND program_name='%s'), '-infinity');\n",
                         lookupTable, programName);
