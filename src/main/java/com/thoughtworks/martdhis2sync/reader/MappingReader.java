@@ -28,10 +28,10 @@ public class MappingReader {
 
     private Logger logger = LoggerFactory.getLogger(MappingReader.class);
 
-    public JdbcCursorItemReader<Map<String, Object>> get(String lookupTable, String programName) {
+    private JdbcCursorItemReader<Map<String, Object>> get(String lookupTable, String programName, Resource resource) {
         JdbcCursorItemReader<Map<String, Object>> reader = new JdbcCursorItemReader<>();
         try {
-            String sql = BatchUtil.convertResourceOutputToString(instanceResource);
+            String sql = BatchUtil.convertResourceOutputToString(resource);
             reader.setDataSource(dataSource);
             reader.setSql(String.format(sql, lookupTable, programName));
             reader.setRowMapper(new ColumnMapRowMapper());
@@ -41,16 +41,11 @@ public class MappingReader {
         return reader;
     }
 
-    public JdbcCursorItemReader<Map<String, Object>> getEnrollmentReader(String lookupTable) {
-        JdbcCursorItemReader<Map<String, Object>> reader = new JdbcCursorItemReader<>();
-        try {
-            String sql = BatchUtil.convertResourceOutputToString(enrollmentResource);
-            reader.setDataSource(dataSource);
-            reader.setSql(String.format(sql, lookupTable));
-            reader.setRowMapper(new ColumnMapRowMapper());
-        } catch (IOException e) {
-            logger.error("Error in converting sql to string : " + e.getMessage());
-        }
-        return reader;
+    public JdbcCursorItemReader<Map<String, Object>> getEnrollmentReader(String lookupTable, String programName) {
+        return get(lookupTable, programName, enrollmentResource);
+    }
+
+    public JdbcCursorItemReader<Map<String, Object>> getInstanceReader(String lookupTable, String programName) {
+        return get(lookupTable, programName, instanceResource);
     }
 }
