@@ -106,18 +106,17 @@ public class MappingReaderTest {
     @Test
     public void shouldReturnReaderForProgramEnrollment() throws Exception {
         String lookupTable = "programs";
-        String programName = "HTS Service";
 
-        String sql = String.format("SELECT lt.*,\n" +
-                        "  CASE WHEN i.instance_id is NULL THEN '' ELSE i.instance_id END AS instance_id,\n" +
-                        "  CASE WHEN o.id is NULL THEN '' ELSE o.id END AS orgunit_id,\n" +
-                        "  CASE WHEN e.enrollment_id is NULL THEN '' ELSE e.enrollment_id END AS enrollment_id\n" +
-                        "FROM %s lt\n" +
-                        "LEFT JOIN instance_tracker i ON  lt.\"Patient_Identifier\" = i.patient_id\n" +
-                        "LEFT JOIN orgunit_tracker o ON  lt.\"OrgUnit\" = o.orgUnit\n" +
-                        "LEFT JOIN enrollment_tracker e ON  i.instance_id = e.instance_id\n" +
-                        "\n" +
-                        "WHERE i.instance_id IS NOT NULL;\n",
+        String sql = String.format("SELECT mappedTable.*, insTracker.instance_id, orgTracker.id as orgunit_id,\n" +
+                        "  CASE WHEN enrTracker.enrollment_id is NULL THEN '' ELSE enrTracker.enrollment_id END AS enrollment_id\n" +
+                        "FROM hts_program_enrollment_view mappedTable\n" +
+                        "INNER JOIN instance_tracker insTracker\n" +
+                        "  ON insTracker.patient_id = mappedTable.\"Patient_Identifier\"\n" +
+                        "INNER JOIN orgunit_tracker orgTracker\n" +
+                        "  ON orgTracker.orgUnit = mappedTable.\"OrgUnit\"\n" +
+                        "LEFT JOIN enrollment_tracker enrTracker\n" +
+                        "  ON enrTracker.instance_id = insTracker.instance_id\n" +
+                        "  AND date(enrTracker.program_start_date) = date(mappedTable.enrollment_date);\n",
                 lookupTable);
 
         whenNew(JdbcCursorItemReader.class).withNoArguments().thenReturn(jdbcCursorItemReader);

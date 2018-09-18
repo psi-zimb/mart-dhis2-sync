@@ -1,10 +1,10 @@
-SELECT lt.*,
-  CASE WHEN i.instance_id is NULL THEN '' ELSE i.instance_id END AS instance_id,
-  CASE WHEN o.id is NULL THEN '' ELSE o.id END AS orgunit_id,
-  CASE WHEN e.enrollment_id is NULL THEN '' ELSE e.enrollment_id END AS enrollment_id
-FROM %s lt
-LEFT JOIN instance_tracker i ON  lt."Patient_Identifier" = i.patient_id
-LEFT JOIN orgunit_tracker o ON  lt."OrgUnit" = o.orgUnit
-LEFT JOIN enrollment_tracker e ON  i.instance_id = e.instance_id
-
-WHERE i.instance_id IS NOT NULL;
+SELECT mappedTable.*, insTracker.instance_id, orgTracker.id as orgunit_id,
+  CASE WHEN enrTracker.enrollment_id is NULL THEN '' ELSE enrTracker.enrollment_id END AS enrollment_id
+FROM hts_program_enrollment_view mappedTable
+INNER JOIN instance_tracker insTracker
+  ON insTracker.patient_id = mappedTable."Patient_Identifier"
+INNER JOIN orgunit_tracker orgTracker
+  ON orgTracker.orgUnit = mappedTable."OrgUnit"
+LEFT JOIN enrollment_tracker enrTracker
+  ON enrTracker.instance_id = insTracker.instance_id
+  AND date(enrTracker.program_start_date) = date(mappedTable.enrollment_date);
