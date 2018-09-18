@@ -70,8 +70,6 @@ public class ProgramEnrollmentWriterTest {
 
     private static List<String> referenceUIDs = Arrays.asList("enrollmentABC", "enrollmentXYZ");
 
-    private static List<String> patientIDs = Arrays.asList("NAH0000000001", "NAH0000000002");
-
     private static List<String> instanceIDs = Arrays.asList("instanceABC", "instanceXYZ");
 
     private String requestBody;

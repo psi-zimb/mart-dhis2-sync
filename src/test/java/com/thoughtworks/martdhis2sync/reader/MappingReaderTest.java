@@ -109,11 +109,15 @@ public class MappingReaderTest {
         String programName = "HTS Service";
 
         String sql = String.format("SELECT lt.*,\n" +
-                        "  CASE WHEN i.instance_id is NULL THEN '' ELSE i.instance_id END as instance_id,\n" +
-                        "  CASE WHEN o.id is NULL THEN '' ELSE o.id END as orgunit_id\n" +
+                        "  CASE WHEN i.instance_id is NULL THEN '' ELSE i.instance_id END AS instance_id,\n" +
+                        "  CASE WHEN o.id is NULL THEN '' ELSE o.id END AS orgunit_id,\n" +
+                        "  CASE WHEN e.enrollment_id is NULL THEN '' ELSE e.enrollment_id END AS enrollment_id\n" +
                         "FROM %s lt\n" +
-                        "  LEFT join instance_tracker i ON  lt.\"Patient_Identifier\" = i.patient_id\n" +
-                        "  LEFT join orgunit_tracker o ON  lt.\"OrgUnit\" = o.orgUnit;",
+                        "LEFT JOIN instance_tracker i ON  lt.\"Patient_Identifier\" = i.patient_id\n" +
+                        "LEFT JOIN orgunit_tracker o ON  lt.\"OrgUnit\" = o.orgUnit\n" +
+                        "LEFT JOIN enrollment_tracker e ON  i.instance_id = e.instance_id\n" +
+                        "\n" +
+                        "WHERE i.instance_id IS NOT NULL;\n",
                 lookupTable);
 
         whenNew(JdbcCursorItemReader.class).withNoArguments().thenReturn(jdbcCursorItemReader);
