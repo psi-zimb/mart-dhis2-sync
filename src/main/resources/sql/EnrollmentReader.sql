@@ -8,3 +8,6 @@ INNER JOIN orgunit_tracker orgTracker
 LEFT JOIN enrollment_tracker enrTracker
   ON enrTracker.instance_id = insTracker.instance_id
   AND date(enrTracker.program_start_date) = date(mappedTable.enrollment_date);
+  WHERE lt.date_created > COALESCE((SELECT last_synced_date
+                                    FROM marker
+                                    WHERE category='enrollment' AND program_name='%s'), '-infinity');
