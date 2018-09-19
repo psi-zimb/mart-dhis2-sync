@@ -155,6 +155,6 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     }
 
     private void updateMarker() {
-        markerUtil.updateMarkerEntry(programName, "instance");
+        markerUtil.updateMarkerEntry(programName, "instance", BatchUtil.getStringFromDate(TEIUtil.date));
     }
 }
