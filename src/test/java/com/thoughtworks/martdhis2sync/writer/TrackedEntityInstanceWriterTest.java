@@ -1,11 +1,11 @@
 package com.thoughtworks.martdhis2sync.writer;
 
-import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.model.Conflict;
 import com.thoughtworks.martdhis2sync.model.ImportCount;
 import com.thoughtworks.martdhis2sync.model.ImportSummary;
 import com.thoughtworks.martdhis2sync.model.Response;
 import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
+import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import lombok.SneakyThrows;
@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -133,6 +134,8 @@ public class TrackedEntityInstanceWriterTest {
 
     @Test
     public void shouldCallSyncRepoToSendData() {
+        Date date = new Date(Long.MIN_VALUE);
+        String stringDate = "292269055-12-02 22:17:04";
         importSummaries = Arrays.asList(
                 new ImportSummary("", RESPONSE_SUCCESS,
                         new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
@@ -144,13 +147,13 @@ public class TrackedEntityInstanceWriterTest {
         when(DHISSyncResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(importSummaries);
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
-        doNothing().when(markerUtil).updateMarkerEntry(anyString(), anyString());
+        doNothing().when(markerUtil).updateMarkerEntry(anyString(), anyString(), anyString());
 
         writer.write(list);
 
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(markerUtil, times(1))
-                .updateMarkerEntry(programName, "instance");
+                .updateMarkerEntry(anyString(), anyString(), anyString());
     }
 
     @Test
@@ -274,6 +277,6 @@ public class TrackedEntityInstanceWriterTest {
         writer.write(list);
 
         verify(markerUtil, times(0))
-                .updateMarkerEntry(programName, "instance");
+                .updateMarkerEntry(anyString(), anyString(), anyString());
     }
 }
