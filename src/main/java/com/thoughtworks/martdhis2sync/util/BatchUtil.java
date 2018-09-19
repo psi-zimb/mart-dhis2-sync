@@ -30,8 +30,8 @@ public class BatchUtil {
         return sdf.format(new Date());
     }
 
-    public static String getStringFromDate(Date date) {
-        SimpleDateFormat outputFormat = new SimpleDateFormat(DATEFORMAT_WITH_24HR_TIME);
+    public static String getStringFromDate(Date date, String format) {
+        SimpleDateFormat outputFormat = new SimpleDateFormat(format);
         return outputFormat.format(date);
     }
 
