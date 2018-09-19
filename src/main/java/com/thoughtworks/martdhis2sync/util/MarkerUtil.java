@@ -18,9 +18,9 @@ public class MarkerUtil {
     @Qualifier("jdbcTemplate")
     private JdbcTemplate jdbcTemplate;
 
-    public void updateMarkerEntry(String programName, String category) {
+    public void updateMarkerEntry(String programName, String category, String date) {
         String sql = String.format("UPDATE marker SET last_synced_date = '%s' WHERE program_name = '%s' AND category = '%s'",
-                BatchUtil.getStringFromDate(TEIUtil.date), programName, category);
+                date, programName, category);
         jdbcTemplate.update(sql);
     }
 
