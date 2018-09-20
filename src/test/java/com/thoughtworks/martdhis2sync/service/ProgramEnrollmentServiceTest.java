@@ -9,7 +9,10 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.SyncFailedException;
+
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
@@ -49,5 +52,20 @@ public class ProgramEnrollmentServiceTest {
         programEnrollmentService.triggerJob(programName, user, lookUpTable);
 
         verify(jobService, times(1)).triggerJob(programName, user, lookUpTable, jobName, enrollmentStep, object);
+    }
+
+    @Test(expected = SyncFailedException.class)
+    public void shouldThrowSyncFailedException() throws Exception {
+        String lookUpTable = "patient_identifier";
+        String service = "serviceName";
+        String user = "Admin";
+        String jobName = "Sync Program Enrollment";
+
+        whenNew(Object.class).withNoArguments().thenReturn(object);
+
+        doThrow(SyncFailedException.class).when(jobService)
+                .triggerJob(service, user, lookUpTable, jobName, enrollmentStep, object);
+
+        programEnrollmentService.triggerJob(service, user, lookUpTable);
     }
 }

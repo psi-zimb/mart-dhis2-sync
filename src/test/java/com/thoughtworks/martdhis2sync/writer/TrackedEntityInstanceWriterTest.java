@@ -1,10 +1,6 @@
 package com.thoughtworks.martdhis2sync.writer;
 
-import com.thoughtworks.martdhis2sync.model.Conflict;
-import com.thoughtworks.martdhis2sync.model.ImportCount;
-import com.thoughtworks.martdhis2sync.model.ImportSummary;
-import com.thoughtworks.martdhis2sync.model.Response;
-import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
+import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
@@ -24,13 +20,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.RESPONSE_SUCCESS;
@@ -38,9 +28,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.powermock.api.mockito.PowerMockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({TEIUtil.class})
@@ -133,7 +121,7 @@ public class TrackedEntityInstanceWriterTest {
     }
 
     @Test
-    public void shouldCallSyncRepoToSendData() {
+    public void shouldCallSyncRepoToSendData() throws Exception {
         Date date = new Date(Long.MIN_VALUE);
         String stringDate = "292269055-12-02 22:17:04";
         importSummaries = Arrays.asList(
@@ -156,7 +144,7 @@ public class TrackedEntityInstanceWriterTest {
                 .updateMarkerEntry(anyString(), anyString(), anyString());
     }
 
-    @Test
+    @Test(expected = Exception.class)
     @SneakyThrows
     public void shouldNotUpdateInstanceTrackerTableAfterSendingUpdatedTEISync() {
 
@@ -181,7 +169,7 @@ public class TrackedEntityInstanceWriterTest {
         verify(dataSource, times(0)).getConnection();
     }
 
-    @Test
+    @Test(expected = Exception.class)
     @SneakyThrows
     public void shouldSuccessfullyProcessResponse() {
 
@@ -208,7 +196,7 @@ public class TrackedEntityInstanceWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
     }
 
-    @Test
+    @Test(expected = Exception.class)
     @SneakyThrows
     public void shouldHandleConflictsInTheResponseMessage() {
 
@@ -235,7 +223,7 @@ public class TrackedEntityInstanceWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
     }
 
-    @Test
+    @Test(expected = Exception.class)
     @SneakyThrows
     public void shouldHandleSQLException() {
 
@@ -260,8 +248,8 @@ public class TrackedEntityInstanceWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
     }
 
-    @Test
-    public void shouldNotUpdateMarkerWhenSyncResponseHasConflicts() {
+    @Test(expected = Exception.class)
+    public void shouldNotUpdateMarkerWhenSyncResponseHasConflicts() throws Exception {
         List<Conflict> conflicts = Collections.singletonList(new Conflict("", "Invalid org unit ID: SxgCPPeiq3c_"));
         importSummaries = Arrays.asList(
                 new ImportSummary("", RESPONSE_SUCCESS,
@@ -278,5 +266,12 @@ public class TrackedEntityInstanceWriterTest {
 
         verify(markerUtil, times(0))
                 .updateMarkerEntry(anyString(), anyString(), anyString());
+    }
+
+    @Test(expected = Exception.class)
+    public void shouldThrowSyncFailedExceptionWhenRequestFailed() throws Exception {
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.CONFLICT);
+
+        writer.write(list);
     }
 }

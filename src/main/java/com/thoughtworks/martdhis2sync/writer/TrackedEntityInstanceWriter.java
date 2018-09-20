@@ -61,7 +61,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     private String programName;
 
     @Override
-    public void write(List list) {
+    public void write(List list) throws Exception {
         StringBuilder instanceApiFormat = new StringBuilder("{\"trackedEntityInstances\":[");
         list.forEach(item -> instanceApiFormat.append(item).append(","));
         instanceApiFormat.replace(instanceApiFormat.length() - 1, instanceApiFormat.length(), "]}");
@@ -77,7 +77,10 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
         } else {
             IS_SYNC_SUCCESS = false;
             processErrorResponse(responseEntity.getBody().getResponse().getImportSummaries());
-            //TODO: Job execution abort
+        }
+
+        if(!IS_SYNC_SUCCESS){
+            throw new Exception();
         }
     }
 
