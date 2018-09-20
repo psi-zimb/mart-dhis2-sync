@@ -44,4 +44,8 @@ public class BatchUtil {
         }
         return new Date(Long.MIN_VALUE);
     }
+
+    public static String getFormattedDateString(String date, String existingFormat, String expectedFormat) {
+        return getStringFromDate(getDateFromString(date, existingFormat), expectedFormat);
+    }
 }
