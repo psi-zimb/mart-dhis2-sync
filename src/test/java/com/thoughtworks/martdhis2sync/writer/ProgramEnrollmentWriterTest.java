@@ -3,6 +3,7 @@ package com.thoughtworks.martdhis2sync.writer;
 import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
+import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +26,8 @@ import java.util.List;
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.RESPONSE_SUCCESS;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -61,6 +64,8 @@ public class ProgramEnrollmentWriterTest {
     @Mock
     private PreparedStatement preparedStatement;
 
+    @Mock
+    private MarkerUtil markerUtil;
 
     private ProgramEnrollmentWriter writer;
 
@@ -85,6 +90,7 @@ public class ProgramEnrollmentWriterTest {
         setValuesForMemberFields(writer, "programEnrollUri", uri);
         setValuesForMemberFields(writer, "syncRepository", syncRepository);
         setValuesForMemberFields(writer, "dataSource", dataSource);
+        setValuesForMemberFields(writer, "markerUtil", markerUtil);
 
         String enrollments1 = "{\n" +
                 "    \"enrollment\": \"\",\n" +
@@ -203,4 +209,16 @@ public class ProgramEnrollmentWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
     }
 
+    @Test
+    public void shouldCallUpdateMarkerOnSyncSuccess() {
+        when(responseEntity.getBody()).thenReturn(trackedEntityResponse);
+        when(trackedEntityResponse.getResponse()).thenReturn(response);
+        when(response.getImportSummaries()).thenReturn(new ArrayList<>());
+        when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
+        doNothing().when(markerUtil).updateMarkerEntry(anyString(), anyString(), anyString());
+        writer.write(list);
+
+        verify(syncRepository, times(1)).sendData(uri, requestBody);
+        verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
+    }
 }
