@@ -1,8 +1,8 @@
 package com.thoughtworks.martdhis2sync.writer;
 
+import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
 import com.thoughtworks.martdhis2sync.model.Enrollment;
 import com.thoughtworks.martdhis2sync.model.ImportSummary;
-import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
@@ -13,20 +13,19 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.thoughtworks.martdhis2sync.model.ImportSummary.RESPONSE_SUCCESS;
+import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_ERROR;
+import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_SUCCESS;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getStringFromDate;
 
@@ -64,9 +63,29 @@ public class ProgramEnrollmentWriter implements ItemWriter {
         enrollmentApiFormat.replace(enrollmentApiFormat.length() - 1, enrollmentApiFormat.length(), "]}");
 
         ResponseEntity<DHISSyncResponse> responseEntity = syncRepository.sendData(programEnrollUri, enrollmentApiFormat.toString());
-        processResponse(responseEntity.getBody().getResponse().getImportSummaries());
-        updateTracker();
-        updateMarker();
+        if (null == responseEntity) {
+            //TODO: Job execution abort
+            return;
+        }
+        if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+            processResponse(responseEntity.getBody().getResponse().getImportSummaries());
+            updateTracker();
+            updateMarker();
+        } else {
+            processErrorResponse(responseEntity.getBody().getResponse().getImportSummaries());
+            //TODO: Job execution abort
+        }
+    }
+
+    private void processErrorResponse(List<ImportSummary> importSummaries) {
+        for (ImportSummary importSummary : importSummaries) {
+            if (isIgnored(importSummary)) {
+                logger.error(LOG_PREFIX + importSummary.getDescription());
+            } else if (isConflicted(importSummary)) {
+                importSummary.getConflicts().forEach(conflict ->
+                        logger.error(LOG_PREFIX + conflict.getObject() + ": " + conflict.getValue()));
+            }
+        }
     }
 
     private void processResponse(List<ImportSummary> importSummaries) {
@@ -86,8 +105,18 @@ public class ProgramEnrollmentWriter implements ItemWriter {
         });
     }
 
+    private boolean isIgnored(ImportSummary importSummary) {
+        return IMPORT_SUMMARY_RESPONSE_ERROR.equals(importSummary.getStatus()) && importSummary.getImportCount().getIgnored() == 1
+                && !StringUtils.isEmpty(importSummary.getDescription());
+    }
+
+    private boolean isConflicted(ImportSummary importSummary) {
+        return IMPORT_SUMMARY_RESPONSE_ERROR.equals(importSummary.getStatus()) && importSummary.getImportCount().getIgnored() == 1
+                && !importSummary.getConflicts().isEmpty();
+    }
+
     private boolean isImported(ImportSummary importSummary) {
-        return RESPONSE_SUCCESS.equals(importSummary.getStatus()) && importSummary.getImportCount().getImported() == 1;
+        return IMPORT_SUMMARY_RESPONSE_SUCCESS.equals(importSummary.getStatus()) && importSummary.getImportCount().getImported() == 1;
     }
 
     private void updateTracker() {
