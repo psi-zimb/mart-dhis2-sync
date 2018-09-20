@@ -29,7 +29,7 @@ import java.util.Map.Entry;
 
 import static com.thoughtworks.martdhis2sync.model.Conflict.CONFLICT_OBJ_ATTRIBUTE;
 import static com.thoughtworks.martdhis2sync.model.Conflict.CONFLICT_OBJ_TEI_TYPE;
-import static com.thoughtworks.martdhis2sync.model.ImportSummary.RESPONSE_SUCCESS;
+import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_SUCCESS;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
 
 @Component
@@ -87,13 +87,14 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     private void processErrorResponse(List<ImportSummary> importSummaries) {
         ImportSummary importSummary = importSummaries.get(0);
         if (isConflicted(importSummary)) {
-            String conflictObject = importSummary.getConflicts().get(0).getObject();
-            if (CONFLICT_OBJ_TEI_TYPE.equals(conflictObject) ||
-                    CONFLICT_OBJ_ATTRIBUTE.equals(conflictObject)) {
-                logger.error(LOG_PREFIX + conflictObject + ": " + importSummary.getConflicts().get(0).getValue());
-            } else {
-                processResponse(importSummaries);
-            }
+            importSummary.getConflicts().forEach(conflict -> {
+                if (CONFLICT_OBJ_TEI_TYPE.equals(conflict.getObject()) ||
+                        CONFLICT_OBJ_ATTRIBUTE.equals(conflict.getObject())) {
+                    logger.error(LOG_PREFIX + conflict.getObject() + ": " + conflict.getValue());
+                } else {
+                    processResponse(importSummaries);
+                }
+            });
         }
     }
 
@@ -135,7 +136,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     }
 
     private boolean isImported(ImportSummary importSummary) {
-        return RESPONSE_SUCCESS.equals(importSummary.getStatus()) && importSummary.getImportCount().getImported() == 1;
+        return IMPORT_SUMMARY_RESPONSE_SUCCESS.equals(importSummary.getStatus()) && importSummary.getImportCount().getImported() == 1;
     }
 
     private int updateTracker() throws SQLException {

@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import javax.sql.DataSource;
@@ -24,7 +25,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
-import static com.thoughtworks.martdhis2sync.model.ImportSummary.RESPONSE_SUCCESS;
+import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_SUCCESS;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -137,9 +138,9 @@ public class ProgramEnrollmentWriterTest {
     public void shouldNotUpdateEnrollmentTrackerTableAfterSendingUpdatedEnrollmentsInSync() {
 
         importSummaries = Arrays.asList(
-                new ImportSummary("", RESPONSE_SUCCESS,
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
-                new ImportSummary("", RESPONSE_SUCCESS,
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
@@ -162,9 +163,9 @@ public class ProgramEnrollmentWriterTest {
     public void shouldSuccessfullyProcessResponse() {
 
         importSummaries = Arrays.asList(
-                new ImportSummary("", RESPONSE_SUCCESS,
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
-                new ImportSummary("", RESPONSE_SUCCESS,
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
@@ -189,9 +190,9 @@ public class ProgramEnrollmentWriterTest {
     public void shouldHandleSQLException() {
 
         importSummaries = Arrays.asList(
-                new ImportSummary("", RESPONSE_SUCCESS,
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
-                new ImportSummary("", RESPONSE_SUCCESS,
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
@@ -212,6 +213,7 @@ public class ProgramEnrollmentWriterTest {
     @Test
     public void shouldCallUpdateMarkerOnSyncSuccess() {
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(DHISSyncResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(new ArrayList<>());
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);

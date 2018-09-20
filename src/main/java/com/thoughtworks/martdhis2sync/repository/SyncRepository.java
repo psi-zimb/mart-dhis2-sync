@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.Charset;
@@ -43,6 +44,8 @@ public class SyncRepository {
             responseEntity = new ResponseEntity<>(
                     new Gson().fromJson(e.getResponseBodyAsString(), DHISSyncResponse.class),
                     e.getStatusCode());
+            logger.error(LOG_PREFIX + e);
+        } catch (HttpServerErrorException e) {
             logger.error(LOG_PREFIX + e);
         } catch (Exception e) {
             logger.error(LOG_PREFIX + e);

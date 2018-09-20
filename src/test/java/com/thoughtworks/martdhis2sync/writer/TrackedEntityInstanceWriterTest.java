@@ -23,7 +23,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
-import static com.thoughtworks.martdhis2sync.model.ImportSummary.RESPONSE_SUCCESS;
+import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_SUCCESS;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
@@ -125,9 +125,9 @@ public class TrackedEntityInstanceWriterTest {
         Date date = new Date(Long.MIN_VALUE);
         String stringDate = "292269055-12-02 22:17:04";
         importSummaries = Arrays.asList(
-                new ImportSummary("", RESPONSE_SUCCESS,
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
-                new ImportSummary("", RESPONSE_SUCCESS,
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
@@ -149,9 +149,9 @@ public class TrackedEntityInstanceWriterTest {
     public void shouldNotUpdateInstanceTrackerTableAfterSendingUpdatedTEISync() {
 
         importSummaries = Arrays.asList(
-                new ImportSummary("", RESPONSE_SUCCESS,
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
-                new ImportSummary("", RESPONSE_SUCCESS,
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
@@ -174,9 +174,9 @@ public class TrackedEntityInstanceWriterTest {
     public void shouldSuccessfullyProcessResponse() {
 
         importSummaries = Arrays.asList(
-                new ImportSummary("", RESPONSE_SUCCESS,
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
-                new ImportSummary("", RESPONSE_SUCCESS,
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
@@ -202,9 +202,9 @@ public class TrackedEntityInstanceWriterTest {
 
         List<Conflict> conflicts = Collections.singletonList(new Conflict("", "Invalid org unit ID: SxgCPPeiq3c_"));
         importSummaries = Arrays.asList(
-                new ImportSummary("", RESPONSE_SUCCESS,
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(1, 0, 0, 0), null, conflicts, null),
-                new ImportSummary("", RESPONSE_SUCCESS,
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(0, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
@@ -228,9 +228,9 @@ public class TrackedEntityInstanceWriterTest {
     public void shouldHandleSQLException() {
 
         importSummaries = Arrays.asList(
-                new ImportSummary("", RESPONSE_SUCCESS,
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
-                new ImportSummary("", RESPONSE_SUCCESS,
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
@@ -252,9 +252,9 @@ public class TrackedEntityInstanceWriterTest {
     public void shouldNotUpdateMarkerWhenSyncResponseHasConflicts() throws Exception {
         List<Conflict> conflicts = Collections.singletonList(new Conflict("", "Invalid org unit ID: SxgCPPeiq3c_"));
         importSummaries = Arrays.asList(
-                new ImportSummary("", RESPONSE_SUCCESS,
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(0, 0, 0, 0), null, conflicts, referenceUIDs.get(1)),
-                new ImportSummary("", RESPONSE_SUCCESS,
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(0, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);

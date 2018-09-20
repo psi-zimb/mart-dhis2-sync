@@ -12,8 +12,8 @@ import java.util.List;
 @AllArgsConstructor
 public class ImportSummary {
 
-    public static final String RESPONSE_SUCCESS = "SUCCESS";
-    public static final String RESPONSE_ERROR = "ERROR";
+    public static final String IMPORT_SUMMARY_RESPONSE_SUCCESS = "SUCCESS";
+    public static final String IMPORT_SUMMARY_RESPONSE_ERROR = "ERROR";
 
     private String responseType;
     private String status;
