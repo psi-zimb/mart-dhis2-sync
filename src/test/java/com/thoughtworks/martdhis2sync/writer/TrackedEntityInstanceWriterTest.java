@@ -5,7 +5,7 @@ import com.thoughtworks.martdhis2sync.model.Conflict;
 import com.thoughtworks.martdhis2sync.model.ImportCount;
 import com.thoughtworks.martdhis2sync.model.ImportSummary;
 import com.thoughtworks.martdhis2sync.model.Response;
-import com.thoughtworks.martdhis2sync.model.TrackedEntityResponse;
+import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import lombok.SneakyThrows;
@@ -52,10 +52,10 @@ public class TrackedEntityInstanceWriterTest {
     private DataSource dataSource;
 
     @Mock
-    private TrackedEntityResponse trackedEntityResponse;
+    private DHISSyncResponse DHISSyncResponse;
 
     @Mock
-    private ResponseEntity<TrackedEntityResponse> responseEntity;
+    private ResponseEntity<DHISSyncResponse> responseEntity;
 
     @Mock
     private Response response;
@@ -132,8 +132,8 @@ public class TrackedEntityInstanceWriterTest {
     @Test
     public void shouldCallSyncRepoToSendData() {
 
-        when(responseEntity.getBody()).thenReturn(trackedEntityResponse);
-        when(trackedEntityResponse.getResponse()).thenReturn(response);
+        when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
+        when(DHISSyncResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(new ArrayList<>());
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
         doNothing().when(markerUtil).updateMarkerEntry(anyString(), anyString());
@@ -165,8 +165,8 @@ public class TrackedEntityInstanceWriterTest {
                 new ImportSummary("", RESPONSE_SUCCESS,
                         new ImportCount(0, 1, 0, 0), new ArrayList<>(), referenceUIDs.get(1)));
 
-        when(responseEntity.getBody()).thenReturn(trackedEntityResponse);
-        when(trackedEntityResponse.getResponse()).thenReturn(response);
+        when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
+        when(DHISSyncResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(importSummaries);
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
 
@@ -190,8 +190,8 @@ public class TrackedEntityInstanceWriterTest {
                 new ImportSummary("", RESPONSE_SUCCESS,
                         new ImportCount(1, 0, 0, 0), new ArrayList<>(), referenceUIDs.get(1)));
 
-        when(responseEntity.getBody()).thenReturn(trackedEntityResponse);
-        when(trackedEntityResponse.getResponse()).thenReturn(response);
+        when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
+        when(DHISSyncResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(importSummaries);
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
 
@@ -218,8 +218,8 @@ public class TrackedEntityInstanceWriterTest {
                 new ImportSummary("", RESPONSE_SUCCESS,
                         new ImportCount(0, 0, 0, 0), new ArrayList<>(), referenceUIDs.get(1)));
 
-        when(responseEntity.getBody()).thenReturn(trackedEntityResponse);
-        when(trackedEntityResponse.getResponse()).thenReturn(response);
+        when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
+        when(DHISSyncResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(importSummaries);
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
 
@@ -244,8 +244,8 @@ public class TrackedEntityInstanceWriterTest {
                 new ImportSummary("", RESPONSE_SUCCESS,
                         new ImportCount(1, 0, 0, 0), new ArrayList<>(), referenceUIDs.get(1)));
 
-        when(responseEntity.getBody()).thenReturn(trackedEntityResponse);
-        when(trackedEntityResponse.getResponse()).thenReturn(response);
+        when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
+        when(DHISSyncResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(importSummaries);
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
 
@@ -269,8 +269,8 @@ public class TrackedEntityInstanceWriterTest {
                         new ImportCount(0, 0, 0, 0), new ArrayList<>(), referenceUIDs.get(1)));
 
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
-        when(responseEntity.getBody()).thenReturn(trackedEntityResponse);
-        when(trackedEntityResponse.getResponse()).thenReturn(response);
+        when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
+        when(DHISSyncResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(importSummaries);
 
         writer.write(list);
