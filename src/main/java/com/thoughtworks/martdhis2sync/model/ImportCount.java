@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImportCount {
-    int imported;
-    int updated;
-    int ignored;
-    int deleted;
+    private int imported;
+    private int updated;
+    private int ignored;
+    private int deleted;
 }

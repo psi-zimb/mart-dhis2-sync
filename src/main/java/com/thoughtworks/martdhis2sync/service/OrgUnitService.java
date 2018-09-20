@@ -46,7 +46,6 @@ public class OrgUnitService {
         ResponseEntity<OrgUnitResponse> responseEntity;
         do {
             responseEntity = syncRepository.getOrgUnits(uri);
-            logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
             if (null == responseEntity) {
                 logger.error(LOG_PREFIX + "Received empty response.");
                 return;

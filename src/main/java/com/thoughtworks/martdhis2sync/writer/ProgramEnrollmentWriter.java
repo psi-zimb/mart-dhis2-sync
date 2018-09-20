@@ -2,7 +2,7 @@ package com.thoughtworks.martdhis2sync.writer;
 
 import com.thoughtworks.martdhis2sync.model.Enrollment;
 import com.thoughtworks.martdhis2sync.model.ImportSummary;
-import com.thoughtworks.martdhis2sync.model.TrackedEntityResponse;
+import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
@@ -50,11 +50,7 @@ public class ProgramEnrollmentWriter implements ItemWriter {
         items.forEach(item -> enrollmentApiFormat.append(item).append(","));
         enrollmentApiFormat.replace(enrollmentApiFormat.length() - 1, enrollmentApiFormat.length(), "]}");
 
-        ResponseEntity<TrackedEntityResponse> responseEntity = syncRepository.sendData(programEnrollUri, enrollmentApiFormat.toString());
-        if (null == responseEntity) {
-            return;
-        }
-        logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
+        ResponseEntity<DHISSyncResponse> responseEntity = syncRepository.sendData(programEnrollUri, enrollmentApiFormat.toString());
         processResponse(responseEntity.getBody().getResponse().getImportSummaries());
         updateTracker();
     }
