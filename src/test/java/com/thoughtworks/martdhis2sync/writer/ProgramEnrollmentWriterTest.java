@@ -127,24 +127,14 @@ public class ProgramEnrollmentWriterTest {
     }
 
     @Test
-    public void shouldReturnNullWhenRequestFailed() throws Exception {
-        when(syncRepository.sendData(uri, requestBody)).thenReturn(null);
-
-        writer.write(list);
-
-        verify(syncRepository, times(1)).sendData(uri, requestBody);
-        verify(responseEntity, times(0)).getBody();
-    }
-
-    @Test
     @SneakyThrows
     public void shouldNotUpdateEnrollmentTrackerTableAfterSendingUpdatedEnrollmentsInSync() {
 
         importSummaries = Arrays.asList(
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(0, 1, 0, 0), new ArrayList<>(), referenceUIDs.get(0)),
+                        new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(0, 1, 0, 0), new ArrayList<>(), referenceUIDs.get(1)));
+                        new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
         when(DHISSyncResponse.getResponse()).thenReturn(response);
@@ -167,9 +157,9 @@ public class ProgramEnrollmentWriterTest {
 
         importSummaries = Arrays.asList(
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(1, 0, 0, 0), new ArrayList<>(), referenceUIDs.get(0)),
+                        new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(1, 0, 0, 0), new ArrayList<>(), referenceUIDs.get(1)));
+                        new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
         when(DHISSyncResponse.getResponse()).thenReturn(response);
@@ -194,9 +184,9 @@ public class ProgramEnrollmentWriterTest {
 
         importSummaries = Arrays.asList(
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(1, 0, 0, 0), new ArrayList<>(), referenceUIDs.get(0)),
+                        new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(1, 0, 0, 0), new ArrayList<>(), referenceUIDs.get(1)));
+                        new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
         when(DHISSyncResponse.getResponse()).thenReturn(response);

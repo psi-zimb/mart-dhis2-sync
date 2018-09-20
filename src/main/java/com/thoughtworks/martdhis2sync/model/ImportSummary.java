@@ -18,6 +18,7 @@ public class ImportSummary {
     private String responseType;
     private String status;
     private ImportCount importCount;
+    private String description;
     private List<Conflict> conflicts = new ArrayList<>();
     private String reference;
 }
