@@ -1,7 +1,6 @@
 package com.thoughtworks.martdhis2sync.util;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,9 +14,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITHOUT_TIME;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.convertResourceOutputToString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getFormattedDateString;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -68,6 +69,16 @@ public class BatchUtilTest {
 
         Date actual = getDateFromString(null, DATEFORMAT_WITH_24HR_TIME);
 
-        Assert.assertEquals(expected, actual.toString());
+        assertEquals(expected, actual.toString());
+    }
+
+    @Test
+    public void shouldGetFormattedInExceptedFormat() {
+        String givenFormat = "2018-03-12 13:00:00";
+        String expectedFormat = "2018-03-12";
+
+        String formattedDateString = getFormattedDateString(givenFormat, DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME);
+
+        assertEquals(expectedFormat, formattedDateString);
     }
 }
