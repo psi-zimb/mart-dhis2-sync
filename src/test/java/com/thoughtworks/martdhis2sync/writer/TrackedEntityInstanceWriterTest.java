@@ -135,9 +135,9 @@ public class TrackedEntityInstanceWriterTest {
     public void shouldCallSyncRepoToSendData() {
         importSummaries = Arrays.asList(
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(0, 1, 0, 0), new ArrayList<>(), referenceUIDs.get(0)),
+                        new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(0, 1, 0, 0), new ArrayList<>(), referenceUIDs.get(1)));
+                        new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
@@ -159,9 +159,9 @@ public class TrackedEntityInstanceWriterTest {
 
         importSummaries = Arrays.asList(
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(0, 1, 0, 0), new ArrayList<>(), referenceUIDs.get(0)),
+                        new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(0, 1, 0, 0), new ArrayList<>(), referenceUIDs.get(1)));
+                        new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
         when(DHISSyncResponse.getResponse()).thenReturn(response);
@@ -184,9 +184,9 @@ public class TrackedEntityInstanceWriterTest {
 
         importSummaries = Arrays.asList(
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(1, 0, 0, 0), new ArrayList<>(), referenceUIDs.get(0)),
+                        new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(1, 0, 0, 0), new ArrayList<>(), referenceUIDs.get(1)));
+                        new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
         when(DHISSyncResponse.getResponse()).thenReturn(response);
@@ -212,9 +212,9 @@ public class TrackedEntityInstanceWriterTest {
         List<Conflict> conflicts = Collections.singletonList(new Conflict("", "Invalid org unit ID: SxgCPPeiq3c_"));
         importSummaries = Arrays.asList(
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(1, 0, 0, 0), conflicts, null),
+                        new ImportCount(1, 0, 0, 0), null, conflicts, null),
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(0, 0, 0, 0), new ArrayList<>(), referenceUIDs.get(1)));
+                        new ImportCount(0, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
         when(DHISSyncResponse.getResponse()).thenReturn(response);
@@ -238,9 +238,9 @@ public class TrackedEntityInstanceWriterTest {
 
         importSummaries = Arrays.asList(
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(1, 0, 0, 0), new ArrayList<>(), referenceUIDs.get(0)),
+                        new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(1, 0, 0, 0), new ArrayList<>(), referenceUIDs.get(1)));
+                        new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
         when(DHISSyncResponse.getResponse()).thenReturn(response);
@@ -262,9 +262,9 @@ public class TrackedEntityInstanceWriterTest {
         List<Conflict> conflicts = Collections.singletonList(new Conflict("", "Invalid org unit ID: SxgCPPeiq3c_"));
         importSummaries = Arrays.asList(
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(0, 0, 0, 0), conflicts, referenceUIDs.get(1)),
+                        new ImportCount(0, 0, 0, 0), null, conflicts, referenceUIDs.get(1)),
                 new ImportSummary("", RESPONSE_SUCCESS,
-                        new ImportCount(0, 0, 0, 0), new ArrayList<>(), referenceUIDs.get(1)));
+                        new ImportCount(0, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
