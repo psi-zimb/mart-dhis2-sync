@@ -6,6 +6,7 @@ import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
+import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -16,12 +17,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.RESPONSE_SUCCESS;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getStringFromDate;
 
 @Component
 @StepScope
@@ -36,8 +43,14 @@ public class ProgramEnrollmentWriter implements ItemWriter {
     @Value("#{jobParameters['user']}")
     private String user;
 
+    @Value("#{jobParameters['service']}")
+    private String programName;
+
     @Autowired
     private DataSource dataSource;
+
+    @Autowired
+    private MarkerUtil markerUtil;
 
     private static final String EMPTY_STRING = "\"\"";
     private static List<Enrollment> newEnrollmentsToSave = new ArrayList<>();
@@ -53,6 +66,7 @@ public class ProgramEnrollmentWriter implements ItemWriter {
         ResponseEntity<DHISSyncResponse> responseEntity = syncRepository.sendData(programEnrollUri, enrollmentApiFormat.toString());
         processResponse(responseEntity.getBody().getResponse().getImportSummaries());
         updateTracker();
+        updateMarker();
     }
 
     private void processResponse(List<ImportSummary> importSummaries) {
@@ -111,5 +125,10 @@ public class ProgramEnrollmentWriter implements ItemWriter {
             }
         }
         return updateCount;
+    }
+
+    private void updateMarker() {
+        markerUtil.updateMarkerEntry(programName, "enrollment",
+                getStringFromDate(EnrollmentUtil.date, DATEFORMAT_WITH_24HR_TIME));
     }
 }
