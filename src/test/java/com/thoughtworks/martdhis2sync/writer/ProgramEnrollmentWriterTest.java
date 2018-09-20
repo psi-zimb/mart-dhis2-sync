@@ -122,7 +122,9 @@ public class ProgramEnrollmentWriterTest {
 
 
     @Test
+    @SneakyThrows
     public void shouldCallSyncRepoToSendData() {
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
         when(DHISSyncResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(new ArrayList<>());
@@ -143,6 +145,7 @@ public class ProgramEnrollmentWriterTest {
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
         when(DHISSyncResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(importSummaries);
@@ -168,6 +171,7 @@ public class ProgramEnrollmentWriterTest {
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
         when(DHISSyncResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(importSummaries);
@@ -195,6 +199,7 @@ public class ProgramEnrollmentWriterTest {
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
         when(DHISSyncResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(importSummaries);
@@ -211,6 +216,7 @@ public class ProgramEnrollmentWriterTest {
     }
 
     @Test
+    @SneakyThrows
     public void shouldCallUpdateMarkerOnSyncSuccess() {
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);

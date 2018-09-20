@@ -57,23 +57,19 @@ public class ProgramEnrollmentWriter implements ItemWriter {
     private static final String LOG_PREFIX = "ENROLLMENT SYNC: ";
 
     @Override
-    public void write(List items) {
+    public void write(List items) throws Exception {
         StringBuilder enrollmentApiFormat = new StringBuilder("{\"enrollments\":[");
         items.forEach(item -> enrollmentApiFormat.append(item).append(","));
         enrollmentApiFormat.replace(enrollmentApiFormat.length() - 1, enrollmentApiFormat.length(), "]}");
 
         ResponseEntity<DHISSyncResponse> responseEntity = syncRepository.sendData(programEnrollUri, enrollmentApiFormat.toString());
-        if (null == responseEntity) {
-            //TODO: Job execution abort
-            return;
-        }
         if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
             processResponse(responseEntity.getBody().getResponse().getImportSummaries());
             updateTracker();
             updateMarker();
         } else {
             processErrorResponse(responseEntity.getBody().getResponse().getImportSummaries());
-            //TODO: Job execution abort
+            throw new Exception();
         }
     }
 
