@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import javax.sql.DataSource;
@@ -100,6 +101,7 @@ public class TrackedEntityInstanceWriterTest {
         setValuesForMemberFields(writer, "syncRepository", syncRepository);
         setValuesForMemberFields(writer, "markerUtil", markerUtil);
         setValuesForMemberFields(writer, "programName", programName);
+        setValuesForMemberFields(writer, "IS_SYNC_SUCCESS", true);
 
         String patient1 = "{\"trackedEntity\": \"%teUID\", " +
                 "\"trackedEntityInstance\": \"\", " +
@@ -131,10 +133,16 @@ public class TrackedEntityInstanceWriterTest {
 
     @Test
     public void shouldCallSyncRepoToSendData() {
+        importSummaries = Arrays.asList(
+                new ImportSummary("", RESPONSE_SUCCESS,
+                        new ImportCount(0, 1, 0, 0), new ArrayList<>(), referenceUIDs.get(0)),
+                new ImportSummary("", RESPONSE_SUCCESS,
+                        new ImportCount(0, 1, 0, 0), new ArrayList<>(), referenceUIDs.get(1)));
 
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(DHISSyncResponse.getResponse()).thenReturn(response);
-        when(response.getImportSummaries()).thenReturn(new ArrayList<>());
+        when(response.getImportSummaries()).thenReturn(importSummaries);
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
         doNothing().when(markerUtil).updateMarkerEntry(anyString(), anyString());
 
@@ -143,16 +151,6 @@ public class TrackedEntityInstanceWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(markerUtil, times(1))
                 .updateMarkerEntry(programName, "instance");
-    }
-
-    @Test
-    public void shouldReturnNullWhenRequestFailed() throws Exception {
-        when(syncRepository.sendData(uri, requestBody)).thenReturn(null);
-
-        writer.write(list);
-
-        verify(syncRepository, times(1)).sendData(uri, requestBody);
-        verify(responseEntity, times(0)).getBody();
     }
 
     @Test
