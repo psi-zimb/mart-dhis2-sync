@@ -122,8 +122,6 @@ public class TrackedEntityInstanceWriterTest {
 
     @Test
     public void shouldCallSyncRepoToSendData() throws Exception {
-        Date date = new Date(Long.MIN_VALUE);
-        String stringDate = "292269055-12-02 22:17:04";
         importSummaries = Arrays.asList(
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
