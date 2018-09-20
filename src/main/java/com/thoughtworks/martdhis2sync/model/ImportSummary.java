@@ -13,10 +13,11 @@ import java.util.List;
 public class ImportSummary {
 
     public static final String RESPONSE_SUCCESS = "SUCCESS";
+    public static final String RESPONSE_ERROR = "ERROR";
 
-    String responseType;
-    String status;
-    ImportCount importCount;
-    List<Conflict> conflicts = new ArrayList<>();
-    String reference;
+    private String responseType;
+    private String status;
+    private ImportCount importCount;
+    private List<Conflict> conflicts = new ArrayList<>();
+    private String reference;
 }

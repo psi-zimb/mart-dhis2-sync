@@ -6,12 +6,12 @@ import java.util.List;
 
 @Data
 public class Response {
-    String responseType;
-    String status;
-    int imported;
-    int updated;
-    int deleted;
-    int ignored;
-    List<ImportSummary> importSummaries;
-    int total;
+    private String responseType;
+    private String status;
+    private int imported;
+    private int updated;
+    private int deleted;
+    private int ignored;
+    private List<ImportSummary> importSummaries;
+    private int total;
 }

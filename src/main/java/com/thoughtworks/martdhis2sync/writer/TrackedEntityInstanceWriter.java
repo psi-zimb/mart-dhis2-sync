@@ -1,7 +1,7 @@
 package com.thoughtworks.martdhis2sync.writer;
 
+import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
 import com.thoughtworks.martdhis2sync.model.ImportSummary;
-import com.thoughtworks.martdhis2sync.model.TrackedEntityResponse;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
@@ -12,6 +12,7 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import static com.thoughtworks.martdhis2sync.model.Conflict.CONFLICT_OBJ_ATTRIBUTE;
+import static com.thoughtworks.martdhis2sync.model.Conflict.CONFLICT_OBJ_TEI_TYPE;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.RESPONSE_SUCCESS;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
 
@@ -63,16 +66,31 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
         list.forEach(item -> instanceApiFormat.append(item).append(","));
         instanceApiFormat.replace(instanceApiFormat.length() - 1, instanceApiFormat.length(), "]}");
 
-        ResponseEntity<TrackedEntityResponse> responseEntity = syncRepository.sendData(teiUri, instanceApiFormat.toString());
-
-        if (null == responseEntity) {
-            return;
-        }
-        logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
         IS_SYNC_SUCCESS = true;
-        processResponse(responseEntity.getBody().getResponse().getImportSummaries());
-        if(IS_SYNC_SUCCESS) {
-            updateMarker();
+        ResponseEntity<DHISSyncResponse> responseEntity = syncRepository.sendData(teiUri, instanceApiFormat.toString());
+
+        if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+            processResponse(responseEntity.getBody().getResponse().getImportSummaries());
+            if (IS_SYNC_SUCCESS) {
+                updateMarker();
+            }
+        } else {
+            IS_SYNC_SUCCESS = false;
+            processErrorResponse(responseEntity.getBody().getResponse().getImportSummaries());
+            //TODO: Job execution abort
+        }
+    }
+
+    private void processErrorResponse(List<ImportSummary> importSummaries) {
+        ImportSummary importSummary = importSummaries.get(0);
+        if (isConflicted(importSummary)) {
+            String conflictObject = importSummary.getConflicts().get(0).getObject();
+            if (CONFLICT_OBJ_TEI_TYPE.equals(conflictObject) ||
+                    CONFLICT_OBJ_ATTRIBUTE.equals(conflictObject)) {
+                logger.error(LOG_PREFIX + conflictObject + ": " + importSummary.getConflicts().get(0).getValue());
+            } else {
+                processResponse(importSummaries);
+            }
         }
     }
 
@@ -82,7 +100,6 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
 
         importSummaries.forEach(importSummary -> {
             if (isImported(importSummary)) {
-
                 while (mapIterator.hasNext()) {
                     Entry<String, String> entry = mapIterator.next();
                     if (EMPTY_STRING.equals(entry.getValue())) {
@@ -92,7 +109,8 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
                 }
             } else if (isConflicted(importSummary)) {
                 IS_SYNC_SUCCESS = false;
-                importSummary.getConflicts().forEach(conflict -> logger.error(LOG_PREFIX + "" + conflict.getValue()));
+                importSummary.getConflicts().forEach(
+                        conflict -> logger.error(LOG_PREFIX + conflict.getObject() + conflict.getValue()));
                 if (mapIterator.hasNext()) {
                     mapIterator.next();
                 }
@@ -110,7 +128,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     }
 
     private boolean isConflicted(ImportSummary importSummary) {
-        return RESPONSE_SUCCESS.equals(importSummary.getStatus()) && !importSummary.getConflicts().isEmpty();
+        return !importSummary.getConflicts().isEmpty();
     }
 
     private boolean isImported(ImportSummary importSummary) {

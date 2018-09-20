@@ -3,7 +3,7 @@ package com.thoughtworks.martdhis2sync.model;
 import lombok.Data;
 
 @Data
-public class TrackedEntityResponse {
+public class DHISSyncResponse {
     String httpStatus;
     int httpStatusCode;
     String status;
