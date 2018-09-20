@@ -5,6 +5,7 @@ import com.thoughtworks.martdhis2sync.model.Enrollment;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
@@ -12,6 +13,8 @@ import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
 public class EnrollmentUtil {
     @Getter
     private static List<Enrollment> enrollmentsList = new ArrayList<>();
+
+    public static Date date = new Date(Long.MIN_VALUE);
 
     public static void addEnrollment(JsonObject tableRowJsonObject) {
         enrollmentsList.add(
