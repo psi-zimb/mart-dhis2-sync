@@ -10,8 +10,10 @@ import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.SyncFailedException;
+
 @Component
-public class TEIService{
+public class TEIService {
 
     @Autowired
     private TrackedEntityInstanceStep trackedEntityInstanceStep;
@@ -26,7 +28,7 @@ public class TEIService{
 
     public void triggerJob(String service, String user, String lookupTable, Object mappingObj)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
-            JobRestartException, JobInstanceAlreadyCompleteException {
+            JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
 
         try {
             jobService.triggerJob(service, user, lookupTable, TEI_JOB_NAME, trackedEntityInstanceStep, mappingObj);

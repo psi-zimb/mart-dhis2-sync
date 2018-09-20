@@ -9,6 +9,8 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 
+import java.io.SyncFailedException;
+
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -58,6 +60,20 @@ public class TEIServiceTest {
         String jobName = "Sync Tracked Entity Instance";
 
         doThrow(JobExecutionAlreadyRunningException.class).when(jobService)
+                .triggerJob(service, user, lookUpTable, jobName, instanceStep, mappingObj);
+
+        teiService.triggerJob(service, user, lookUpTable, mappingObj);
+    }
+
+    @Test(expected = SyncFailedException.class)
+    public void shouldThrowSyncFailedException() throws Exception {
+        String lookUpTable = "patient_identifier";
+        Object mappingObj = "";
+        String service = "serviceName";
+        String user = "Admin";
+        String jobName = "Sync Tracked Entity Instance";
+
+        doThrow(SyncFailedException.class).when(jobService)
                 .triggerJob(service, user, lookUpTable, jobName, instanceStep, mappingObj);
 
         teiService.triggerJob(service, user, lookUpTable, mappingObj);
