@@ -10,6 +10,8 @@ import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.SyncFailedException;
+
 @Component
 public class ProgramEnrollmentService{
 
@@ -27,7 +29,7 @@ public class ProgramEnrollmentService{
 
     public void triggerJob(String programName, String user, String lookupTable)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
-            JobRestartException, JobInstanceAlreadyCompleteException {
+            JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
 
         try {
             jobService.triggerJob(programName, user, lookupTable, PE_JOB_NAME, programEnrollmentStep, new Object());

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.SyncFailedException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,8 +42,11 @@ public class PushController {
         LookupTable lookupTable = gson.fromJson(mapping.get("lookup_table").toString(), LookupTable.class);
         MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
 
-        teiService.triggerJob(service, user, lookupTable.getInstance(), mappingJson.getInstance());
-        programEnrollmentService.triggerJob(service, user, lookupTable.getEnrollments());
+        try {
+            teiService.triggerJob(service, user, lookupTable.getInstance(), mappingJson.getInstance());
+            programEnrollmentService.triggerJob(service, user, lookupTable.getEnrollments());
+        } catch (SyncFailedException ignored) {
+        }
 
         Map<String, String> result = new HashMap<>();
         result.put("Job Status", "Executed");

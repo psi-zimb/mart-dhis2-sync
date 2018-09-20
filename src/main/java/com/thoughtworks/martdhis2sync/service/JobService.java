@@ -2,9 +2,7 @@ package com.thoughtworks.martdhis2sync.service;
 
 import com.thoughtworks.martdhis2sync.listener.JobCompletionNotificationListener;
 import com.thoughtworks.martdhis2sync.step.StepBuilderContract;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
@@ -14,6 +12,7 @@ import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.SyncFailedException;
 import java.util.Date;
 
 @Component
@@ -30,14 +29,18 @@ public class JobService {
 
     public void triggerJob(String programName, String user, String lookupTable, String jobName, StepBuilderContract step, Object mappingObj)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
-            JobRestartException, JobInstanceAlreadyCompleteException {
+            JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
 
-        jobLauncher.run(getJob(lookupTable, programName, jobName, step, mappingObj),
+        JobExecution jobExecution = jobLauncher.run(getJob(lookupTable, programName, jobName, step, mappingObj),
                 new JobParametersBuilder()
                         .addDate("date", new Date())
                         .addString("service", programName)
                         .addString("user", user)
                         .toJobParameters());
+
+        if (jobExecution.getStatus() == BatchStatus.FAILED) {
+            throw new SyncFailedException(jobName.toUpperCase() + " FAILED");
+        }
     }
 
     private Job getJob(String lookupTable, String programName, String jobName, StepBuilderContract step, Object mappingObj) {
