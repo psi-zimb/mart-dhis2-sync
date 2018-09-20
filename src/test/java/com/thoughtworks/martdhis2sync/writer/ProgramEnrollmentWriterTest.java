@@ -211,8 +211,8 @@ public class ProgramEnrollmentWriterTest {
 
     @Test
     public void shouldCallUpdateMarkerOnSyncSuccess() {
-        when(responseEntity.getBody()).thenReturn(trackedEntityResponse);
-        when(trackedEntityResponse.getResponse()).thenReturn(response);
+        when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
+        when(DHISSyncResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(new ArrayList<>());
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
         doNothing().when(markerUtil).updateMarkerEntry(anyString(), anyString(), anyString());
