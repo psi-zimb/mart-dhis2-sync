@@ -21,14 +21,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
-import static com.thoughtworks.martdhis2sync.model.Conflict.CONFLICT_OBJ_ATTRIBUTE;
-import static com.thoughtworks.martdhis2sync.model.Conflict.CONFLICT_OBJ_TEI_TYPE;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_SUCCESS;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
 
@@ -40,7 +35,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     private static Map<String, String> newTEIUIDs = new LinkedHashMap<>();
     private Logger logger = LoggerFactory.getLogger(TrackedEntityInstanceWriter.class);
     private static final String LOG_PREFIX = "TEI SYNC: ";
-    private static boolean IS_SYNC_SUCCESS = true;
+    private boolean isSyncFailure;
 
     @Value("${uri.tei}")
     private String teiUri;
@@ -60,48 +55,48 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     @Value("#{jobParameters['service']}")
     private String programName;
 
+    private Iterator<Entry<String, String>> mapIterator;
+
     @Override
     public void write(List list) throws Exception {
         StringBuilder instanceApiFormat = new StringBuilder("{\"trackedEntityInstances\":[");
         list.forEach(item -> instanceApiFormat.append(item).append(","));
         instanceApiFormat.replace(instanceApiFormat.length() - 1, instanceApiFormat.length(), "]}");
 
-        IS_SYNC_SUCCESS = true;
+        isSyncFailure = false;
         ResponseEntity<DHISSyncResponse> responseEntity = syncRepository.sendData(teiUri, instanceApiFormat.toString());
 
+        mapIterator = TEIUtil.getPatientIdTEIUidMap().entrySet().iterator();
+        newTEIUIDs.clear();
         if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
             processResponse(responseEntity.getBody().getResponse().getImportSummaries());
-            if (IS_SYNC_SUCCESS) {
-                updateMarker();
-            }
         } else {
-            IS_SYNC_SUCCESS = false;
+            isSyncFailure = true;
             processErrorResponse(responseEntity.getBody().getResponse().getImportSummaries());
         }
-
-        if(!IS_SYNC_SUCCESS){
+        updateTracker();
+        if (isSyncFailure) {
             throw new Exception();
+        } else {
+            updateMarker();
         }
     }
 
     private void processErrorResponse(List<ImportSummary> importSummaries) {
-        ImportSummary importSummary = importSummaries.get(0);
-        if (isConflicted(importSummary)) {
-            importSummary.getConflicts().forEach(conflict -> {
-                if (CONFLICT_OBJ_TEI_TYPE.equals(conflict.getObject()) ||
-                        CONFLICT_OBJ_ATTRIBUTE.equals(conflict.getObject())) {
-                    logger.error(LOG_PREFIX + conflict.getObject() + ": " + conflict.getValue());
-                } else {
-                    processResponse(importSummaries);
+        for (ImportSummary importSummary : importSummaries) {
+            if (isConflicted(importSummary)) {
+                importSummary.getConflicts().forEach(conflict ->
+                        logger.error(LOG_PREFIX + conflict.getObject() + ": " + conflict.getValue()));
+                if (mapIterator.hasNext()) {
+                    mapIterator.next();
                 }
-            });
+            } else {
+                processResponse(Collections.singletonList(importSummary));
+            }
         }
     }
 
     private void processResponse(List<ImportSummary> importSummaries) {
-        newTEIUIDs.clear();
-        Iterator<Entry<String, String>> mapIterator = TEIUtil.getPatientIdTEIUidMap().entrySet().iterator();
-
         importSummaries.forEach(importSummary -> {
             if (isImported(importSummary)) {
                 while (mapIterator.hasNext()) {
@@ -112,23 +107,14 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
                     }
                 }
             } else if (isConflicted(importSummary)) {
-                IS_SYNC_SUCCESS = false;
+                isSyncFailure = true;
                 importSummary.getConflicts().forEach(
-                        conflict -> logger.error(LOG_PREFIX + conflict.getObject() + conflict.getValue()));
+                        conflict -> logger.error(LOG_PREFIX + conflict.getValue()));
                 if (mapIterator.hasNext()) {
                     mapIterator.next();
                 }
             }
         });
-        try {
-            if (!newTEIUIDs.isEmpty()) {
-                int recordsCreated = updateTracker();
-                logger.info(LOG_PREFIX + "Successfully inserted " + recordsCreated + " TrackedEntityInstance UIDs.");
-            }
-        } catch (SQLException e) {
-            logger.error(LOG_PREFIX + "Exception occurred while inserting TrackedEntityInstance UIDs:" + e.getMessage());
-            e.printStackTrace();
-        }
     }
 
     private boolean isConflicted(ImportSummary importSummary) {
@@ -139,23 +125,26 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
         return IMPORT_SUMMARY_RESPONSE_SUCCESS.equals(importSummary.getStatus()) && importSummary.getImportCount().getImported() == 1;
     }
 
-    private int updateTracker() throws SQLException {
+    private void updateTracker() throws SQLException {
 
         String sqlQuery = "INSERT INTO public.instance_tracker(patient_id, instance_id, created_by, date_created) values (? , ?, ?, ?)";
-        int updateCount;
-        try (Connection connection = dataSource.getConnection()) {
-            try (PreparedStatement ps = connection.prepareStatement(sqlQuery)) {
-                updateCount = 0;
-                for (Entry entry : newTEIUIDs.entrySet()) {
-                    ps.setString(1, entry.getKey().toString());
-                    ps.setString(2, entry.getValue().toString());
-                    ps.setString(3, user);
-                    ps.setTimestamp(4, Timestamp.valueOf(BatchUtil.GetUTCDateTimeAsString()));
-                    updateCount += ps.executeUpdate();
+
+        if (!newTEIUIDs.isEmpty()) {
+            int updateCount;
+            try (Connection connection = dataSource.getConnection()) {
+                try (PreparedStatement ps = connection.prepareStatement(sqlQuery)) {
+                    updateCount = 0;
+                    for (Entry entry : newTEIUIDs.entrySet()) {
+                        ps.setString(1, entry.getKey().toString());
+                        ps.setString(2, entry.getValue().toString());
+                        ps.setString(3, user);
+                        ps.setTimestamp(4, Timestamp.valueOf(BatchUtil.GetUTCDateTimeAsString()));
+                        updateCount += ps.executeUpdate();
+                    }
                 }
             }
+            logger.info(LOG_PREFIX + "Successfully inserted " + updateCount + " TrackedEntityInstance UIDs.");
         }
-        return updateCount;
     }
 
     private void updateMarker() {
