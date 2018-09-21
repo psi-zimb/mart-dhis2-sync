@@ -54,6 +54,7 @@ public class MappingReaderTest {
         setValuesForMemberFields(mappingReader, "dataSource", dataSource);
         setValuesForMemberFields(mappingReader, "instanceResource", resource);
         setValuesForMemberFields(mappingReader, "enrollmentResource", resource);
+        setValuesForMemberFields(mappingReader, "eventResource", resource);
         mockStatic(BatchUtil.class);
     }
 
@@ -131,6 +132,32 @@ public class MappingReaderTest {
         doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
 
         JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getEnrollmentReader(lookupTable, programName);
+
+        assertEquals(jdbcCursorItemReader, actual);
+
+        verify(jdbcCursorItemReader, times(1)).setDataSource(dataSource);
+        verify(jdbcCursorItemReader, times(1)).setSql(sql);
+        verify(jdbcCursorItemReader, times(1)).setRowMapper(columnMapRowMapper);
+    }
+
+    @Test
+    public void shouldReturnReaderForEvent() throws Exception {
+        String lookupTable = "programs";
+
+        String sql = String.format("SELECT event.*, et.instance_id, et.enrollment_id\n" +
+                        "FROM %s event\n" +
+                        "INNER JOIN instance_tracker it ON event.\"Patient_Identifier\" = it.patient_id\n" +
+                        "INNER JOIN enrollment_tracker et ON it.instance_id = et.instance_id;",
+                        lookupTable);
+
+        whenNew(JdbcCursorItemReader.class).withNoArguments().thenReturn(jdbcCursorItemReader);
+        whenNew(ColumnMapRowMapper.class).withNoArguments().thenReturn(columnMapRowMapper);
+        when(BatchUtil.convertResourceOutputToString(resource)).thenReturn(sql);
+        doNothing().when(jdbcCursorItemReader).setDataSource(dataSource);
+        doNothing().when(jdbcCursorItemReader).setSql(sql);
+        doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
+
+        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getEventReader(lookupTable);
 
         assertEquals(jdbcCursorItemReader, actual);
 
