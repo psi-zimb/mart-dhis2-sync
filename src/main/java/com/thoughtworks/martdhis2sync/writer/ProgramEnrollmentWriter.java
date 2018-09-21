@@ -21,6 +21,7 @@ import org.springframework.util.StringUtils;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -51,6 +52,8 @@ public class ProgramEnrollmentWriter implements ItemWriter {
     @Autowired
     private MarkerUtil markerUtil;
 
+    private Iterator<Enrollment> mapIterator;
+
     private static final String EMPTY_STRING = "\"\"";
     private static List<Enrollment> newEnrollmentsToSave = new ArrayList<>();
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -63,12 +66,15 @@ public class ProgramEnrollmentWriter implements ItemWriter {
         enrollmentApiFormat.replace(enrollmentApiFormat.length() - 1, enrollmentApiFormat.length(), "]}");
 
         ResponseEntity<DHISSyncResponse> responseEntity = syncRepository.sendData(programEnrollUri, enrollmentApiFormat.toString());
+        newEnrollmentsToSave.clear();
+        mapIterator = EnrollmentUtil.getEnrollmentsList().iterator();
         if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
             processResponse(responseEntity.getBody().getResponse().getImportSummaries());
             updateTracker();
             updateMarker();
         } else {
             processErrorResponse(responseEntity.getBody().getResponse().getImportSummaries());
+            updateTracker();
             throw new Exception();
         }
     }
@@ -76,18 +82,19 @@ public class ProgramEnrollmentWriter implements ItemWriter {
     private void processErrorResponse(List<ImportSummary> importSummaries) {
         for (ImportSummary importSummary : importSummaries) {
             if (isIgnored(importSummary)) {
+                if (mapIterator.hasNext()) mapIterator.next();
                 logger.error(LOG_PREFIX + importSummary.getDescription());
             } else if (isConflicted(importSummary)) {
+                if (mapIterator.hasNext()) mapIterator.next();
                 importSummary.getConflicts().forEach(conflict ->
                         logger.error(LOG_PREFIX + conflict.getObject() + ": " + conflict.getValue()));
+            } else {
+                processResponse(Collections.singletonList(importSummary));
             }
         }
     }
 
     private void processResponse(List<ImportSummary> importSummaries) {
-        newEnrollmentsToSave.clear();
-        Iterator<Enrollment> mapIterator = EnrollmentUtil.getEnrollmentsList().iterator();
-
         importSummaries.forEach(importSummary -> {
             if (isImported(importSummary)) {
                 while (mapIterator.hasNext()) {
