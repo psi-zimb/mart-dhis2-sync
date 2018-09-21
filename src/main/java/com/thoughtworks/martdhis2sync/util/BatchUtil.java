@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.util;
 
+import com.google.gson.JsonElement;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.util.StringUtils;
@@ -15,6 +16,7 @@ public class BatchUtil {
     private static final String DATEFORMAT = "yyyy-MM-dd HH:mm:ss";
     public static final String DATEFORMAT_WITH_24HR_TIME = "yyyy-MM-dd kk:mm:ss";
     public static final String DATEFORMAT_WITHOUT_TIME = "yyyy-MM-dd";
+    public static final String EMPTY_STRING = "\"\"";
 
     public static String convertResourceOutputToString(Resource resource) throws IOException {
         return IOUtils.toString(resource.getInputStream());
@@ -47,5 +49,15 @@ public class BatchUtil {
 
     public static String getFormattedDateString(String date, String existingFormat, String expectedFormat) {
         return getStringFromDate(getDateFromString(date, existingFormat), expectedFormat);
+    }
+
+    public static boolean hasValue(JsonElement element) {
+        return (null != element && !EMPTY_STRING.equals(element.toString()));
+    }
+
+    public static String removeLastChar(StringBuilder value) {
+        int length = value.length();
+
+        return length > 0 ? value.deleteCharAt(length - 1).toString() : "";
     }
 }
