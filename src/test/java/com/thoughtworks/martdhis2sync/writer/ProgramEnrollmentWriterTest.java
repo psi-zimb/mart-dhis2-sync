@@ -30,9 +30,11 @@ import static com.thoughtworks.martdhis2sync.model.Conflict.CONFLICT_OBJ_ENROLLM
 import static com.thoughtworks.martdhis2sync.model.Conflict.CONFLICT_OBJ_ENROLLMENT_INCIDENT_DATE;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_ERROR;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_SUCCESS;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -139,7 +141,7 @@ public class ProgramEnrollmentWriterTest {
 
     @Test
     @SneakyThrows
-    public void shouldNotUpdateEnrollmentTrackerTableAfterSendingUpdatedEnrollmentsInSync() {
+    public void shouldNotUpdateTrackerTableAfterSendingOnlyUpdatedEnrollmentsInSync() {
 
         importSummaries = Arrays.asList(
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
@@ -165,7 +167,7 @@ public class ProgramEnrollmentWriterTest {
 
     @Test
     @SneakyThrows
-    public void shouldSuccessfullyProcessResponse() {
+    public void shouldUpdateTrackerAndMarkerTablesOnSuccessfullySyncingOnlyNewEnrollments() {
 
         importSummaries = Arrays.asList(
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
@@ -181,6 +183,7 @@ public class ProgramEnrollmentWriterTest {
 
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(any())).thenReturn(preparedStatement);
+        when(preparedStatement.executeUpdate()).thenReturn(2);
 
         enrollmentsList.add(new Enrollment(EMPTY_STRING, instanceIDs.get(0), programName, new Date(), "ACTIVE"));
         enrollmentsList.add(new Enrollment(EMPTY_STRING, instanceIDs.get(1), programName, new Date(), "ACTIVE"));
@@ -189,6 +192,9 @@ public class ProgramEnrollmentWriterTest {
         writer.write(list);
 
         verify(syncRepository, times(1)).sendData(uri, requestBody);
+        verify(dataSource, times(1)).getConnection();
+        verify(preparedStatement, times(2)).executeUpdate();
+        verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
     }
 
     @Test
@@ -213,32 +219,29 @@ public class ProgramEnrollmentWriterTest {
         enrollmentsList.add(new Enrollment(EMPTY_STRING, instanceIDs.get(1), programName, new Date(), "ACTIVE"));
         when(EnrollmentUtil.getEnrollmentsList()).thenReturn(enrollmentsList);
 
-        writer.write(list);
+        try {
+            writer.write(list);
+        } catch (Exception e) {
+            assertEquals(e.getClass(), SQLException.class);
+        }
+
         verify(syncRepository, times(1)).sendData(uri, requestBody);
+        verify(dataSource, times(1)).getConnection();
     }
 
     @Test
     @SneakyThrows
-    public void shouldCallUpdateMarkerOnSyncSuccess() {
-        when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
-        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
-        when(DHISSyncResponse.getResponse()).thenReturn(response);
-        when(response.getImportSummaries()).thenReturn(new ArrayList<>());
-        when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
-        doNothing().when(markerUtil).updateMarkerEntry(anyString(), anyString(), anyString());
-        writer.write(list);
+    public void shouldNotUpdateMarkerWhenSyncingEnrollmentWithIncorrectProgramUIDAndSyncFailsWith500InternalServerError() {
+        when(syncRepository.sendData(uri, requestBody)).thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
+
+        try {
+            writer.write(list);
+        } catch (Exception e) {
+            assertEquals(e.getClass(), HttpServerErrorException.class);
+        }
 
         verify(syncRepository, times(1)).sendData(uri, requestBody);
-        verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
-    }
-
-    @Test
-    @SneakyThrows
-    public void shouldNotUpdateMarkerWhenRecievedInternalServerErrorWhenSyncingEnrollmentWithIncorrectProgramUID() {
-        when(syncRepository.sendData(uri, requestBody)).thenThrow(HttpServerErrorException.class);
-        writer.write(list);
-
-        verify(syncRepository, times(1)).sendData(uri, requestBody);
+        verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
     }
 
@@ -249,9 +252,9 @@ public class ProgramEnrollmentWriterTest {
         writer.write(list);
     }
 
-    @Test(expected = Exception.class)
+    @Test
     @SneakyThrows
-    public void shouldLogConflictsAndThrowExceptionOnEnrollmentSyncFailure() {
+    public void shouldLogConflictsAndThrowExceptionOnEnrollmentSyncFailureWith409Conflict() {
         List<Conflict> conflicts = Arrays.asList(
                 new Conflict(CONFLICT_OBJ_ENROLLMENT_INCIDENT_DATE, "Incident Date can't be future date :Mon Oct 01 00:00:00 IST 2018"),
                 new Conflict(CONFLICT_OBJ_ENROLLMENT_DATE, "Enrollment Date can't be future date :Mon Sept 01 00:00:00 IST 2018"));
@@ -266,31 +269,56 @@ public class ProgramEnrollmentWriterTest {
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.CONFLICT);
         when(DHISSyncResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(importSummaries);
-        writer.write(list);
+
+        enrollmentsList.add(new Enrollment(referenceUIDs.get(0), instanceIDs.get(0), programName, new Date(), "ACTIVE"));
+        enrollmentsList.add(new Enrollment(referenceUIDs.get(1), instanceIDs.get(1), programName, new Date(), "ACTIVE"));
+        when(EnrollmentUtil.getEnrollmentsList()).thenReturn(enrollmentsList);
+
+        try {
+            writer.write(list);
+        } catch (Exception e) {
+            assertEquals(e.getClass(), Exception.class);
+        }
 
         verify(syncRepository, times(1)).sendData(uri, requestBody);
+        verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
     }
 
-    @Test(expected = Exception.class)
+    @Test
     @SneakyThrows
-    public void shouldLogDescriptionAndThrowExceptionOnEnrollmentSyncFailure() {
-        importSummaries = Arrays.asList(
-                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_ERROR,
-                        new ImportCount(0, 0, 1, 0),
-                        "TrackedEntityInstance TEI_UID_1 already has an active enrollment in program Ox4qJuR5jAI", new ArrayList<>(), referenceUIDs.get(0)),
-                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_ERROR,
-                        new ImportCount(0, 0, 1, 0),
-                        "TrackedEntityInstance TEI_UID_2 already has an active enrollment in program Ox4qJuR5jAI", new ArrayList<>(), referenceUIDs.get(1)));
+    public void shouldLogDescriptionAndThrowExceptionOnEnrollmentSyncFailureWith409Conflict() {
+        ImportSummary importSummaryForPatientWithAlreadyActiveEnrollment = new ImportSummary("", IMPORT_SUMMARY_RESPONSE_ERROR,
+                new ImportCount(0, 0, 1, 0),
+                "TrackedEntityInstance TEI_UID_1 already has an active enrollment in program Ox4qJuR5jAI", new ArrayList<>(), null);
+        ImportSummary importSummaryForNewPatientWithoutAnyEnrollments = new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
+                new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1));
+
+        importSummaries = Arrays.asList(importSummaryForPatientWithAlreadyActiveEnrollment, importSummaryForNewPatientWithoutAnyEnrollments);
 
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.CONFLICT);
         when(DHISSyncResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(importSummaries);
-        writer.write(list);
+
+        when(dataSource.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(any())).thenReturn(preparedStatement);
+        when(preparedStatement.executeUpdate()).thenReturn(1);
+
+        enrollmentsList.add(new Enrollment(EMPTY_STRING, instanceIDs.get(0), programName, new Date(), "ACTIVE"));
+        enrollmentsList.add(new Enrollment(EMPTY_STRING, instanceIDs.get(1), programName, new Date(), "ACTIVE"));
+        when(EnrollmentUtil.getEnrollmentsList()).thenReturn(enrollmentsList);
+
+        try {
+            writer.write(list);
+        } catch (Exception e) {
+            assertEquals(e.getClass(), Exception.class);
+        }
 
         verify(syncRepository, times(1)).sendData(uri, requestBody);
+        verify(dataSource, times(1)).getConnection();
+        verify(preparedStatement, times(1)).executeUpdate();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
     }
 
