@@ -1,6 +1,7 @@
 package com.thoughtworks.martdhis2sync.controller;
 
 import com.google.gson.Gson;
+import com.thoughtworks.martdhis2sync.service.EventService;
 import com.thoughtworks.martdhis2sync.service.MappingService;
 import com.thoughtworks.martdhis2sync.service.ProgramEnrollmentService;
 import com.thoughtworks.martdhis2sync.service.TEIService;
@@ -31,6 +32,9 @@ public class PushController {
     @Autowired
     private ProgramEnrollmentService programEnrollmentService;
 
+    @Autowired
+    private EventService eventService;
+
     @PutMapping(value = "/pushData")
     public Map<String, String> pushData(@RequestParam String service, @RequestParam String user)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
@@ -45,6 +49,7 @@ public class PushController {
         try {
             teiService.triggerJob(service, user, lookupTable.getInstance(), mappingJson.getInstance());
             programEnrollmentService.triggerJob(service, user, lookupTable.getEnrollments());
+            eventService.triggerJob(service, user, lookupTable.getEvent(), mappingJson.getEvent());
         } catch (SyncFailedException ignored) {
         }
 

@@ -6,4 +6,5 @@ import lombok.Data;
 public class MappingJson {
 
     private Object instance;
+    private Object event;
 }
