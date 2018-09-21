@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.util;
 
+import com.google.gson.JsonElement;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,7 +20,11 @@ import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.convertResourceOutputToString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getFormattedDateString;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.hasValue;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeLastChar;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -80,5 +85,54 @@ public class BatchUtilTest {
         String formattedDateString = getFormattedDateString(givenFormat, DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME);
 
         assertEquals(expectedFormat, formattedDateString);
+    }
+
+    @Test
+    public void shouldReturnFalseWhenElementIsNull() {
+        assertFalse(hasValue(null));
+    }
+
+    @Test
+    public void shouldReturnFalseWhenElementHas2DoubleQuotes() {
+        JsonElement element = new JsonElement() {
+            @Override
+            public JsonElement deepCopy() {
+                return null;
+            }
+
+            @Override
+            public String toString() {
+                return "\"\"";
+            }
+        };
+
+        assertFalse(hasValue(element));
+    }
+
+    @Test
+    public void shouldReturnTrueWhenElementHasValue() {
+        JsonElement element = new JsonElement() {
+            @Override
+            public JsonElement deepCopy() {
+                return null;
+            }
+
+            @Override
+            public String toString() {
+                return "\"some value\"";
+            }
+        };
+
+        assertTrue(hasValue(element));
+    }
+
+    @Test
+    public void shouldReturnEmptyStringWhenGivenStringIsEmpty() {
+        assertEquals("", removeLastChar(new StringBuilder()));
+    }
+
+    @Test
+    public void shouldRemoveLastCharForTheGivenString() {
+        assertEquals("someValu", removeLastChar(new StringBuilder("someValue")));
     }
 }
