@@ -102,6 +102,7 @@ public class ProgramEnrollmentWriter implements ItemWriter {
                     if (EMPTY_STRING.equals(enrollment.getEnrollment_id())) {
                         enrollment.setEnrollment_id(importSummary.getReference());
                         newEnrollmentsToSave.add(enrollment);
+                        break;
                     }
                 }
             }
