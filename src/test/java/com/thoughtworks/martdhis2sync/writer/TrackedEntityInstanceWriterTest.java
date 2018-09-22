@@ -472,11 +472,13 @@ public class TrackedEntityInstanceWriterTest {
         requestBody = "{\"trackedEntityInstances\":[" + patient1 + "," + patient2 + "," + patient3 + "," + patient4 + "]}";
         List<Conflict> newTEIconflicts = Arrays.asList(
                 new Conflict(CONFLICT_OBJ_ATTRIBUTE, "Invalid attribute rOb34aQ&$#F"),
+                new Conflict(CONFLICT_OBJ_ATTRIBUTE_VALUE, "Value 'Male' is not a valid option for attribute fBfqVUqF and option set P7lTQFwJ"),
                 new Conflict(CONFLICT_OBJ_ORG_UNIT, "Org unit null does not exist"),
                 new Conflict(CONFLICT_OBJ_TEI_TYPE, "Invalid trackedEntityType o0kaqrZa79Y@#&"));
         List<Conflict> updatedTEIconflicts = Arrays.asList(
                 new Conflict(CONFLICT_OBJ_ATTRIBUTE_VALUE, "Value 'UIC' is not a valid numeric type for attribute rOb84aQKSyC"),
                 new Conflict(CONFLICT_OBJ_ATTRIBUTE, "Invalid attribute rOb34aQ&$#F"),
+                new Conflict(CONFLICT_OBJ_TEI_TYPE, "Missing required property trackedEntityType"),
                 new Conflict(CONFLICT_OBJ_ORG_UNIT, "Org unit null does not exist"));
 
         ImportSummary importSummaryForNewPatient = new ImportSummary("", IMPORT_SUMMARY_RESPONSE_ERROR,
