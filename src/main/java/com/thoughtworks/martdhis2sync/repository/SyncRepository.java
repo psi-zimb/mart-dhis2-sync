@@ -45,6 +45,7 @@ public class SyncRepository {
                     e.getStatusCode());
             logger.error(LOG_PREFIX + e);
         }
+        System.out.println("\nREQ: " + body + "\nRES: " + responseEntity);
         return responseEntity;
     }
 
