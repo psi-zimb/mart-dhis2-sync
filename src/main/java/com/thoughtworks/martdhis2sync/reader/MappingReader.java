@@ -52,16 +52,7 @@ public class MappingReader {
         return get(lookupTable, programName, instanceResource);
     }
 
-    public JdbcCursorItemReader<Map<String, Object>> getEventReader(String lookupTable) {
-        JdbcCursorItemReader<Map<String, Object>> reader = new JdbcCursorItemReader<>();
-        try {
-            String sql = BatchUtil.convertResourceOutputToString(eventResource);
-            reader.setDataSource(dataSource);
-            reader.setSql(String.format(sql, lookupTable));
-            reader.setRowMapper(new ColumnMapRowMapper());
-        } catch (IOException e) {
-            logger.error("Error in converting sql to string : " + e.getMessage());
-        }
-        return reader;
+    public JdbcCursorItemReader<Map<String, Object>> getEventReader(String lookupTable, String programName) {
+        return get(lookupTable, programName, eventResource);
     }
 }

@@ -19,7 +19,6 @@ import java.util.Date;
 import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
-import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_ENROLLMENT;
 import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_EVENT;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.times;
@@ -73,7 +72,7 @@ public class EventStepTest {
         String mappingObj = "";
         Date lastSyncedDate = new Date(Long.MIN_VALUE);
 
-        when(mappingReader.getEventReader(lookupTable)).thenReturn(jdbcCursorItemReader);
+        when(mappingReader.getEventReader(lookupTable, programName)).thenReturn(jdbcCursorItemReader);
         when(objectFactory.getObject()).thenReturn(processor);
         when(stepFactory.build(stepName, jdbcCursorItemReader, processor, writer)).thenReturn(step);
         when(markerUtil.getLastSyncedDate(programName, CATEGORY_EVENT)).thenReturn(lastSyncedDate);
@@ -81,7 +80,7 @@ public class EventStepTest {
 
         Step actual = eventStep.get(lookupTable, programName, mappingObj);
 
-        verify(mappingReader, times(1)).getEventReader(lookupTable);
+        verify(mappingReader, times(1)).getEventReader(lookupTable, programName);
         verify(stepFactory, times(1)).build(stepName, jdbcCursorItemReader, processor, writer);
         verify(markerUtil, times(1)).getLastSyncedDate(programName, CATEGORY_EVENT);
         assertEquals(step, actual);

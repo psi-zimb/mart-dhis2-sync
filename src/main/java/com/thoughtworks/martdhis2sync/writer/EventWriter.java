@@ -3,6 +3,7 @@ package com.thoughtworks.martdhis2sync.writer;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +16,7 @@ import static com.thoughtworks.martdhis2sync.util.BatchUtil.getStringFromDate;
 import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_EVENT;
 
 @Component
+@StepScope
 public class EventWriter implements ItemWriter {
 
     @Value("${uri.event}")

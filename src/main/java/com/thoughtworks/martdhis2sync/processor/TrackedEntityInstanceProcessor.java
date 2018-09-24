@@ -1,6 +1,7 @@
 package com.thoughtworks.martdhis2sync.processor;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
@@ -14,6 +15,7 @@ import java.util.Set;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
 
 @Component
 public class TrackedEntityInstanceProcessor implements ItemProcessor {
@@ -30,7 +32,7 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
     @Override
     public String process(Object tableRow) {
 
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder().setDateFormat(DATEFORMAT_WITH_24HR_TIME).create();
         JsonElement tableRowJsonElement = gson.toJsonTree(tableRow);
         JsonElement mappingObjJsonElement = gson.toJsonTree(mappingObj);
 
@@ -44,7 +46,7 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
     }
 
     private void updateLatestDateCreated(String dateCreated) {
-        Date bahmniDateCreated = getDateFromString(dateCreated, DATEFORMAT_WITH_24HR_TIME);
+        Date bahmniDateCreated = getDateFromString(getUnquotedString(dateCreated), DATEFORMAT_WITH_24HR_TIME);
         if (TEIUtil.date.compareTo(bahmniDateCreated) < 1) {
             TEIUtil.date = bahmniDateCreated;
         }
