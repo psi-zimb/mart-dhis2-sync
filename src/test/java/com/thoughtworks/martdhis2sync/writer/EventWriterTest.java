@@ -2,6 +2,7 @@ package com.thoughtworks.martdhis2sync.writer;
 
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
+import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,7 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
-import static org.junit.Assert.*;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -28,6 +29,9 @@ public class EventWriterTest {
 
     @Mock
     private ResponseEntity responseEntity;
+
+    @Mock
+    private MarkerUtil markerUtil;
 
     private EventWriter writer;
 
@@ -43,6 +47,7 @@ public class EventWriterTest {
 
         setValuesForMemberFields(writer, "eventUri", uri);
         setValuesForMemberFields(writer, "syncRepository", syncRepository);
+        setValuesForMemberFields(writer, "markerUtil", markerUtil);
 
         String enrollments1 = "{\"event\": \"\", " +
                 "\"trackedEntityInstance\": \"we4FSLEGq\", " +
@@ -71,7 +76,6 @@ public class EventWriterTest {
         mockStatic(EnrollmentUtil.class);
     }
 
-
     @Test
     public void shouldCallSyncRepoToSendData() {
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
@@ -80,4 +84,15 @@ public class EventWriterTest {
 
         verify(syncRepository, times(1)).sendData(uri, requestBody);
     }
+
+    @Test
+    public void shouldUpdateMarkerAfterSuccessfulSync() {
+        when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
+
+        writer.write(list);
+
+        verify(syncRepository, times(1)).sendData(uri, requestBody);
+        verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
+    }
+
 }

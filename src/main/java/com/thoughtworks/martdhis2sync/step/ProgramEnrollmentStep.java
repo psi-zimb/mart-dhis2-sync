@@ -9,6 +9,8 @@ import org.springframework.batch.core.Step;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_ENROLLMENT;
+
 @Component
 public class ProgramEnrollmentStep implements StepBuilderContract {
 
@@ -32,7 +34,7 @@ public class ProgramEnrollmentStep implements StepBuilderContract {
     @Override
     public Step get(String lookupTable, String programName, Object mappingObj) {
         EnrollmentUtil.resetEnrollmentsList();
-        EnrollmentUtil.date = markerUtil.getLastSyncedDate(programName, "enrollment");
+        EnrollmentUtil.date = markerUtil.getLastSyncedDate(programName, CATEGORY_ENROLLMENT);
         return stepFactory.build(PE_STEP_NAME, mappingReader.getEnrollmentReader(lookupTable, programName), processor, writer);
     }
 }

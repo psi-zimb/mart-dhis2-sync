@@ -14,6 +14,10 @@ import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR
 @Component
 public class MarkerUtil {
 
+    public static final String CATEGORY_INSTANCE = "instance";
+    public static final String CATEGORY_ENROLLMENT = "enrollment";
+    public static final String CATEGORY_EVENT = "event";
+
     @Autowired
     @Qualifier("jdbcTemplate")
     private JdbcTemplate jdbcTemplate;
