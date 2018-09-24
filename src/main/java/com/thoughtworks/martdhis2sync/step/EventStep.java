@@ -38,7 +38,7 @@ public class EventStep implements StepBuilderContract{
     public Step get(String lookupTable, String programName, Object mappingObj) {
         EventUtil.date = markerUtil.getLastSyncedDate(programName, CATEGORY_EVENT);
         return stepFactory.build(TEI_STEP_NAME,
-                mappingReader.getEventReader(lookupTable),
+                mappingReader.getEventReader(lookupTable, programName),
                 getProcessor(mappingObj),
                 writer);
     }
