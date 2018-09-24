@@ -48,6 +48,8 @@ public class MappingReaderTest {
 
     private MappingReader mappingReader;
 
+    private static final String programName = "HTS Service";
+
     @Before
     public void setUp() throws Exception {
         mappingReader = new MappingReader();
@@ -61,7 +63,6 @@ public class MappingReaderTest {
     @Test
     public void shouldReturnInstanceReaderWithDetailsBasedOnInput() throws Exception {
         String lookupTable = "patient_identifier";
-        String programName = "HTS Service";
 
         String sql = String.format("SELECT lt.*, CASE WHEN i.instance_id is NULL THEN '' else i.instance_id END as instance_id  " +
                         "FROM patient_identifier lt LEFT join instance_tracker i ON  lt.\"Patient_Identifier\" = i.patient_id " +
@@ -89,7 +90,6 @@ public class MappingReaderTest {
     @Test
     public void shouldLogWhenResourceCanNotBeConvertedToString() throws Exception {
         String lookupTable = "patient_identifier";
-        String programName = "HTS Service";
 
         setValuesForMemberFields(mappingReader, "logger", logger);
         whenNew(JdbcCursorItemReader.class).withNoArguments().thenReturn(jdbcCursorItemReader);
@@ -107,7 +107,6 @@ public class MappingReaderTest {
     @Test
     public void shouldReturnReaderForProgramEnrollment() throws Exception {
         String lookupTable = "programs";
-        String programName = "HTS Service";
 
         String sql = String.format("SELECT mappedTable.*, insTracker.instance_id, orgTracker.id as orgunit_id,\n" +
                         "  CASE WHEN enrTracker.enrollment_id is NULL THEN '' ELSE enrTracker.enrollment_id END AS enrollment_id\n" +
@@ -157,7 +156,7 @@ public class MappingReaderTest {
         doNothing().when(jdbcCursorItemReader).setSql(sql);
         doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
 
-        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getEventReader(lookupTable);
+        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getEventReader(lookupTable, programName);
 
         assertEquals(jdbcCursorItemReader, actual);
 
