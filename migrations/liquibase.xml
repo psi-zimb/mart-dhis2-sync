@@ -89,7 +89,18 @@
         <comment>Rename the column from enrolment_id to enrollment_id in enrollment_tracker table</comment>
         <sql>
             ALTER TABLE enrollment_tracker DROP COLUMN enrolment_id;
-            ALTER TABLE enrollment_tracker ADD COLUMN enrollment_id text;
+            ALTER TABLE enrollment_tracker ADD COLUMN enrollment_id text PRIMARY KEY;
+        </sql>
+    </changeSet>
+    <changeSet id="160024092018" author="Pratibha">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <primaryKeyExists tableName="enrollment_tracker"/>
+            </not>
+        </preConditions>
+        <comment>Set PRIMARY KEY constraint on enrollment_id in enrollment_tracker table</comment>
+        <sql>
+            ALTER TABLE enrollment_tracker ADD PRIMARY KEY (enrollment_id);
         </sql>
     </changeSet>
 </databaseChangeLog>
