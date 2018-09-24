@@ -10,6 +10,8 @@ import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_INSTANCE;
+
 
 @Component
 public class TrackedEntityInstanceStep implements StepBuilderContract {
@@ -34,7 +36,7 @@ public class TrackedEntityInstanceStep implements StepBuilderContract {
     @Override
     public Step get(String lookupTable, String programName, Object mappingObj) {
         TEIUtil.resetPatientTEIUidMap();
-        TEIUtil.date = markerUtil.getLastSyncedDate(programName, "instance");
+        TEIUtil.date = markerUtil.getLastSyncedDate(programName, CATEGORY_INSTANCE);
 
         return stepFactory.build(TEI_STEP_NAME, mappingReader.getInstanceReader(lookupTable, programName), getProcessor(mappingObj), writer);
     }

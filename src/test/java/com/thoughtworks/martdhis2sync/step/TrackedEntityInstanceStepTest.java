@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
+import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_INSTANCE;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
@@ -72,7 +73,7 @@ public class TrackedEntityInstanceStepTest {
         String programName = "TB Service";
         String stepName = "Tracked Entity Step";
 
-        when(markerUtil.getLastSyncedDate(programName, "instance")).thenReturn(new Date(Long.MIN_VALUE));
+        when(markerUtil.getLastSyncedDate(programName, CATEGORY_INSTANCE)).thenReturn(new Date(Long.MIN_VALUE));
         when(mappingReader.getInstanceReader(anyString(), anyString())).thenReturn(jdbcCursorItemReader);
         when(processorObjectFactory.getObject()).thenReturn(processor);
         when(stepFactory.build(stepName, jdbcCursorItemReader, processor, writer)).thenReturn(step);

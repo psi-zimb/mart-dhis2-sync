@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_SUCCESS;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
+import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_INSTANCE;
 
 @Component
 @StepScope
@@ -148,7 +149,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     }
 
     private void updateMarker() {
-        markerUtil.updateMarkerEntry(programName, "instance",
+        markerUtil.updateMarkerEntry(programName, CATEGORY_INSTANCE,
                 BatchUtil.getStringFromDate(TEIUtil.date, BatchUtil.DATEFORMAT_WITH_24HR_TIME));
     }
 }

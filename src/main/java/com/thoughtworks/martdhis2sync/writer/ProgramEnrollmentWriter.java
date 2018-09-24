@@ -29,6 +29,7 @@ import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_SUCCESS;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getStringFromDate;
+import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_ENROLLMENT;
 
 @Component
 @StepScope
@@ -161,7 +162,7 @@ public class ProgramEnrollmentWriter implements ItemWriter {
     }
 
     private void updateMarker() {
-        markerUtil.updateMarkerEntry(programName, "enrollment",
+        markerUtil.updateMarkerEntry(programName, CATEGORY_ENROLLMENT,
                 getStringFromDate(EnrollmentUtil.date, DATEFORMAT_WITH_24HR_TIME));
     }
 }

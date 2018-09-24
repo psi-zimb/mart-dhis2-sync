@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
+import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_INSTANCE;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -35,7 +36,7 @@ public class MarkerUtilTest {
     @Test
     public void shouldUpdateMarkerTable() {
         String programName = "HTS Service";
-        String category = "instance";
+        String category = CATEGORY_INSTANCE;
         String date = "292269055-12-02 22:17:04";
 
         String sql = String.format("UPDATE marker SET last_synced_date = '%s' WHERE program_name = '%s' AND category = '%s'",
@@ -52,7 +53,7 @@ public class MarkerUtilTest {
     public void shouldReturnMinDateValueWhenSqlResponseIsNull() {
         String expected = "Sun Dec 02 22:17:04 IST 292269055";
         String programName = "HTS Service";
-        String category = "instance";
+        String category = CATEGORY_INSTANCE;
         Map<String, Object> syncedDate = new HashMap<>();
         syncedDate.put("last_synced_date", null);
         String sql = String.format("SELECT last_synced_date FROM marker WHERE program_name='%s' AND category='%s'",
@@ -69,7 +70,7 @@ public class MarkerUtilTest {
     public void shouldReturnDateObjectFromSqlResponse() {
         String expected = "Sun Dec 02 22:17:04 IST 2018";
         String programName = "HTS Service";
-        String category = "instance";
+        String category = CATEGORY_INSTANCE;
         Map<String, Object> syncedDate = new HashMap<>();
         syncedDate.put("last_synced_date", "2018-12-02 22:17:04");
         String sql = String.format("SELECT last_synced_date FROM marker WHERE program_name='%s' AND category='%s'",
