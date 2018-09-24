@@ -18,6 +18,7 @@ import java.util.Date;
 import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
+import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_ENROLLMENT;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -69,13 +70,13 @@ public class ProgramEnrollmentStepTest {
 
         when(mappingReader.getEnrollmentReader(lookupTable, programName)).thenReturn(jdbcCursorItemReader);
         when(stepFactory.build(stepName, jdbcCursorItemReader, processor, writer)).thenReturn(step);
-        when(markerUtil.getLastSyncedDate(programName, "enrollment")).thenReturn(lastSyncedDate);
+        when(markerUtil.getLastSyncedDate(programName, CATEGORY_ENROLLMENT)).thenReturn(lastSyncedDate);
 
         Step actual = programEnrollmentStep.get(lookupTable, programName, new Object());
 
         verify(mappingReader, times(1)).getEnrollmentReader(lookupTable, programName);
         verify(stepFactory, times(1)).build(stepName, jdbcCursorItemReader, processor, writer);
-        verify(markerUtil, times(1)).getLastSyncedDate(programName, "enrollment");
+        verify(markerUtil, times(1)).getLastSyncedDate(programName, CATEGORY_ENROLLMENT);
         assertEquals(step, actual);
     }
 }

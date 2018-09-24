@@ -5,32 +5,27 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import lombok.Setter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Set;
+
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
 
 @Component
 public class TrackedEntityInstanceProcessor implements ItemProcessor {
 
     private static final String EMPTY_STRING = "\"\"";
     private static final String ORGUNIT_UID = "orgunit_id";
-    private static final int ONE = 1;
 
     @Value("${tracked.entity.type.person.uid}")
     private String teUID;
 
     @Setter
     private Object mappingObj;
-
-    private Logger logger = LoggerFactory.getLogger(TrackedEntityInstanceProcessor.class);
 
     @Override
     public String process(Object tableRow) {
@@ -49,16 +44,9 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
     }
 
     private void updateLatestDateCreated(String dateCreated) {
-        String substring = dateCreated.substring(ONE, dateCreated.length() - ONE);
-
-        try {
-            DateFormat simpleDateFormat = new SimpleDateFormat("MMM dd, yyyy hh:mm:ss aa");
-            Date bahmniDateCreated = simpleDateFormat.parse(substring);
-            if (TEIUtil.date.compareTo(bahmniDateCreated) < 1) {
-                TEIUtil.date = bahmniDateCreated;
-            }
-        } catch (ParseException e) {
-            logger.error("TrackedEntityProcessor: " + e);
+        Date bahmniDateCreated = getDateFromString(dateCreated, DATEFORMAT_WITH_24HR_TIME);
+        if (TEIUtil.date.compareTo(bahmniDateCreated) < 1) {
+            TEIUtil.date = bahmniDateCreated;
         }
     }
 
