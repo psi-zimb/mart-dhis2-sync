@@ -15,9 +15,12 @@ import org.springframework.batch.core.step.tasklet.TaskletStep;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.beans.factory.ObjectFactory;
 
+import java.util.Date;
 import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
+import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_ENROLLMENT;
+import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_EVENT;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -59,6 +62,7 @@ public class EventStepTest {
         setValuesForMemberFields(eventStep, "processorObjectFactory", objectFactory);
         setValuesForMemberFields(eventStep, "writer", writer);
         setValuesForMemberFields(eventStep, "stepFactory", stepFactory);
+        setValuesForMemberFields(eventStep, "markerUtil", markerUtil);
     }
 
     @Test
@@ -67,15 +71,19 @@ public class EventStepTest {
         String programName = "Enrollment Service";
         String stepName = "Event Step";
         String mappingObj = "";
+        Date lastSyncedDate = new Date(Long.MIN_VALUE);
 
         when(mappingReader.getEventReader(lookupTable)).thenReturn(jdbcCursorItemReader);
         when(objectFactory.getObject()).thenReturn(processor);
         when(stepFactory.build(stepName, jdbcCursorItemReader, processor, writer)).thenReturn(step);
+        when(markerUtil.getLastSyncedDate(programName, CATEGORY_EVENT)).thenReturn(lastSyncedDate);
+
 
         Step actual = eventStep.get(lookupTable, programName, mappingObj);
 
         verify(mappingReader, times(1)).getEventReader(lookupTable);
         verify(stepFactory, times(1)).build(stepName, jdbcCursorItemReader, processor, writer);
+        verify(markerUtil, times(1)).getLastSyncedDate(programName, CATEGORY_EVENT);
         assertEquals(step, actual);
     }
 }
