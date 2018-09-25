@@ -34,12 +34,11 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
 
     private static final String EMPTY_STRING = "\"\"";
     private static Map<String, String> newTEIUIDs = new LinkedHashMap<>();
-    private Logger logger = LoggerFactory.getLogger(TrackedEntityInstanceWriter.class);
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
     private static final String LOG_PREFIX = "TEI SYNC: ";
     private boolean isSyncFailure;
 
-    @Value("${uri.tei}")
-    private String teiUri;
+    private static final String URI = "/api/trackedEntityInstances?strategy=CREATE_AND_UPDATE";
 
     @Value("#{jobParameters['user']}")
     private String user;
@@ -65,7 +64,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
         instanceApiFormat.replace(instanceApiFormat.length() - 1, instanceApiFormat.length(), "]}");
 
         isSyncFailure = false;
-        ResponseEntity<DHISSyncResponse> responseEntity = syncRepository.sendData(teiUri, instanceApiFormat.toString());
+        ResponseEntity<DHISSyncResponse> responseEntity = syncRepository.sendData(URI, instanceApiFormat.toString());
 
         mapIterator = TEIUtil.getPatientIdTEIUidMap().entrySet().iterator();
         newTEIUIDs.clear();

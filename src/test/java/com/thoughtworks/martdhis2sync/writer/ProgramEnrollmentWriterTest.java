@@ -74,7 +74,7 @@ public class ProgramEnrollmentWriterTest {
 
     private ProgramEnrollmentWriter writer;
 
-    private static final String uri = "/api/trackedEntityInstance";
+    private static final String uri = "/api/enrollments?strategy=CREATE_AND_UPDATE";
 
     private static final String EMPTY_STRING = "\"\"";
 
@@ -92,7 +92,6 @@ public class ProgramEnrollmentWriterTest {
     public void setUp() throws Exception {
         writer = new ProgramEnrollmentWriter();
 
-        setValuesForMemberFields(writer, "programEnrollUri", uri);
         setValuesForMemberFields(writer, "syncRepository", syncRepository);
         setValuesForMemberFields(writer, "dataSource", dataSource);
         setValuesForMemberFields(writer, "markerUtil", markerUtil);

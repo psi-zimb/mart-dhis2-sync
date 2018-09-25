@@ -31,6 +31,8 @@ public class OrgUnitService {
     @Autowired
     private SyncRepository syncRepository;
 
+    public static final String URI_ORG_UNIT = "/api/organisationUnits?pageSize=150000";
+
     private List<OrgUnit> orgUnits = new ArrayList<>();
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());

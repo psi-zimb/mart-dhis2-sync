@@ -14,6 +14,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.Charset;
 
+import static com.thoughtworks.martdhis2sync.service.OrgUnitService.URI_ORG_UNIT;
+
 @Repository
 public class SyncRepository {
 
@@ -26,10 +28,7 @@ public class SyncRepository {
     @Value("${dhis2.password}")
     private String dhisPassword;
 
-    @Value("${uri.org.unit}")
-    private String orgUnitUri;
-
-    private Logger logger = LoggerFactory.getLogger(SyncRepository.class);
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static final String LOG_PREFIX = "SyncRepository: ";
 
@@ -53,7 +52,7 @@ public class SyncRepository {
         ResponseEntity<OrgUnitResponse> responseEntity = null;
         try {
             responseEntity = new RestTemplate()
-                    .exchange((url.isEmpty() ? dhis2Url + orgUnitUri : url), HttpMethod.GET,
+                    .exchange((url.isEmpty() ? dhis2Url + URI_ORG_UNIT : url), HttpMethod.GET,
                             new HttpEntity<>(getHttpHeaders()), OrgUnitResponse.class);
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
         } catch (Exception e) {

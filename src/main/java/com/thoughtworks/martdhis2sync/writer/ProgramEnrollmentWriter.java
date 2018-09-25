@@ -38,8 +38,7 @@ public class ProgramEnrollmentWriter implements ItemWriter {
     @Autowired
     private SyncRepository syncRepository;
 
-    @Value("${uri.program.enrollments}")
-    private String programEnrollUri;
+    private static final String URI = "/api/enrollments?strategy=CREATE_AND_UPDATE";
 
     @Value("#{jobParameters['user']}")
     private String user;
@@ -66,7 +65,7 @@ public class ProgramEnrollmentWriter implements ItemWriter {
         items.forEach(item -> enrollmentApiFormat.append(item).append(","));
         enrollmentApiFormat.replace(enrollmentApiFormat.length() - 1, enrollmentApiFormat.length(), "]}");
 
-        ResponseEntity<DHISSyncResponse> responseEntity = syncRepository.sendData(programEnrollUri, enrollmentApiFormat.toString());
+        ResponseEntity<DHISSyncResponse> responseEntity = syncRepository.sendData(URI, enrollmentApiFormat.toString());
         newEnrollmentsToSave.clear();
         mapIterator = EnrollmentUtil.getEnrollmentsList().iterator();
         if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
