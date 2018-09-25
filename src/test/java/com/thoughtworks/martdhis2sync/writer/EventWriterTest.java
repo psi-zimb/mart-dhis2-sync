@@ -39,13 +39,12 @@ public class EventWriterTest {
 
     private String requestBody;
 
-    private String uri = "localhost/api/events";
+    private static final String URI = "/api/events?strategy=CREATE_AND_UPDATE";
 
     @Before
     public void setUp() throws Exception {
         writer = new EventWriter();
 
-        setValuesForMemberFields(writer, "eventUri", uri);
         setValuesForMemberFields(writer, "syncRepository", syncRepository);
         setValuesForMemberFields(writer, "markerUtil", markerUtil);
 
@@ -78,20 +77,20 @@ public class EventWriterTest {
 
     @Test
     public void shouldCallSyncRepoToSendData() {
-        when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
+        when(syncRepository.sendData(URI, requestBody)).thenReturn(responseEntity);
 
         writer.write(list);
 
-        verify(syncRepository, times(1)).sendData(uri, requestBody);
+        verify(syncRepository, times(1)).sendData(URI, requestBody);
     }
 
     @Test
     public void shouldUpdateMarkerAfterSuccessfulSync() {
-        when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
+        when(syncRepository.sendData(URI, requestBody)).thenReturn(responseEntity);
 
         writer.write(list);
 
-        verify(syncRepository, times(1)).sendData(uri, requestBody);
+        verify(syncRepository, times(1)).sendData(URI, requestBody);
         verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
     }
 

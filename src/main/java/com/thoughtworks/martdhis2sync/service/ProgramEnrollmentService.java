@@ -21,7 +21,7 @@ public class ProgramEnrollmentService{
     @Autowired
     private JobService jobService;
 
-    private Logger logger = LoggerFactory.getLogger(TEIService.class);
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static final String LOG_PREFIX = "Program Enrollment Service: ";
     private static final String PE_JOB_NAME = "Sync Program Enrollment";

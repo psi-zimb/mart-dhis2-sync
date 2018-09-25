@@ -21,7 +21,7 @@ public class EventService {
     @Autowired
     private EventStep eventStep;
 
-    private Logger logger = LoggerFactory.getLogger(EventService.class);
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static final String LOG_PREFIX = "Event Service: ";
     private static final String PE_JOB_NAME = "Sync Event";

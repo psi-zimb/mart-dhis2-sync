@@ -19,8 +19,7 @@ import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_EVENT;
 @StepScope
 public class EventWriter implements ItemWriter {
 
-    @Value("${uri.event}")
-    private String eventUri;
+    private static final String URI = "/api/events?strategy=CREATE_AND_UPDATE";
 
     @Value("#{jobParameters['service']}")
     private String programName;
@@ -38,7 +37,7 @@ public class EventWriter implements ItemWriter {
         int length = eventApi.length();
         eventApi.replace(length - 1, length, "]}");
 
-        syncRepository.sendData(eventUri, eventApi.toString());
+        syncRepository.sendData(URI, eventApi.toString());
         updateMarker();
     }
 
