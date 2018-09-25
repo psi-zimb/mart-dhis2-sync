@@ -21,7 +21,7 @@ public class TEIService {
     @Autowired
     private JobService jobService;
 
-    private Logger logger = LoggerFactory.getLogger(TEIService.class);
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static final String LOG_PREFIX = "TEI Service: ";
     private static final String TEI_JOB_NAME = "Sync Tracked Entity Instance";

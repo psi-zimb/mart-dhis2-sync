@@ -70,7 +70,7 @@ public class TrackedEntityInstanceWriterTest {
 
     private TrackedEntityInstanceWriter writer;
 
-    private static final String uri = "/api/trackedEntityInstance";
+    private static final String uri = "/api/trackedEntityInstances?strategy=CREATE_AND_UPDATE";
 
     private static final String EMPTY_STRING = "\"\"";
 
@@ -89,7 +89,6 @@ public class TrackedEntityInstanceWriterTest {
         writer = new TrackedEntityInstanceWriter();
 
         setValuesForMemberFields(writer, "dataSource", dataSource);
-        setValuesForMemberFields(writer, "teiUri", uri);
         setValuesForMemberFields(writer, "syncRepository", syncRepository);
         setValuesForMemberFields(writer, "markerUtil", markerUtil);
         setValuesForMemberFields(writer, "programName", "HTS Service");

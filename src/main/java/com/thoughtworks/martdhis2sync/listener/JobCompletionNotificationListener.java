@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class JobCompletionNotificationListener extends JobExecutionListenerSupport {
 
-    private Logger logger = LoggerFactory.getLogger(JobCompletionNotificationListener.class);
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     public JobCompletionNotificationListener() {

@@ -17,7 +17,7 @@ import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
 @Component
 public class EventProcessor implements ItemProcessor {
 
-    public static final String EVENT_API_FORMAT = "{\"event\": \"\", " +
+    private static final String EVENT_API_FORMAT = "{\"event\": \"\", " +
             "\"trackedEntityInstance\": %s, " +
             "\"enrollment\": %s, " +
             "\"program\": %s, " +
@@ -38,7 +38,7 @@ public class EventProcessor implements ItemProcessor {
         JsonObject tableRowJsonObject = tableRowJsonElement.getAsJsonObject();
         JsonObject mappingJsonObject = mappingObjJsonElement.getAsJsonObject();
 
-        updateLatestDateCreated(tableRowJsonObject.get("date_created").toString());
+        updateLatestDateCreated(getUnquotedString(tableRowJsonObject.get("date_created").toString()));
         return createRequestBodyElements(tableRowJsonObject, mappingJsonObject);
     }
 

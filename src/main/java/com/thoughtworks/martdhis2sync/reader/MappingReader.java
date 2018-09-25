@@ -29,7 +29,7 @@ public class MappingReader {
     @Value("classpath:sql/EventReader.sql")
     private Resource eventResource;
 
-    private Logger logger = LoggerFactory.getLogger(MappingReader.class);
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private JdbcCursorItemReader<Map<String, Object>> get(String lookupTable, String programName, Resource resource) {
         JdbcCursorItemReader<Map<String, Object>> reader = new JdbcCursorItemReader<>();
