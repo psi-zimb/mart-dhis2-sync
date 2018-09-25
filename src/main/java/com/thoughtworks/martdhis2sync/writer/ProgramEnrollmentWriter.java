@@ -126,8 +126,8 @@ public class ProgramEnrollmentWriter implements ItemWriter {
     private void updateTracker() {
 
         String sqlQuery = "INSERT INTO public.enrollment_tracker(" +
-                "enrollment_id, instance_id, program_name, program_start_date, status, created_by, date_created)" +
-                "values (?, ?, ?, ?, ?, ?, ?)";
+                "enrollment_id, instance_id, program_name, program_start_date, status, program_unique_id, created_by, date_created)" +
+                "values (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try {
             if (!newEnrollmentsToSave.isEmpty()) {
@@ -151,8 +151,9 @@ public class ProgramEnrollmentWriter implements ItemWriter {
                     ps.setString(3, enrollment.getProgram_name());
                     ps.setDate(4, new Date(enrollment.getProgram_start_date().getTime()));
                     ps.setString(5, enrollment.getStatus());
-                    ps.setString(6, user);
-                    ps.setTimestamp(7, Timestamp.valueOf(BatchUtil.GetUTCDateTimeAsString()));
+                    ps.setInt(6, enrollment.getProgram_unique_id());
+                    ps.setString(7, user);
+                    ps.setTimestamp(8, Timestamp.valueOf(BatchUtil.GetUTCDateTimeAsString()));
                     updateCount += ps.executeUpdate();
                 }
             }

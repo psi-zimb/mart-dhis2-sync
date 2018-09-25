@@ -13,4 +13,5 @@ public class Enrollment {
     private String program_name;
     private Date program_start_date;
     private String status;
+    private int program_unique_id;
 }
