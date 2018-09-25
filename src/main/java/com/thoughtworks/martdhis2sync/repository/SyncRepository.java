@@ -34,6 +34,7 @@ public class SyncRepository {
 
     public ResponseEntity<DHISSyncResponse> sendData(String uri, String body) {
         ResponseEntity<DHISSyncResponse> responseEntity;
+        System.out.println("\nREQ: " + body);
         try {
             responseEntity = new RestTemplate()
                     .exchange(dhis2Url + uri, HttpMethod.POST, new HttpEntity<>(body, getHttpHeaders()), DHISSyncResponse.class);
@@ -44,7 +45,7 @@ public class SyncRepository {
                     e.getStatusCode());
             logger.error(LOG_PREFIX + e);
         }
-        System.out.println("\nREQ: " + body + "\nRES: " + responseEntity);
+        System.out.println("\nRES: " + responseEntity);
         return responseEntity;
     }
 
