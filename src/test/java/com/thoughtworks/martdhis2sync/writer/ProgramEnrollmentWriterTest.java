@@ -154,8 +154,8 @@ public class ProgramEnrollmentWriterTest {
         when(response.getImportSummaries()).thenReturn(importSummaries);
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
 
-        enrollmentsList.add(new Enrollment(referenceUIDs.get(0), instanceIDs.get(0), programName, new Date(), "ACTIVE"));
-        enrollmentsList.add(new Enrollment(referenceUIDs.get(1), instanceIDs.get(1), programName, new Date(), "ACTIVE"));
+        enrollmentsList.add(new Enrollment(referenceUIDs.get(0), instanceIDs.get(0), programName, new Date(), "ACTIVE", 1));
+        enrollmentsList.add(new Enrollment(referenceUIDs.get(1), instanceIDs.get(1), programName, new Date(), "ACTIVE", 2));
         when(EnrollmentUtil.getEnrollmentsList()).thenReturn(enrollmentsList);
 
         writer.write(list);
@@ -184,8 +184,8 @@ public class ProgramEnrollmentWriterTest {
         when(connection.prepareStatement(any())).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(2);
 
-        enrollmentsList.add(new Enrollment(EMPTY_STRING, instanceIDs.get(0), programName, new Date(), "ACTIVE"));
-        enrollmentsList.add(new Enrollment(EMPTY_STRING, instanceIDs.get(1), programName, new Date(), "ACTIVE"));
+        enrollmentsList.add(new Enrollment(EMPTY_STRING, instanceIDs.get(0), programName, new Date(), "ACTIVE", 1));
+        enrollmentsList.add(new Enrollment(EMPTY_STRING, instanceIDs.get(1), programName, new Date(), "ACTIVE", 2));
         when(EnrollmentUtil.getEnrollmentsList()).thenReturn(enrollmentsList);
 
         writer.write(list);
@@ -214,8 +214,8 @@ public class ProgramEnrollmentWriterTest {
 
         when(dataSource.getConnection()).thenThrow(new SQLException());
 
-        enrollmentsList.add(new Enrollment(EMPTY_STRING, instanceIDs.get(0), programName, new Date(), "ACTIVE"));
-        enrollmentsList.add(new Enrollment(EMPTY_STRING, instanceIDs.get(1), programName, new Date(), "ACTIVE"));
+        enrollmentsList.add(new Enrollment(EMPTY_STRING, instanceIDs.get(0), programName, new Date(), "ACTIVE", 1));
+        enrollmentsList.add(new Enrollment(EMPTY_STRING, instanceIDs.get(1), programName, new Date(), "ACTIVE", 2));
         when(EnrollmentUtil.getEnrollmentsList()).thenReturn(enrollmentsList);
 
         try {
@@ -269,8 +269,8 @@ public class ProgramEnrollmentWriterTest {
         when(DHISSyncResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(importSummaries);
 
-        enrollmentsList.add(new Enrollment(referenceUIDs.get(0), instanceIDs.get(0), programName, new Date(), "ACTIVE"));
-        enrollmentsList.add(new Enrollment(referenceUIDs.get(1), instanceIDs.get(1), programName, new Date(), "ACTIVE"));
+        enrollmentsList.add(new Enrollment(referenceUIDs.get(0), instanceIDs.get(0), programName, new Date(), "ACTIVE", 1));
+        enrollmentsList.add(new Enrollment(referenceUIDs.get(1), instanceIDs.get(1), programName, new Date(), "ACTIVE", 2));
         when(EnrollmentUtil.getEnrollmentsList()).thenReturn(enrollmentsList);
 
         try {
@@ -305,8 +305,8 @@ public class ProgramEnrollmentWriterTest {
         when(connection.prepareStatement(any())).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
 
-        enrollmentsList.add(new Enrollment(EMPTY_STRING, instanceIDs.get(0), programName, new Date(), "ACTIVE"));
-        enrollmentsList.add(new Enrollment(EMPTY_STRING, instanceIDs.get(1), programName, new Date(), "ACTIVE"));
+        enrollmentsList.add(new Enrollment(EMPTY_STRING, instanceIDs.get(0), programName, new Date(), "ACTIVE", 1));
+        enrollmentsList.add(new Enrollment(EMPTY_STRING, instanceIDs.get(1), programName, new Date(), "ACTIVE", 2));
         when(EnrollmentUtil.getEnrollmentsList()).thenReturn(enrollmentsList);
 
         try {

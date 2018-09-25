@@ -24,7 +24,8 @@ public class EnrollmentUtil {
                         BatchUtil.getDateFromString(
                                 getUnquotedString(tableRowJsonObject.get("enrollment_date").toString()),
                                 BatchUtil.DATEFORMAT_WITHOUT_TIME),
-                        getUnquotedString(tableRowJsonObject.get("status").toString().toUpperCase())));
+                        getUnquotedString(tableRowJsonObject.get("status").toString().toUpperCase()),
+                        tableRowJsonObject.get("program_unique_id").getAsInt()));
     }
 
     public static void resetEnrollmentsList() {
