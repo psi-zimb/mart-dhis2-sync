@@ -124,4 +124,23 @@
             ALTER TABLE enrollment_tracker DROP COLUMN program_start_date;
         </sql>
     </changeSet>
+    <changeSet id="240920181447" author="Mahitha">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="event_tracker" schemaName="public"/>
+            </not>
+        </preConditions>
+        <comment>Creating tracker table for events in public schema</comment>
+        <sql>
+            CREATE TABLE public.event_tracker(
+            event_id text PRIMARY KEY,
+            instance_id text,
+            program text,
+            program_unique_id integer,
+            program_start_date date,
+            created_by text,
+            date_created TIMESTAMP
+            );
+        </sql>
+    </changeSet>
 </databaseChangeLog>
