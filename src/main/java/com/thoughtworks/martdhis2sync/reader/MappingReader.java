@@ -31,28 +31,37 @@ public class MappingReader {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private JdbcCursorItemReader<Map<String, Object>> get(String lookupTable, String programName, Resource resource) {
+    private JdbcCursorItemReader<Map<String, Object>> get(String sql) {
         JdbcCursorItemReader<Map<String, Object>> reader = new JdbcCursorItemReader<>();
-        try {
-            String sql = BatchUtil.convertResourceOutputToString(resource);
-            reader.setDataSource(dataSource);
-            reader.setSql(String.format(sql, lookupTable, programName));
-            reader.setRowMapper(new ColumnMapRowMapper());
-        } catch (IOException e) {
-            logger.error("Error in converting sql to string : " + e.getMessage());
-        }
+        reader.setDataSource(dataSource);
+        reader.setSql(sql);
+        reader.setRowMapper(new ColumnMapRowMapper());
         return reader;
     }
 
+    private String getSql(Resource resource) {
+        String sql = "";
+        try {
+            sql = BatchUtil.convertResourceOutputToString(resource);
+        } catch (IOException e) {
+            logger.error("Error in converting sql to string : " + e.getMessage());
+        }
+
+        return sql;
+    }
+
     public JdbcCursorItemReader<Map<String, Object>> getEnrollmentReader(String lookupTable, String programName) {
-        return get(lookupTable, programName, enrollmentResource);
+        String sql = String.format(getSql(enrollmentResource), lookupTable, programName);
+        return get(sql);
     }
 
     public JdbcCursorItemReader<Map<String, Object>> getInstanceReader(String lookupTable, String programName) {
-        return get(lookupTable, programName, instanceResource);
+        String sql = String.format(getSql(instanceResource), lookupTable, programName);
+        return get(sql);
     }
 
-    public JdbcCursorItemReader<Map<String, Object>> getEventReader(String lookupTable, String programName) {
-        return get(lookupTable, programName, eventResource);
+    public JdbcCursorItemReader<Map<String, Object>> getEventReader(String lookupTable, String programName, String enrollmentLookupTable) {
+        String sql = String.format(getSql(eventResource), lookupTable, enrollmentLookupTable, programName);
+        return get(sql);
     }
 }

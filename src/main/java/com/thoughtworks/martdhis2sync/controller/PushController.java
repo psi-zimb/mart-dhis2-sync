@@ -49,7 +49,7 @@ public class PushController {
         try {
             teiService.triggerJob(service, user, lookupTable.getInstance(), mappingJson.getInstance());
             programEnrollmentService.triggerJob(service, user, lookupTable.getEnrollments());
-            eventService.triggerJob(service, user, lookupTable.getEvent(), mappingJson.getEvent());
+            eventService.triggerJob(service, user, lookupTable.getEvent(), mappingJson.getEvent(), lookupTable.getEnrollments());
         } catch (SyncFailedException ignored) {
         }
 

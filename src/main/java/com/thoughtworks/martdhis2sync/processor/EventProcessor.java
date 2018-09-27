@@ -8,11 +8,20 @@ import com.thoughtworks.martdhis2sync.util.EventUtil;
 import lombok.Setter;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.Date;
 import java.util.Set;
 
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITHOUT_TIME;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getFormattedDateString;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.hasValue;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeLastChar;
+import static com.thoughtworks.martdhis2sync.util.EventUtil.addExistingEventTracker;
+import static com.thoughtworks.martdhis2sync.util.EventUtil.addNewEventTracker;
 
 @Component
 public class EventProcessor implements ItemProcessor {
@@ -37,6 +46,12 @@ public class EventProcessor implements ItemProcessor {
 
         JsonObject tableRowJsonObject = tableRowJsonElement.getAsJsonObject();
         JsonObject mappingJsonObject = mappingObjJsonElement.getAsJsonObject();
+
+        if (StringUtils.isEmpty(getUnquotedString(tableRowJsonObject.get("event_id").toString()))) {
+            addNewEventTracker(tableRowJsonObject);
+        } else {
+            addExistingEventTracker(tableRowJsonObject);
+        }
 
         updateLatestDateCreated(getUnquotedString(tableRowJsonObject.get("date_created").toString()));
         return createRequestBodyElements(tableRowJsonObject, mappingJsonObject);

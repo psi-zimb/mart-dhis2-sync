@@ -2,6 +2,7 @@ package com.thoughtworks.martdhis2sync.step;
 
 import com.thoughtworks.martdhis2sync.processor.EventProcessor;
 import com.thoughtworks.martdhis2sync.reader.MappingReader;
+import com.thoughtworks.martdhis2sync.util.EventUtil;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import com.thoughtworks.martdhis2sync.writer.EventWriter;
 import org.junit.Before;
@@ -9,6 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.step.tasklet.TaskletStep;
@@ -23,9 +25,12 @@ import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_EVENT;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
+@PrepareForTest(EventUtil.class)
 @PowerMockIgnore("javax.management.*")
 public class EventStepTest {
     @Mock
@@ -62,6 +67,7 @@ public class EventStepTest {
         setValuesForMemberFields(eventStep, "writer", writer);
         setValuesForMemberFields(eventStep, "stepFactory", stepFactory);
         setValuesForMemberFields(eventStep, "markerUtil", markerUtil);
+        setValuesForMemberFields(eventStep, "enrollmentLookupTable", "patient_enrollment");
     }
 
     @Test
@@ -71,8 +77,10 @@ public class EventStepTest {
         String stepName = "Event Step";
         String mappingObj = "";
         Date lastSyncedDate = new Date(Long.MIN_VALUE);
+        String enrollmentLookupTable = "patient_enrollment";
 
-        when(mappingReader.getEventReader(lookupTable, programName)).thenReturn(jdbcCursorItemReader);
+        mockStatic(EventUtil.class);
+        when(mappingReader.getEventReader(lookupTable, programName, enrollmentLookupTable)).thenReturn(jdbcCursorItemReader);
         when(objectFactory.getObject()).thenReturn(processor);
         when(stepFactory.build(stepName, jdbcCursorItemReader, processor, writer)).thenReturn(step);
         when(markerUtil.getLastSyncedDate(programName, CATEGORY_EVENT)).thenReturn(lastSyncedDate);
@@ -80,7 +88,9 @@ public class EventStepTest {
 
         Step actual = eventStep.get(lookupTable, programName, mappingObj);
 
-        verify(mappingReader, times(1)).getEventReader(lookupTable, programName);
+        verifyStatic(times(1));
+        EventUtil.resetEventTrackersList();
+        verify(mappingReader, times(1)).getEventReader(lookupTable, programName, enrollmentLookupTable);
         verify(stepFactory, times(1)).build(stepName, jdbcCursorItemReader, processor, writer);
         verify(markerUtil, times(1)).getLastSyncedDate(programName, CATEGORY_EVENT);
         assertEquals(step, actual);
