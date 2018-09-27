@@ -30,6 +30,7 @@ import java.util.List;
 
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_ERROR;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_SUCCESS;
+import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_WARNING;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.GetUTCDateTimeAsString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getStringFromDate;
@@ -105,6 +106,16 @@ public class EventWriter implements ItemWriter {
                     trackerIterator.next();
                 }
                 logger.error(LOG_PREFIX + importSummary.getDescription());
+            } else if (isConflicted(importSummary)) {
+                importSummary.getConflicts().forEach(conflict ->
+                        logger.error(LOG_PREFIX + conflict.getObject() + ": " + conflict.getValue()));
+                if(isImported(importSummary)) {
+                    processResponse(Collections.singletonList(importSummary));
+                } else {
+                    if (trackerIterator.hasNext()) {
+                        trackerIterator.next();
+                    }
+                }
             } else {
                 processResponse(Collections.singletonList(importSummary));
             }
@@ -112,12 +123,21 @@ public class EventWriter implements ItemWriter {
     }
 
     private boolean isIgnored(ImportSummary importSummary) {
-        return IMPORT_SUMMARY_RESPONSE_ERROR.equals(importSummary.getStatus()) && importSummary.getImportCount().getIgnored() == 1
+        return IMPORT_SUMMARY_RESPONSE_ERROR.equals(importSummary.getStatus()) && importSummary.getImportCount().getIgnored() > 0
                 && !StringUtils.isEmpty(importSummary.getDescription());
     }
 
     private boolean isImported(ImportSummary importSummary) {
-        return IMPORT_SUMMARY_RESPONSE_SUCCESS.equals(importSummary.getStatus()) && importSummary.getImportCount().getImported() == 1;
+        return (IMPORT_SUMMARY_RESPONSE_SUCCESS.equals(importSummary.getStatus())
+                || IMPORT_SUMMARY_RESPONSE_WARNING.equals(importSummary.getStatus()))
+                && importSummary.getImportCount().getImported() > 0;
+    }
+
+    private boolean isConflicted(ImportSummary importSummary) {
+        return (IMPORT_SUMMARY_RESPONSE_ERROR.equals(importSummary.getStatus())
+                || IMPORT_SUMMARY_RESPONSE_WARNING.equals(importSummary.getStatus()))
+                && importSummary.getImportCount().getIgnored() > 0
+                && !importSummary.getConflicts().isEmpty();
     }
 
     private void updateTracker() {

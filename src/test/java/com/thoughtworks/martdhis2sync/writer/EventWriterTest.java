@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.writer;
 
+import com.thoughtworks.martdhis2sync.model.Conflict;
 import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
 import com.thoughtworks.martdhis2sync.model.EventTracker;
 import com.thoughtworks.martdhis2sync.model.ImportCount;
@@ -26,12 +27,14 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_ERROR;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_SUCCESS;
+import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_WARNING;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -217,7 +220,7 @@ public class EventWriterTest {
         try {
             writer.write(list);
         } catch (Exception e) {
-            assertEquals(e.getClass(), SQLException.class);
+            assertEquals(SQLException.class, e.getClass());
         }
 
         verify(syncRepository, times(1)).sendData(uri, requestBody);
@@ -251,7 +254,7 @@ public class EventWriterTest {
         try {
             writer.write(list);
         } catch (Exception e) {
-            assertEquals(e.getClass(), Exception.class);
+            assertEquals(Exception.class, e.getClass());
         }
 
         verify(syncRepository, times(1)).sendData(uri, requestBody);
@@ -297,7 +300,7 @@ public class EventWriterTest {
         try {
             writer.write(list);
         } catch (Exception e) {
-            assertEquals(e.getClass(), Exception.class);
+            assertEquals(Exception.class, e.getClass());
         }
 
         verify(syncRepository, times(1)).sendData(uri, requestBody);
@@ -346,7 +349,7 @@ public class EventWriterTest {
         try {
             writer.write(list);
         } catch (Exception e) {
-            assertEquals(e.getClass(), Exception.class);
+            assertEquals(Exception.class, e.getClass());
         }
 
         verify(syncRepository, times(1)).sendData(uri, requestBody);
@@ -356,6 +359,97 @@ public class EventWriterTest {
         verify(preparedStatement, times(1)).setString(2, "lejUhQu");
         verify(preparedStatement, times(1)).setString(3, "correctProgram");
         verify(logger, times(1)).error("EVENT SYNC: Event.program does not point to a valid program: incorrectProgram");
+    }
+
+    @Test
+    @SneakyThrows
+    public void shouldLogConflictMessageAndDoNotUpdateTrackerWhenTheResponseHasErrorWithConfilct() {
+        String event1 = getEventRequestBody("","we4FsLEGq", "correctProgram");
+        List<String> list = Collections.singletonList(event1);
+        String requestBody = "{\"events\":[" + event1 + "]}";
+        EventTracker eventTracker1 = new EventTracker("", "we4FsLEGq", "correctProgram", 1, new Date(Long.MIN_VALUE));
+        List<EventTracker> eventTrackers = Collections.singletonList(eventTracker1);
+        List<Conflict> conflicts = Collections.singletonList(new Conflict("jfDdErl", "value_not_true_only"));
+        List<ImportSummary> importSummaries = Collections.singletonList(
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_ERROR,
+                        new ImportCount(0, 0, 1, 0), null, conflicts, null)
+                );
+
+        when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
+        when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.CONFLICT);
+        when(DHISSyncResponse.getResponse()).thenReturn(response);
+        when(response.getImportSummaries()).thenReturn(importSummaries);
+
+        when(EventUtil.getEventTrackers()).thenReturn(eventTrackers);
+        when(dataSource.getConnection()).thenReturn(connection);
+
+        try {
+            writer.write(list);
+        } catch (Exception e) {
+            assertEquals(Exception.class, e.getClass());
+        }
+
+        verify(syncRepository, times(1)).sendData(uri, requestBody);
+        verify(dataSource, times(0)).getConnection();
+        verify(logger, times(1)).error("EVENT SYNC: jfDdErl: value_not_true_only");
+    }
+
+    @Test
+    @SneakyThrows
+    public void shouldLogConflictMessageAndUpdateTrackerWhenResponseHasWarning() {
+        String event1 = "{\"event\": \"\", " +
+                "\"trackedEntityInstance\": \"alsHFEo\", " +
+                "\"enrollment\": \"JsFDLAwe\", " +
+                "\"program\": \"NGldOrFl\", " +
+                "\"programStage\": \"LDLJuyNm\", " +
+                "\"orgUnit\":\"LoHtOW\", " +
+                "\"eventDate\": \"2018-09-24\", " +
+                "\"status\": \"ACTIVE\"" +
+                "\"dataValues\":[" +
+                "{\"dataElement\": \"JDuBC\", \"value\": \"12\"}, " +
+                "{\"dataElement\": \"LUfnWeJ\", \"value\": false}" +
+                "]}";
+        List<String> list = Collections.singletonList(event1);
+        String requestBody = "{\"events\":[" + event1 + "]}";
+        EventTracker eventTracker1 = new EventTracker("", "wF4FsLEGq", "correctProgram", 1, new Date(Long.MIN_VALUE));
+        List<EventTracker> eventTrackers = Collections.singletonList(eventTracker1);
+        List<Conflict> conflicts = Collections.singletonList(new Conflict("jfDdErl", "value_not_true_only"));
+        List<ImportSummary> importSummaries = Collections.singletonList(
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_WARNING,
+                        new ImportCount(1, 0, 1, 0), null, conflicts, "alEfNBui")
+                );
+        String sqlQuery = "INSERT INTO public.event_tracker(" +
+                "event_id, instance_id, program, program_unique_id, program_start_date, created_by, date_created)" +
+                "values (?, ?, ?, ?, ?, ?, ?)";
+
+        when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
+        when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.CONFLICT);
+        when(DHISSyncResponse.getResponse()).thenReturn(response);
+        when(response.getImportSummaries()).thenReturn(importSummaries);
+
+        when(EventUtil.getEventTrackers()).thenReturn(eventTrackers);
+        when(dataSource.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(sqlQuery)).thenReturn(preparedStatement);
+        doNothing().when(preparedStatement).setString(1, "alEfNBui");
+        doNothing().when(preparedStatement).setString(2, "wF4FsLEGq");
+        doNothing().when(preparedStatement).setString(3, "correctProgram");
+        when(preparedStatement.executeUpdate()).thenReturn(1);
+
+        try {
+            writer.write(list);
+        } catch (Exception e) {
+            assertEquals(Exception.class, e.getClass());
+        }
+
+        verify(syncRepository, times(1)).sendData(uri, requestBody);
+        verify(dataSource, times(1)).getConnection();
+        verify(preparedStatement, times(1)).setString(1, "alEfNBui");
+        verify(preparedStatement, times(1)).setString(2, "wF4FsLEGq");
+        verify(preparedStatement, times(1)).setString(3, "correctProgram");
+        verify(logger, times(1)).error("EVENT SYNC: jfDdErl: value_not_true_only");
+
     }
 
     private String getEventRequestBody(String event, String tei, String program) {
