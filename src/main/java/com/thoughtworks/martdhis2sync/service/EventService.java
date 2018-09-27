@@ -7,6 +7,7 @@ import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +20,7 @@ public class EventService {
     private JobService jobService;
 
     @Autowired
-    private EventStep eventStep;
+    private ObjectFactory<EventStep> stepObjectFactory;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -27,15 +28,22 @@ public class EventService {
     private static final String PE_JOB_NAME = "Sync Event";
 
 
-    public void triggerJob(String programName, String user, String lookupTable, Object eventMapping)
+    public void triggerJob(String programName, String user, String lookupTable, Object eventMapping, String enrollmentLookupTable)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
             JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
 
         try {
-            jobService.triggerJob(programName, user, lookupTable, PE_JOB_NAME, eventStep, eventMapping);
+            jobService.triggerJob(programName, user, lookupTable, PE_JOB_NAME, getEventStep(enrollmentLookupTable), eventMapping);
         } catch (Exception e) {
             logger.error(LOG_PREFIX + e.getMessage());
             throw e;
         }
+    }
+
+    private EventStep getEventStep(String enrollmentLookupTable) {
+        EventStep eventStep = stepObjectFactory.getObject();
+        eventStep.setEnrollmentLookupTable(enrollmentLookupTable);
+
+        return eventStep;
     }
 }
