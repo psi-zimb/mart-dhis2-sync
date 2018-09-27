@@ -142,13 +142,27 @@ public class MappingReaderTest {
 
     @Test
     public void shouldReturnReaderForEvent() throws Exception {
-        String lookupTable = "programs";
+        String lookupTable = "event";
+        String enrollmentLookupTable = "enrollment";
 
-        String sql = String.format("SELECT event.*, et.instance_id, et.enrollment_id\n" +
+        String sql = String.format("SELECT event.*,\n" +
+                        "       enrTracker.instance_id,\n" +
+                        "       enrTracker.enrollment_id,\n" +
+                        "       orgTracker.id as orgunit_id\n" +
                         "FROM %s event\n" +
-                        "INNER JOIN instance_tracker it ON event.\"Patient_Identifier\" = it.patient_id\n" +
-                        "INNER JOIN enrollment_tracker et ON it.instance_id = et.instance_id;",
-                        lookupTable);
+                        "INNER JOIN %s enrollment ON event.\"Patient_Identifier\" = enrollment.\"Patient_Identifier\"\n" +
+                        "INNER JOIN orgunit_tracker orgTracker ON event.\"OrgUnit\" = orgTracker.orgunit\n" +
+                        "INNER JOIN instance_tracker insTracker ON event.\"Patient_Identifier\" = insTracker.patient_id\n" +
+                        "INNER JOIN enrollment_tracker enrTracker ON insTracker.instance_id = enrTracker.instance_id\n" +
+                        "  AND enrollment.program_unique_id = enrTracker.program_unique_id AND event.program = enrTracker.program_name\n" +
+                        "LEFT JOIN event_tracker ON insTracker.instance_id = event_tracker.instance_id\n" +
+                        "  AND CASE WHEN event.program_unique_id IS NULL THEN date(event.program_start_date)::text ELSE event.program_unique_id END\n" +
+                        "      = CASE WHEN event_tracker.program_unique_id IS NULL THEN date(event_tracker.program_start_date)::text ELSE event_tracker.program_unique_id END\n" +
+                        "  AND event.program = event_tracker.program\n" +
+                        "WHERE event.date_created > COALESCE((SELECT last_synced_date\n" +
+                        "  FROM marker\n" +
+                        "  WHERE category='event' AND program_name='%s'), '-infinity');",
+                        lookupTable, enrollmentLookupTable, programName);
 
         whenNew(JdbcCursorItemReader.class).withNoArguments().thenReturn(jdbcCursorItemReader);
         whenNew(ColumnMapRowMapper.class).withNoArguments().thenReturn(columnMapRowMapper);
@@ -157,7 +171,7 @@ public class MappingReaderTest {
         doNothing().when(jdbcCursorItemReader).setSql(sql);
         doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
 
-        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getEventReader(lookupTable, programName);
+        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getEventReader(lookupTable, programName, enrollmentLookupTable);
 
         assertEquals(jdbcCursorItemReader, actual);
 
