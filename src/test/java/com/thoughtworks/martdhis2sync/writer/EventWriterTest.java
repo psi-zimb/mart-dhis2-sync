@@ -135,8 +135,8 @@ public class EventWriterTest {
         String event2 = getEventRequestBody("pwHIoSl","lejUhau", "LAfjIOne");
         List<String> list = Arrays.asList(event1, event2);
         String requestBody = "{\"events\":[" + event1 + "," + event2 + "]}";
-        EventTracker eventTracker1 = new EventTracker("qsYuLK", "alRfLwm", "rleFtLk", 1, new Date(Long.MIN_VALUE));
-        EventTracker eventTracker2 = new EventTracker("DJwiAlu", "LIfnHys", "rleFtLk", 1, new Date(Long.MIN_VALUE));
+        EventTracker eventTracker1 = new EventTracker("qsYuLK", "alRfLwm", "rleFtLk", "1", new Date(Long.MIN_VALUE));
+        EventTracker eventTracker2 = new EventTracker("DJwiAlu", "LIfnHys", "rleFtLk", "1", new Date(Long.MIN_VALUE));
         List<EventTracker> eventTrackers = Arrays.asList(eventTracker1, eventTracker2);
         List<ImportSummary> importSummaries = Arrays.asList(
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
@@ -164,8 +164,8 @@ public class EventWriterTest {
         String event2 = getEventRequestBody("","lejUhau", "LAfjIOne");
         List<String> list = Arrays.asList(event1, event2);
         String requestBody = "{\"events\":[" + event1 + "," + event2 + "]}";
-        EventTracker eventTracker1 = new EventTracker("", "alRfLwm", "rleFtLk", 1, new Date(Long.MIN_VALUE));
-        EventTracker eventTracker2 = new EventTracker("", "LIfnHys", "rleFtLk", 1, new Date(Long.MIN_VALUE));
+        EventTracker eventTracker1 = new EventTracker("", "alRfLwm", "rleFtLk", "1", new Date(Long.MIN_VALUE));
+        EventTracker eventTracker2 = new EventTracker("", "LIfnHys", "rleFtLk", "1", new Date(Long.MIN_VALUE));
         List<EventTracker> eventTrackers = Arrays.asList(eventTracker1, eventTracker2);
         List<ImportSummary> importSummaries = Arrays.asList(
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
@@ -199,8 +199,8 @@ public class EventWriterTest {
         String event2 = getEventRequestBody("","lejUhau", "LAfjIOne");
         List<String> list = Arrays.asList(event1, event2);
         String requestBody = "{\"events\":[" + event1 + "," + event2 + "]}";
-        EventTracker eventTracker1 = new EventTracker("", "alRfLwm", "rleFtLk", 1, new Date(Long.MIN_VALUE));
-        EventTracker eventTracker2 = new EventTracker("", "LIfnHys", "rleFtLk", 1, new Date(Long.MIN_VALUE));
+        EventTracker eventTracker1 = new EventTracker("", "alRfLwm", "rleFtLk", "1", new Date(Long.MIN_VALUE));
+        EventTracker eventTracker2 = new EventTracker("", "LIfnHys", "rleFtLk", "1", new Date(Long.MIN_VALUE));
         List<EventTracker> eventTrackers = Arrays.asList(eventTracker1, eventTracker2);
         List<ImportSummary> importSummaries = Arrays.asList(
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
@@ -234,8 +234,8 @@ public class EventWriterTest {
         String event2 = getEventRequestBody("","lejUhau", "incorrectProgram");
         List<String> list = Arrays.asList(event1, event2);
         String requestBody = "{\"events\":[" + event1 + "," + event2 + "]}";
-        EventTracker eventTracker1 = new EventTracker("", "alRfLwm", "rleFtLk_1", 1, new Date(Long.MIN_VALUE));
-        EventTracker eventTracker2 = new EventTracker("", "LIfnHys", "rleFtLk_1", 1, new Date(Long.MIN_VALUE));
+        EventTracker eventTracker1 = new EventTracker("", "alRfLwm", "rleFtLk_1", "1", new Date(Long.MIN_VALUE));
+        EventTracker eventTracker2 = new EventTracker("", "LIfnHys", "rleFtLk_1", "1", new Date(Long.MIN_VALUE));
         List<EventTracker> eventTrackers = Arrays.asList(eventTracker1, eventTracker2);
         List<ImportSummary> importSummaries = Arrays.asList(
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_ERROR,
@@ -270,8 +270,8 @@ public class EventWriterTest {
         String event2 = getEventRequestBody("","lejUhQu", "incorrectProgram");
         List<String> list = Arrays.asList(event1, event2);
         String requestBody = "{\"events\":[" + event1 + "," + event2 + "]}";
-        EventTracker eventTracker1 = new EventTracker("", "we4FsLEGq", "correctProgram", 1, new Date(Long.MIN_VALUE));
-        EventTracker eventTracker2 = new EventTracker("", "lejUhQu", "incorrectProgram", 1, new Date(Long.MIN_VALUE));
+        EventTracker eventTracker1 = new EventTracker("", "we4FsLEGq", "correctProgram", "1", new Date(Long.MIN_VALUE));
+        EventTracker eventTracker2 = new EventTracker("", "lejUhQu", "incorrectProgram", "1", new Date(Long.MIN_VALUE));
         List<EventTracker> eventTrackers = Arrays.asList(eventTracker1, eventTracker2);
         List<ImportSummary> importSummaries = Arrays.asList(
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
@@ -319,8 +319,8 @@ public class EventWriterTest {
         String event2 = getEventRequestBody("","lejUhQu", "correctProgram");
         List<String> list = Arrays.asList(event1, event2);
         String requestBody = "{\"events\":[" + event1 + "," + event2 + "]}";
-        EventTracker eventTracker1 = new EventTracker("", "we4FsLEGq", "incorrectProgram", 1, new Date(Long.MIN_VALUE));
-        EventTracker eventTracker2 = new EventTracker("", "lejUhQu", "correctProgram", 1, new Date(Long.MIN_VALUE));
+        EventTracker eventTracker1 = new EventTracker("", "we4FsLEGq", "incorrectProgram", "1", new Date(Long.MIN_VALUE));
+        EventTracker eventTracker2 = new EventTracker("", "lejUhQu", "correctProgram", "1", new Date(Long.MIN_VALUE));
         List<EventTracker> eventTrackers = Arrays.asList(eventTracker1, eventTracker2);
         List<ImportSummary> importSummaries = Arrays.asList(
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_ERROR,
@@ -367,7 +367,7 @@ public class EventWriterTest {
         String event1 = getEventRequestBody("","we4FsLEGq", "correctProgram");
         List<String> list = Collections.singletonList(event1);
         String requestBody = "{\"events\":[" + event1 + "]}";
-        EventTracker eventTracker1 = new EventTracker("", "we4FsLEGq", "correctProgram", 1, new Date(Long.MIN_VALUE));
+        EventTracker eventTracker1 = new EventTracker("", "we4FsLEGq", "correctProgram", "1", new Date(Long.MIN_VALUE));
         List<EventTracker> eventTrackers = Collections.singletonList(eventTracker1);
         List<Conflict> conflicts = Collections.singletonList(new Conflict("jfDdErl", "value_not_true_only"));
         List<ImportSummary> importSummaries = Collections.singletonList(
@@ -412,7 +412,7 @@ public class EventWriterTest {
                 "]}";
         List<String> list = Collections.singletonList(event1);
         String requestBody = "{\"events\":[" + event1 + "]}";
-        EventTracker eventTracker1 = new EventTracker("", "wF4FsLEGq", "correctProgram", 1, new Date(Long.MIN_VALUE));
+        EventTracker eventTracker1 = new EventTracker("", "wF4FsLEGq", "correctProgram", "1", new Date(Long.MIN_VALUE));
         List<EventTracker> eventTrackers = Collections.singletonList(eventTracker1);
         List<Conflict> conflicts = Collections.singletonList(new Conflict("jfDdErl", "value_not_true_only"));
         List<ImportSummary> importSummaries = Collections.singletonList(

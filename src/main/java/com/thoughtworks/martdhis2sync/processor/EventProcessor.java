@@ -8,7 +8,6 @@ import com.thoughtworks.martdhis2sync.util.EventUtil;
 import lombok.Setter;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.util.Date;
 import java.util.Set;
@@ -47,10 +46,10 @@ public class EventProcessor implements ItemProcessor {
         JsonObject tableRowJsonObject = tableRowJsonElement.getAsJsonObject();
         JsonObject mappingJsonObject = mappingObjJsonElement.getAsJsonObject();
 
-        if (StringUtils.isEmpty(getUnquotedString(tableRowJsonObject.get("event_id").toString()))) {
-            addNewEventTracker(tableRowJsonObject);
-        } else {
+        if (hasValue(tableRowJsonObject.get("event_id"))) {
             addExistingEventTracker(tableRowJsonObject);
+        } else {
+            addNewEventTracker(tableRowJsonObject);
         }
 
         updateLatestDateCreated(getUnquotedString(tableRowJsonObject.get("date_created").toString()));
