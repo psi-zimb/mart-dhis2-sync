@@ -25,15 +25,17 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.thoughtworks.martdhis2sync.model.Enrollment.*;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_ERROR;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_SUCCESS;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getStringFromDate;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
 import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_ENROLLMENT;
 
 @Component
 @StepScope
-public class ProgramEnrollmentWriter implements ItemWriter {
+public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
 
     @Autowired
     private SyncRepository syncRepository;
@@ -54,22 +56,116 @@ public class ProgramEnrollmentWriter implements ItemWriter {
 
     private Iterator<Enrollment> mapIterator;
 
-    private static final String EMPTY_STRING = "\"\"";
-    private static List<Enrollment> newEnrollmentsToSave = new ArrayList<>();
+    private List<Enrollment> enrollmentsToSaveInTrackerTable = new ArrayList<>();
+
+    private List<Enrollment> newOrUpdatedEnrollmentsList = new ArrayList<>();
+
+    private List<Enrollment> completedOrCancelledEnrollmentsList = new ArrayList<>();
+
+    private List<Enrollment> createToCompleteOrCancelEnrollmentsList = new ArrayList<>();
+
     private Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    private ResponseEntity<DHISSyncResponse> responseEntity;
+
+    private static final String EMPTY_STRING = "\"\"";
+
     private static final String LOG_PREFIX = "ENROLLMENT SYNC: ";
 
-    @Override
-    public void write(List items) throws Exception {
-        StringBuilder enrollmentApiFormat = new StringBuilder("{\"enrollments\":[");
-        items.forEach(item -> enrollmentApiFormat.append(item).append(","));
-        enrollmentApiFormat.replace(enrollmentApiFormat.length() - 1, enrollmentApiFormat.length(), "]}");
+    private static final String ENROLLMENT_API_FORMAT = "{\"enrollment\": %s, " +
+            "\"trackedEntityInstance\": \"%s\", " +
+            "\"orgUnit\":\"%s\"," +
+            "\"program\":\"%s\"," +
+            "\"enrollmentDate\":\"%s\"," +
+            "\"incidentDate\":\"%s\"," +
+            "\"status\": \"%s\"}";
 
-        ResponseEntity<DHISSyncResponse> responseEntity = syncRepository.sendData(URI, enrollmentApiFormat.toString());
-        newEnrollmentsToSave.clear();
-        mapIterator = EnrollmentUtil.getEnrollmentsList().iterator();
+    private static final String UPDATE_QUERY = "UPDATE public.enrollment_tracker " +
+            "SET status = ?, created_by = ?, date_created = ? " +
+            "WHERE enrollment_id = ?";
+
+    private static final String INSERT_QUERY = "INSERT INTO public.enrollment_tracker(" +
+            "enrollment_id, instance_id, program_name, status, program_unique_id, created_by, date_created)" +
+            "values (?, ?, ?, ?, ?, ?, ?)";
+
+    @Override
+    public void write(List<? extends Enrollment> enrollments) throws Exception {
+        resetLists();
+        enrollments.forEach(enrollment -> {
+            switch (enrollment.getStatus()) {
+                case STATUS_ACTIVE:
+                    newOrUpdatedEnrollmentsList.add(enrollment);
+                    break;
+                case STATUS_COMPLETED:
+                case STATUS_CANCELLED: {
+                    if (enrollment.getEnrollment_id().isEmpty()) {
+                        createToCompleteOrCancelEnrollmentsList.add(enrollment);
+                    } else {
+                        completedOrCancelledEnrollmentsList.add(enrollment);
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+        });
+
+        if (!createToCompleteOrCancelEnrollmentsList.isEmpty()) {
+            syncNewEnrollmentsToBeMarkedCompleteOrCancel();
+        }
+        if (!(enrollmentsToSaveInTrackerTable.isEmpty() && completedOrCancelledEnrollmentsList.isEmpty())) {
+            syncCompletedOrCancelledEnrollments();
+        }
+        if (!newOrUpdatedEnrollmentsList.isEmpty()) {
+            syncNewOrUpdatedEnrollments();
+        }
+        updateMarker();
+
+    }
+
+    private void syncNewEnrollmentsToBeMarkedCompleteOrCancel() throws Exception {
+        mapIterator = createToCompleteOrCancelEnrollmentsList.iterator();
+
+        responseEntity = syncRepository.sendData(URI, getRequestBody(createToCompleteOrCancelEnrollmentsList));
+        processResponseEntity(responseEntity);
+    }
+
+    private void syncCompletedOrCancelledEnrollments() throws Exception {
+        if (!enrollmentsToSaveInTrackerTable.isEmpty()) {
+            completedOrCancelledEnrollmentsList.addAll(enrollmentsToSaveInTrackerTable);
+        }
+        mapIterator = completedOrCancelledEnrollmentsList.iterator();
+
+        responseEntity = syncRepository.sendData(URI, getRequestBody(completedOrCancelledEnrollmentsList));
+        processResponseEntity(responseEntity);
+    }
+
+    private void syncNewOrUpdatedEnrollments() throws Exception {
+        enrollmentsToSaveInTrackerTable.clear();
+        mapIterator = newOrUpdatedEnrollmentsList.iterator();
+
+        responseEntity = syncRepository.sendData(URI, getRequestBody(newOrUpdatedEnrollmentsList));
+        processResponseEntity(responseEntity);
+    }
+
+    private String getRequestBody(List<Enrollment> list) {
+        StringBuilder body = new StringBuilder("{\"enrollments\":[");
+        list.forEach(enrollment -> {
+            String enr = String.format(
+                    ENROLLMENT_API_FORMAT,
+                    enrollment.getEnrollment_id(), enrollment.getInstance_id(),
+                    enrollment.getOrgUnit(), enrollment.getProgram_name(),
+                    enrollment.getProgram_start_date(), enrollment.getIncident_date(),
+                    enrollment.getStatus().toUpperCase());
+            body.append(enr).append(",");
+        });
+        body.replace(body.length() - 1, body.length(), "]}");
+        return body.toString();
+    }
+
+    private void processResponseEntity(ResponseEntity<DHISSyncResponse> responseEntity) throws Exception {
         if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
-            processResponse(responseEntity.getBody().getResponse().getImportSummaries());
+            processImportSummaries(responseEntity.getBody().getResponse().getImportSummaries());
             updateTracker();
             updateMarker();
         } else {
@@ -89,19 +185,19 @@ public class ProgramEnrollmentWriter implements ItemWriter {
                 importSummary.getConflicts().forEach(conflict ->
                         logger.error(LOG_PREFIX + conflict.getObject() + ": " + conflict.getValue()));
             } else {
-                processResponse(Collections.singletonList(importSummary));
+                processImportSummaries(Collections.singletonList(importSummary));
             }
         }
     }
 
-    private void processResponse(List<ImportSummary> importSummaries) {
+    private void processImportSummaries(List<ImportSummary> importSummaries) {
         importSummaries.forEach(importSummary -> {
             if (isImported(importSummary)) {
                 while (mapIterator.hasNext()) {
                     Enrollment enrollment = mapIterator.next();
                     if (EMPTY_STRING.equals(enrollment.getEnrollment_id())) {
                         enrollment.setEnrollment_id(importSummary.getReference());
-                        newEnrollmentsToSave.add(enrollment);
+                        enrollmentsToSaveInTrackerTable.add(enrollment);
                         break;
                     }
                 }
@@ -125,13 +221,14 @@ public class ProgramEnrollmentWriter implements ItemWriter {
 
     private void updateTracker() {
 
-        String sqlQuery = "INSERT INTO public.enrollment_tracker(" +
-                "enrollment_id, instance_id, program_name, program_start_date, status, program_unique_id, created_by, date_created)" +
-                "values (?, ?, ?, ?, ?, ?, ?, ?)";
-
+        int recordsCreated;
         try {
-            if (!newEnrollmentsToSave.isEmpty()) {
-                int recordsCreated = getUpdateCount(sqlQuery);
+            if (!completedOrCancelledEnrollmentsList.isEmpty()) {
+                recordsCreated = getUpdateCount(UPDATE_QUERY);
+                logger.info(LOG_PREFIX + "Successfully updated " + recordsCreated + " Enrollments' status.");
+            }
+            if (!enrollmentsToSaveInTrackerTable.isEmpty()) {
+                recordsCreated = getInsertCount(INSERT_QUERY);
                 logger.info(LOG_PREFIX + "Successfully inserted " + recordsCreated + " Enrollment UIDs.");
             }
         } catch (SQLException e) {
@@ -145,15 +242,32 @@ public class ProgramEnrollmentWriter implements ItemWriter {
         try (Connection connection = dataSource.getConnection()) {
             try (PreparedStatement ps = connection.prepareStatement(sqlQuery)) {
                 updateCount = 0;
-                for (Enrollment enrollment : newEnrollmentsToSave) {
+                for (Enrollment enrollment : completedOrCancelledEnrollmentsList) {
+                    ps.setString(1, enrollment.getStatus());
+                    ps.setString(2, user);
+                    ps.setTimestamp(3, Timestamp.valueOf(BatchUtil.GetUTCDateTimeAsString()));
+                    ps.setString(4, getUnquotedString(enrollment.getEnrollment_id()));
+                    updateCount += ps.executeUpdate();
+                }
+            }
+        }
+        completedOrCancelledEnrollmentsList.clear();
+        return updateCount;
+    }
+
+    private int getInsertCount(String sqlQuery) throws SQLException {
+        int updateCount;
+        try (Connection connection = dataSource.getConnection()) {
+            try (PreparedStatement ps = connection.prepareStatement(sqlQuery)) {
+                updateCount = 0;
+                for (Enrollment enrollment : enrollmentsToSaveInTrackerTable) {
                     ps.setString(1, enrollment.getEnrollment_id());
                     ps.setString(2, enrollment.getInstance_id());
                     ps.setString(3, enrollment.getProgram_name());
-                    ps.setDate(4, new Date(enrollment.getProgram_start_date().getTime()));
-                    ps.setString(5, enrollment.getStatus());
-                    ps.setInt(6, enrollment.getProgram_unique_id());
-                    ps.setString(7, user);
-                    ps.setTimestamp(8, Timestamp.valueOf(BatchUtil.GetUTCDateTimeAsString()));
+                    ps.setString(4, enrollment.getStatus());
+                    ps.setInt(5, enrollment.getProgram_unique_id());
+                    ps.setString(6, user);
+                    ps.setTimestamp(7, Timestamp.valueOf(BatchUtil.GetUTCDateTimeAsString()));
                     updateCount += ps.executeUpdate();
                 }
             }
@@ -164,5 +278,12 @@ public class ProgramEnrollmentWriter implements ItemWriter {
     private void updateMarker() {
         markerUtil.updateMarkerEntry(programName, CATEGORY_ENROLLMENT,
                 getStringFromDate(EnrollmentUtil.date, DATEFORMAT_WITH_24HR_TIME));
+    }
+
+    private void resetLists() {
+        createToCompleteOrCancelEnrollmentsList.clear();
+        enrollmentsToSaveInTrackerTable.clear();
+        newOrUpdatedEnrollmentsList.clear();
+        enrollmentsToSaveInTrackerTable.clear();
     }
 }

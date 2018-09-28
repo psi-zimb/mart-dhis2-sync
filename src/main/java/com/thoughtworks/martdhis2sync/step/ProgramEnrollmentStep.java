@@ -33,7 +33,6 @@ public class ProgramEnrollmentStep implements StepBuilderContract {
 
     @Override
     public Step get(String lookupTable, String programName, Object mappingObj) {
-        EnrollmentUtil.resetEnrollmentsList();
         EnrollmentUtil.date = markerUtil.getLastSyncedDate(programName, CATEGORY_ENROLLMENT);
         return stepFactory.build(PE_STEP_NAME, mappingReader.getEnrollmentReader(lookupTable, programName), processor, writer);
     }
