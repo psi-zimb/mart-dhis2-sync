@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.writer;
 
+import com.thoughtworks.martdhis2sync.controller.PushController;
 import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
 import com.thoughtworks.martdhis2sync.model.ImportSummary;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
@@ -59,6 +60,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
 
     @Override
     public void write(List list) throws Exception {
+        PushController.IS_DELTA_EXISTS = true;
         StringBuilder instanceApiFormat = new StringBuilder("{\"trackedEntityInstances\":[");
         list.forEach(item -> instanceApiFormat.append(item).append(","));
         instanceApiFormat.replace(instanceApiFormat.length() - 1, instanceApiFormat.length(), "]}");
