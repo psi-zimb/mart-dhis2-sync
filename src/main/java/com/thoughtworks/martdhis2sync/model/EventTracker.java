@@ -11,6 +11,6 @@ public class EventTracker {
     private String eventId;
     private String instanceId;
     private String program;
-    private int programUniqueId;
+    private String programUniqueId;
     private Date programStartDate;
 }

@@ -165,7 +165,7 @@ public class EventWriter implements ItemWriter {
                     ps.setString(1, eventTracker.getEventId());
                     ps.setString(2, eventTracker.getInstanceId());
                     ps.setString(3, eventTracker.getProgram());
-                    ps.setInt(4, eventTracker.getProgramUniqueId());
+                    ps.setString(4, eventTracker.getProgramUniqueId());
                     ps.setDate(5, new Date(eventTracker.getProgramStartDate().getTime()));
                     ps.setString(6, user);
                     ps.setTimestamp(7, Timestamp.valueOf(GetUTCDateTimeAsString()));
