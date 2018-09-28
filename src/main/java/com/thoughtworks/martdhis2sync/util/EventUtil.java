@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.hasValue;
 
@@ -36,17 +34,13 @@ public class EventUtil {
 
     private static EventTracker getEventTracker(JsonObject tableRow) {
         JsonElement eventIdElement = tableRow.get("event_id");
-        JsonElement proUniqueIdElement = tableRow.get("program_unique_id");
         String eventId = hasValue(eventIdElement) ? getUnquotedString(eventIdElement.toString()) : "";
-        String programUniqueId = hasValue(proUniqueIdElement) ? getUnquotedString(proUniqueIdElement.toString()) : "";
-        String programStartDate = getUnquotedString(tableRow.get("program_start_date").toString());
 
         return new EventTracker(
                 eventId,
                 getUnquotedString(tableRow.get("instance_id").toString()),
                 getUnquotedString(tableRow.get("program").toString()),
-                programUniqueId,
-                getDateFromString(programStartDate, DATEFORMAT_WITH_24HR_TIME)
+                getUnquotedString(tableRow.get("event_unique_id").toString())
         );
     }
 
