@@ -28,9 +28,7 @@ import java.util.List;
 import static com.thoughtworks.martdhis2sync.model.Enrollment.*;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_ERROR;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_SUCCESS;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getStringFromDate;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
 import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_ENROLLMENT;
 
 @Component
@@ -154,7 +152,7 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
             String enr = String.format(
                     ENROLLMENT_API_FORMAT,
                     enrollment.getEnrollment_id(), enrollment.getInstance_id(),
-                    enrollment.getOrgUnit(), enrollment.getProgram_name(),
+                    enrollment.getOrgUnit(), enrollment.getProgram(),
                     enrollment.getProgram_start_date(), enrollment.getIncident_date(),
                     enrollment.getStatus().toUpperCase());
             body.append(enr).append(",");
@@ -167,7 +165,6 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
         if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
             processImportSummaries(responseEntity.getBody().getResponse().getImportSummaries());
             updateTracker();
-            updateMarker();
         } else {
             processErrorResponse(responseEntity.getBody().getResponse().getImportSummaries());
             updateTracker();
@@ -263,7 +260,7 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
                 for (Enrollment enrollment : enrollmentsToSaveInTrackerTable) {
                     ps.setString(1, enrollment.getEnrollment_id());
                     ps.setString(2, enrollment.getInstance_id());
-                    ps.setString(3, enrollment.getProgram_name());
+                    ps.setString(3, enrollment.getProgram());
                     ps.setString(4, enrollment.getStatus());
                     ps.setInt(5, enrollment.getProgram_unique_id());
                     ps.setString(6, user);

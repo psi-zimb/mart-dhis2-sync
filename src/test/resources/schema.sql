@@ -34,8 +34,7 @@ DROP TABLE IF EXISTS enrollment_tracker CASCADE ;
 CREATE TABLE "public"."enrollment_tracker"(
     enrollment_id text PRIMARY KEY,
     instance_id text,
-    program_name text,
-    program_start_date DATE ,
+    program text,
     status text,
     created_by text,
     date_created TIMESTAMP

@@ -13,7 +13,7 @@ public class Enrollment {
 
     private String enrollment_id;
     private String instance_id;
-    private String program_name;
+    private String program;
     private String OrgUnit;
     private String program_start_date;
     private String incident_date;
