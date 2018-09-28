@@ -40,7 +40,8 @@ public class EventUtil {
                 eventId,
                 getUnquotedString(tableRow.get("instance_id").toString()),
                 getUnquotedString(tableRow.get("program").toString()),
-                getUnquotedString(tableRow.get("event_unique_id").toString())
+                getUnquotedString(tableRow.get("event_unique_id").toString()),
+                getUnquotedString(tableRow.get("program_stage").toString())
         );
     }
 

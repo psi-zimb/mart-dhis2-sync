@@ -14,6 +14,7 @@ import java.util.Set;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITHOUT_TIME;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.EMPTY_STRING;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getFormattedDateString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
@@ -25,7 +26,7 @@ import static com.thoughtworks.martdhis2sync.util.EventUtil.addNewEventTracker;
 @Component
 public class EventProcessor implements ItemProcessor {
 
-    private static final String EVENT_API_FORMAT = "{\"event\": \"\", " +
+    private static final String EVENT_API_FORMAT = "{\"event\": %s, " +
             "\"trackedEntityInstance\": %s, " +
             "\"enrollment\": %s, " +
             "\"program\": %s, " +
@@ -67,8 +68,11 @@ public class EventProcessor implements ItemProcessor {
 
         String eventDate = getUnquotedString(tableRow.get("event_date").toString());
         String dateString = getFormattedDateString(eventDate, DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME);
+        JsonElement eventIdElement = tableRow.get("event_id");
+        String eventId = hasValue(eventIdElement) ? eventIdElement.toString() : EMPTY_STRING;
 
         return String.format(EVENT_API_FORMAT,
+                eventId,
                 tableRow.get("instance_id").toString(),
                 tableRow.get("enrollment_id").toString(),
                 tableRow.get("program").toString(),
