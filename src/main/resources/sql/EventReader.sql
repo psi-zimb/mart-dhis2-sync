@@ -7,7 +7,7 @@ INNER JOIN %s enrollment ON event."Patient_Identifier" = enrollment."Patient_Ide
 INNER JOIN orgunit_tracker orgTracker ON event."OrgUnit" = orgTracker.orgunit
 INNER JOIN instance_tracker insTracker ON event."Patient_Identifier" = insTracker.patient_id
 INNER JOIN enrollment_tracker enrTracker ON insTracker.instance_id = enrTracker.instance_id
-  AND enrollment.program_unique_id = enrTracker.program_unique_id AND event.program = enrTracker.program_name
+  AND enrollment.program_unique_id = enrTracker.program_unique_id AND event.program = enrTracker.program
 LEFT JOIN event_tracker ON insTracker.instance_id = event_tracker.instance_id
   AND CASE WHEN event.program_unique_id IS NULL THEN date(event.program_start_date)::text ELSE event.program_unique_id END
       = CASE WHEN event_tracker.program_unique_id IS NULL THEN date(event_tracker.program_start_date)::text ELSE event_tracker.program_unique_id END
