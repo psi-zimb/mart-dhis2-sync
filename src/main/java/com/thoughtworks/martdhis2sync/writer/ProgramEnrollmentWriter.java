@@ -84,7 +84,7 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
             "WHERE enrollment_id = ?";
 
     private static final String INSERT_QUERY = "INSERT INTO public.enrollment_tracker(" +
-            "enrollment_id, instance_id, program_name, status, program_unique_id, created_by, date_created)" +
+            "enrollment_id, instance_id, program, status, program_unique_id, created_by, date_created)" +
             "values (?, ?, ?, ?, ?, ?, ?)";
 
     @Override
