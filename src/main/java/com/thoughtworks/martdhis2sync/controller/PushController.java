@@ -1,23 +1,18 @@
 package com.thoughtworks.martdhis2sync.controller;
 
 import com.google.gson.Gson;
+import com.thoughtworks.martdhis2sync.model.LookupTable;
+import com.thoughtworks.martdhis2sync.model.MappingJson;
 import com.thoughtworks.martdhis2sync.service.EventService;
 import com.thoughtworks.martdhis2sync.service.MappingService;
 import com.thoughtworks.martdhis2sync.service.ProgramEnrollmentService;
 import com.thoughtworks.martdhis2sync.service.TEIService;
-import com.thoughtworks.martdhis2sync.model.LookupTable;
-import com.thoughtworks.martdhis2sync.model.MappingJson;
-import org.springframework.batch.core.JobParametersInvalidException;
-import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
-import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
-import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.SyncFailedException;
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -35,10 +30,12 @@ public class PushController {
     @Autowired
     private EventService eventService;
 
+    public static boolean IS_DELTA_EXISTS = false;
+
     @PutMapping(value = "/pushData")
-    public Map<String, String> pushData(@RequestParam String service, @RequestParam String user)
-            throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
-            JobRestartException, JobInstanceAlreadyCompleteException {
+    public void pushData(@RequestParam String service, @RequestParam String user)
+            throws Exception {
+        IS_DELTA_EXISTS = false;
 
         Map<String, Object> mapping = mappingService.getMapping(service);
 
@@ -53,8 +50,8 @@ public class PushController {
         } catch (SyncFailedException ignored) {
         }
 
-        Map<String, String> result = new HashMap<>();
-        result.put("Job Status", "Executed");
-        return result;
+        if(!IS_DELTA_EXISTS) {
+            throw new Exception("NO DATA TO SYNC");
+        }
     }
 }

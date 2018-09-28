@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.writer;
 
+import com.thoughtworks.martdhis2sync.controller.PushController;
 import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
 import com.thoughtworks.martdhis2sync.model.Enrollment;
 import com.thoughtworks.martdhis2sync.model.ImportSummary;
@@ -88,6 +89,7 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
 
     @Override
     public void write(List<? extends Enrollment> enrollments) throws Exception {
+        PushController.IS_DELTA_EXISTS = true;
         resetLists();
         enrollments.forEach(enrollment -> {
             switch (enrollment.getStatus()) {
