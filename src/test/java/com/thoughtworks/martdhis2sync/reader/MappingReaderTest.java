@@ -108,17 +108,18 @@ public class MappingReaderTest {
     public void shouldReturnReaderForProgramEnrollment() throws Exception {
         String lookupTable = "programs";
 
-        String sql = String.format("SELECT mappedTable.*, insTracker.instance_id, orgTracker.id as orgunit_id,\n" +
-                        "  CASE WHEN enrTracker.enrollment_id is NULL THEN '' ELSE enrTracker.enrollment_id END AS enrollment_id\n" +
-                        "FROM hts_program_enrollment_view mappedTable\n" +
+        String sql = String.format("SELECT mappedTable. *, insTracker.instance_id, orgTracker.id as orgunit_id,\n" +
+                "  CASE WHEN enrTracker.enrollment_id is NULL THEN '' ELSE enrTracker.enrollment_id END AS enrollment_id\n" +
+                        "FROM %s mappedTable\n" +
                         "INNER JOIN instance_tracker insTracker\n" +
                         "  ON insTracker.patient_id = mappedTable.\"Patient_Identifier\"\n" +
                         "INNER JOIN orgunit_tracker orgTracker\n" +
                         "  ON orgTracker.orgUnit = mappedTable.\"OrgUnit\"\n" +
                         "LEFT JOIN enrollment_tracker enrTracker\n" +
-                        "  ON enrTracker.instance_id = insTracker.instance_id\n" +
-                        "  AND date(enrTracker.program_start_date) = date(mappedTable.enrollment_date)\n" +
-                        "WHERE lt.date_created > COALESCE((SELECT last_synced_date\n" +
+                        "  ON mappedTable.program = enrTracker.program\n" +
+                        "    AND enrTracker.instance_id = insTracker.instance_id\n" +
+                        "    AND enrTracker.program_unique_id = mappedTable.program_unique_id\n" +
+                        "  WHERE mappedTable.date_created > COALESCE((SELECT last_synced_date\n" +
                         "                                    FROM marker\n" +
                         "                                    WHERE category='enrollment' AND program_name='%s'), '-infinity');\n",
                         lookupTable, programName);
