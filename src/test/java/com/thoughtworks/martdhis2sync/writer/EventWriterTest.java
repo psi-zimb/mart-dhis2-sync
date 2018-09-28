@@ -28,7 +28,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
@@ -135,8 +134,8 @@ public class EventWriterTest {
         String event2 = getEventRequestBody("pwHIoSl","lejUhau", "LAfjIOne");
         List<String> list = Arrays.asList(event1, event2);
         String requestBody = "{\"events\":[" + event1 + "," + event2 + "]}";
-        EventTracker eventTracker1 = new EventTracker("qsYuLK", "alRfLwm", "rleFtLk", "1", new Date(Long.MIN_VALUE));
-        EventTracker eventTracker2 = new EventTracker("DJwiAlu", "LIfnHys", "rleFtLk", "1", new Date(Long.MIN_VALUE));
+        EventTracker eventTracker1 = new EventTracker("qsYuLK", "alRfLwm", "rleFtLk", "1");
+        EventTracker eventTracker2 = new EventTracker("DJwiAlu", "LIfnHys", "rleFtLk", "1");
         List<EventTracker> eventTrackers = Arrays.asList(eventTracker1, eventTracker2);
         List<ImportSummary> importSummaries = Arrays.asList(
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
@@ -164,8 +163,8 @@ public class EventWriterTest {
         String event2 = getEventRequestBody("","lejUhau", "LAfjIOne");
         List<String> list = Arrays.asList(event1, event2);
         String requestBody = "{\"events\":[" + event1 + "," + event2 + "]}";
-        EventTracker eventTracker1 = new EventTracker("", "alRfLwm", "rleFtLk", "1", new Date(Long.MIN_VALUE));
-        EventTracker eventTracker2 = new EventTracker("", "LIfnHys", "rleFtLk", "1", new Date(Long.MIN_VALUE));
+        EventTracker eventTracker1 = new EventTracker("", "alRfLwm", "rleFtLk", "1");
+        EventTracker eventTracker2 = new EventTracker("", "LIfnHys", "rleFtLk", "1");
         List<EventTracker> eventTrackers = Arrays.asList(eventTracker1, eventTracker2);
         List<ImportSummary> importSummaries = Arrays.asList(
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
@@ -199,8 +198,8 @@ public class EventWriterTest {
         String event2 = getEventRequestBody("","lejUhau", "LAfjIOne");
         List<String> list = Arrays.asList(event1, event2);
         String requestBody = "{\"events\":[" + event1 + "," + event2 + "]}";
-        EventTracker eventTracker1 = new EventTracker("", "alRfLwm", "rleFtLk", "1", new Date(Long.MIN_VALUE));
-        EventTracker eventTracker2 = new EventTracker("", "LIfnHys", "rleFtLk", "1", new Date(Long.MIN_VALUE));
+        EventTracker eventTracker1 = new EventTracker("", "alRfLwm", "rleFtLk", "1");
+        EventTracker eventTracker2 = new EventTracker("", "LIfnHys", "rleFtLk", "1");
         List<EventTracker> eventTrackers = Arrays.asList(eventTracker1, eventTracker2);
         List<ImportSummary> importSummaries = Arrays.asList(
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
@@ -234,8 +233,8 @@ public class EventWriterTest {
         String event2 = getEventRequestBody("","lejUhau", "incorrectProgram");
         List<String> list = Arrays.asList(event1, event2);
         String requestBody = "{\"events\":[" + event1 + "," + event2 + "]}";
-        EventTracker eventTracker1 = new EventTracker("", "alRfLwm", "rleFtLk_1", "1", new Date(Long.MIN_VALUE));
-        EventTracker eventTracker2 = new EventTracker("", "LIfnHys", "rleFtLk_1", "1", new Date(Long.MIN_VALUE));
+        EventTracker eventTracker1 = new EventTracker("", "alRfLwm", "rleFtLk_1", "1");
+        EventTracker eventTracker2 = new EventTracker("", "LIfnHys", "rleFtLk_1", "1");
         List<EventTracker> eventTrackers = Arrays.asList(eventTracker1, eventTracker2);
         List<ImportSummary> importSummaries = Arrays.asList(
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_ERROR,
@@ -270,8 +269,8 @@ public class EventWriterTest {
         String event2 = getEventRequestBody("","lejUhQu", "incorrectProgram");
         List<String> list = Arrays.asList(event1, event2);
         String requestBody = "{\"events\":[" + event1 + "," + event2 + "]}";
-        EventTracker eventTracker1 = new EventTracker("", "we4FsLEGq", "correctProgram", "1", new Date(Long.MIN_VALUE));
-        EventTracker eventTracker2 = new EventTracker("", "lejUhQu", "incorrectProgram", "1", new Date(Long.MIN_VALUE));
+        EventTracker eventTracker1 = new EventTracker("", "we4FsLEGq", "correctProgram", "1");
+        EventTracker eventTracker2 = new EventTracker("", "lejUhQu", "incorrectProgram", "1");
         List<EventTracker> eventTrackers = Arrays.asList(eventTracker1, eventTracker2);
         List<ImportSummary> importSummaries = Arrays.asList(
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
@@ -280,8 +279,8 @@ public class EventWriterTest {
                         new ImportCount(0, 0, 1, 0), "Event.program does not point to a valid program: incorrectProgram", null, null)
         );
         String sqlQuery = "INSERT INTO public.event_tracker(" +
-                "event_id, instance_id, program, program_unique_id, program_start_date, created_by, date_created)" +
-                "values (?, ?, ?, ?, ?, ?, ?)";
+                "event_id, instance_id, program, event_unique_id, created_by, date_created)" +
+                "values (?, ?, ?, ?, ?, ?)";
 
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
@@ -319,8 +318,8 @@ public class EventWriterTest {
         String event2 = getEventRequestBody("","lejUhQu", "correctProgram");
         List<String> list = Arrays.asList(event1, event2);
         String requestBody = "{\"events\":[" + event1 + "," + event2 + "]}";
-        EventTracker eventTracker1 = new EventTracker("", "we4FsLEGq", "incorrectProgram", "1", new Date(Long.MIN_VALUE));
-        EventTracker eventTracker2 = new EventTracker("", "lejUhQu", "correctProgram", "1", new Date(Long.MIN_VALUE));
+        EventTracker eventTracker1 = new EventTracker("", "we4FsLEGq", "incorrectProgram", "1");
+        EventTracker eventTracker2 = new EventTracker("", "lejUhQu", "correctProgram", "1");
         List<EventTracker> eventTrackers = Arrays.asList(eventTracker1, eventTracker2);
         List<ImportSummary> importSummaries = Arrays.asList(
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_ERROR,
@@ -329,8 +328,8 @@ public class EventWriterTest {
                         new ImportCount(1, 0, 0, 0), null, null, "LInfWmd")
         );
         String sqlQuery = "INSERT INTO public.event_tracker(" +
-                "event_id, instance_id, program, program_unique_id, program_start_date, created_by, date_created)" +
-                "values (?, ?, ?, ?, ?, ?, ?)";
+                "event_id, instance_id, program, event_unique_id, created_by, date_created)" +
+                "values (?, ?, ?, ?, ?, ?)";
 
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
@@ -367,7 +366,7 @@ public class EventWriterTest {
         String event1 = getEventRequestBody("","we4FsLEGq", "correctProgram");
         List<String> list = Collections.singletonList(event1);
         String requestBody = "{\"events\":[" + event1 + "]}";
-        EventTracker eventTracker1 = new EventTracker("", "we4FsLEGq", "correctProgram", "1", new Date(Long.MIN_VALUE));
+        EventTracker eventTracker1 = new EventTracker("", "we4FsLEGq", "correctProgram", "1");
         List<EventTracker> eventTrackers = Collections.singletonList(eventTracker1);
         List<Conflict> conflicts = Collections.singletonList(new Conflict("jfDdErl", "value_not_true_only"));
         List<ImportSummary> importSummaries = Collections.singletonList(
@@ -412,7 +411,7 @@ public class EventWriterTest {
                 "]}";
         List<String> list = Collections.singletonList(event1);
         String requestBody = "{\"events\":[" + event1 + "]}";
-        EventTracker eventTracker1 = new EventTracker("", "wF4FsLEGq", "correctProgram", "1", new Date(Long.MIN_VALUE));
+        EventTracker eventTracker1 = new EventTracker("", "wF4FsLEGq", "correctProgram", "1");
         List<EventTracker> eventTrackers = Collections.singletonList(eventTracker1);
         List<Conflict> conflicts = Collections.singletonList(new Conflict("jfDdErl", "value_not_true_only"));
         List<ImportSummary> importSummaries = Collections.singletonList(
@@ -420,8 +419,8 @@ public class EventWriterTest {
                         new ImportCount(1, 0, 1, 0), null, conflicts, "alEfNBui")
                 );
         String sqlQuery = "INSERT INTO public.event_tracker(" +
-                "event_id, instance_id, program, program_unique_id, program_start_date, created_by, date_created)" +
-                "values (?, ?, ?, ?, ?, ?, ?)";
+                "event_id, instance_id, program, event_unique_id, created_by, date_created)" +
+                "values (?, ?, ?, ?, ?, ?)";
 
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);

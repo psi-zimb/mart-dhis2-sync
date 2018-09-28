@@ -136,8 +136,7 @@
             event_id text PRIMARY KEY,
             instance_id text,
             program text,
-            program_unique_id integer,
-            program_start_date date,
+            event_unique_id text,
             created_by text,
             date_created TIMESTAMP
             );
