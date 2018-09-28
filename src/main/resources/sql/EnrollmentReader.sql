@@ -6,7 +6,7 @@ INNER JOIN instance_tracker insTracker
 INNER JOIN orgunit_tracker orgTracker
   ON orgTracker.orgUnit = mappedTable."OrgUnit"
 LEFT JOIN enrollment_tracker enrTracker
-  ON mappedTable.program = enrTracker.program_name
+  ON mappedTable.program = enrTracker.program
     AND enrTracker.instance_id = insTracker.instance_id
     AND enrTracker.program_unique_id = mappedTable.program_unique_id
   WHERE mappedTable.date_created > COALESCE((SELECT last_synced_date
