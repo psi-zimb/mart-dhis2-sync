@@ -3,15 +3,20 @@ package com.thoughtworks.martdhis2sync.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.util.Date;
-
 @Data
 @AllArgsConstructor
 public class Enrollment {
+
+    public static final String STATUS_ACTIVE = "ACTIVE";
+    public static final String STATUS_COMPLETED = "COMPLETED";
+    public static final String STATUS_CANCELLED = "CANCELLED";
+
     private String enrollment_id;
     private String instance_id;
     private String program_name;
-    private Date program_start_date;
+    private String OrgUnit;
+    private String program_start_date;
+    private String incident_date;
     private String status;
     private int program_unique_id;
 }
