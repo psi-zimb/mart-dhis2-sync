@@ -19,7 +19,6 @@ import org.springframework.util.StringUtils;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -142,8 +141,8 @@ public class EventWriter implements ItemWriter {
 
     private void updateTracker() {
         String sqlQuery = "INSERT INTO public.event_tracker(" +
-                "event_id, instance_id, program, program_unique_id, program_start_date, created_by, date_created)" +
-                "values (?, ?, ?, ?, ?, ?, ?)";
+                "event_id, instance_id, program, event_unique_id, created_by, date_created)" +
+                "values (?, ?, ?, ?, ?, ?)";
 
         try {
             if (!newEventsToSave.isEmpty()) {
@@ -165,10 +164,9 @@ public class EventWriter implements ItemWriter {
                     ps.setString(1, eventTracker.getEventId());
                     ps.setString(2, eventTracker.getInstanceId());
                     ps.setString(3, eventTracker.getProgram());
-                    ps.setString(4, eventTracker.getProgramUniqueId());
-                    ps.setDate(5, new Date(eventTracker.getProgramStartDate().getTime()));
-                    ps.setString(6, user);
-                    ps.setTimestamp(7, Timestamp.valueOf(GetUTCDateTimeAsString()));
+                    ps.setString(4, eventTracker.getEventUniqueId());
+                    ps.setString(5, user);
+                    ps.setTimestamp(6, Timestamp.valueOf(GetUTCDateTimeAsString()));
                     updateCount += ps.executeUpdate();
                 }
             }
