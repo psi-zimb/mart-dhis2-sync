@@ -136,6 +136,7 @@
             event_id text PRIMARY KEY,
             instance_id text,
             program text,
+            program_stage text,
             event_unique_id text,
             created_by text,
             date_created TIMESTAMP
