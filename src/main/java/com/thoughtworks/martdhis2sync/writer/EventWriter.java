@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.writer;
 
+import com.thoughtworks.martdhis2sync.controller.PushController;
 import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
 import com.thoughtworks.martdhis2sync.model.EventTracker;
 import com.thoughtworks.martdhis2sync.model.ImportSummary;
@@ -64,6 +65,7 @@ public class EventWriter implements ItemWriter {
 
     @Override
     public void write(List list) throws Exception {
+        PushController.IS_DELTA_EXISTS = true;
         StringBuilder eventApi = new StringBuilder("{\"events\":[");
         list.forEach(item -> eventApi.append(item).append(","));
         int length = eventApi.length();
