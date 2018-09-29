@@ -1,6 +1,7 @@
 package com.thoughtworks.martdhis2sync.repository;
 
 import com.google.gson.Gson;
+import com.thoughtworks.martdhis2sync.controller.PushController;
 import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
 import com.thoughtworks.martdhis2sync.model.OrgUnitResponse;
 import org.apache.tomcat.util.codec.binary.Base64;
@@ -46,11 +47,17 @@ public class SyncRepository {
                     e.getStatusCode());
             logger.error(LOG_PREFIX + e);
         } catch (HttpServerErrorException e) {
+            updatedFailedReason(e.getMessage());
             logger.error(LOG_PREFIX + e);
             throw e;
         }
         System.out.println("\nRES: " + responseEntity);
         return responseEntity;
+    }
+
+    private void updatedFailedReason(String message) {
+        message = message == null ? "" : message;
+        PushController.failedReason.append(String.format("500 Internal Server Error %s, ", message));
     }
 
     public ResponseEntity<OrgUnitResponse> getOrgUnits(String url) {

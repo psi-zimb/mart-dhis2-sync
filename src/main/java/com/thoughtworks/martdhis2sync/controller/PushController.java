@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.SyncFailedException;
 import java.util.Map;
 
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeChars;
+
 @RestController
 public class PushController {
 
@@ -35,11 +37,16 @@ public class PushController {
     private LoggerService loggerService;
 
     public static boolean IS_DELTA_EXISTS = false;
+    public static StringBuilder failedReason = new StringBuilder();
+    private static final String SUCCESS = "success";
+    private static final String FAILED = "failed";
+    private static final int COMMA_AND_SPACE_SIZE = 2;
 
     @PutMapping(value = "/pushData")
     public void pushData(@RequestParam String service, @RequestParam String user)
             throws Exception {
         IS_DELTA_EXISTS = false;
+        failedReason = new StringBuilder();
         loggerService.addLog(service, user, "Comments");
 
         Map<String, Object> mapping = mappingService.getMapping(service);
@@ -52,11 +59,12 @@ public class PushController {
             teiService.triggerJob(service, user, lookupTable.getInstance(), mappingJson.getInstance());
             programEnrollmentService.triggerJob(service, user, lookupTable.getEnrollments());
             eventService.triggerJob(service, user, lookupTable.getEvent(), mappingJson.getEvent(), lookupTable.getEnrollments());
-
+            loggerService.updateLog(service, SUCCESS, "");
             if(!IS_DELTA_EXISTS) {
                 throw new Exception("NO DATA TO SYNC");
             }
-        } catch (SyncFailedException ignored) {
+        } catch (SyncFailedException e) {
+            loggerService.updateLog(service, FAILED, removeChars(failedReason, COMMA_AND_SPACE_SIZE));
         }
     }
 }

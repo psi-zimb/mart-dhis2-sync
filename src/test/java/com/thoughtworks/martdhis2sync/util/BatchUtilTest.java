@@ -21,6 +21,7 @@ import static com.thoughtworks.martdhis2sync.util.BatchUtil.convertResourceOutpu
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getFormattedDateString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.hasValue;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeChars;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeLastChar;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -134,5 +135,20 @@ public class BatchUtilTest {
     @Test
     public void shouldRemoveLastCharForTheGivenString() {
         assertEquals("someValu", removeLastChar(new StringBuilder("someValue")));
+    }
+
+    @Test
+    public void shouldReturnEmptyStringWhenGivenStringHasLessCharsEqualNoOfRemoveChars() {
+        assertEquals("", removeChars(new StringBuilder("ab"), 2));
+    }
+
+    @Test
+    public void shouldReturnSameStringWhenGivenStringHasLessCharsThanNoOfRemoveChars() {
+        assertEquals("a", removeChars(new StringBuilder("a"), 2));
+    }
+
+    @Test
+    public void shouldRemoveNoOfGivenCharsForTheGivenString() {
+        assertEquals("someVal", removeChars(new StringBuilder("someValue"), 2));
     }
 }

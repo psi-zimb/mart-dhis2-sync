@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.writer;
 
+import com.thoughtworks.martdhis2sync.controller.PushController;
 import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
@@ -114,6 +115,7 @@ public class TrackedEntityInstanceWriterTest {
         list = Arrays.asList(patient1, patient2);
 
         requestBody = "{\"trackedEntityInstances\":[" + patient1 + "," + patient2 + "]}";
+        PushController.failedReason = new StringBuilder("");
 
         mockStatic(TEIUtil.class);
     }
@@ -279,6 +281,7 @@ public class TrackedEntityInstanceWriterTest {
         verify(preparedStatement, times(1)).executeUpdate();
         verify(markerUtil, times(0))
                 .updateMarkerEntry(anyString(), anyString(), anyString());
+        assertEquals("No org unit ID in tracked entity instance object, ", PushController.failedReason.toString());
     }
 
     @Test(expected = Exception.class)
@@ -292,6 +295,8 @@ public class TrackedEntityInstanceWriterTest {
     @Test
     @SneakyThrows
     public void shouldLogIncorrectlyConfiguredTrackedEntityTypeInConflictsButNotUpdateMarkerAndThrowExceptionOnSyncFailure409Conflict() {
+        String expected = CONFLICT_OBJ_TEI_TYPE + ": Invalid trackedEntityType o0kaqrZa79Y@#&, " +
+                CONFLICT_OBJ_TEI_TYPE + ": Invalid trackedEntityType o0kaqrZa79Y@#&, ";
         List<Conflict> conflicts = Collections.singletonList(
                 new Conflict(CONFLICT_OBJ_TEI_TYPE, "Invalid trackedEntityType o0kaqrZa79Y@#&"));
 
@@ -320,6 +325,7 @@ public class TrackedEntityInstanceWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
+        assertEquals(expected, PushController.failedReason.toString());
     }
 
     @Test
@@ -352,6 +358,8 @@ public class TrackedEntityInstanceWriterTest {
     @Test
     @SneakyThrows
     public void shouldLogIncorrectlyMappedAttributeUIDInConflictsAndNotUpdateTrackerAndMarkerTablesAndThrowExceptionOnSyncFailure409Conflict() {
+        String expected = CONFLICT_OBJ_ATTRIBUTE + ": Invalid attribute rOb34aQ&$#F, " +
+                CONFLICT_OBJ_ATTRIBUTE + ": Invalid attribute rOb34aQ&$#F, ";
         List<Conflict> conflicts = Collections.singletonList(
                 new Conflict(CONFLICT_OBJ_ATTRIBUTE, "Invalid attribute rOb34aQ&$#F"));
 
@@ -380,11 +388,14 @@ public class TrackedEntityInstanceWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
+        assertEquals(expected, PushController.failedReason.toString());
     }
 
     @Test
     @SneakyThrows
     public void shouldLogMissingOrgUnitInTheDHISServerInConflictsWithoutUpdatingTrackerAndMarkerTablesAndThrowExceptionOnSyncFailure409Conflict() {
+        String expected = CONFLICT_OBJ_ORG_UNIT + ": Org unit null does not exist, " +
+                CONFLICT_OBJ_ORG_UNIT + ": Org unit null does not exist, ";
         List<Conflict> conflicts = Collections.singletonList(
                 new Conflict(CONFLICT_OBJ_ORG_UNIT, "Org unit null does not exist"));
         importSummaries = Arrays.asList(
@@ -412,11 +423,14 @@ public class TrackedEntityInstanceWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
+        assertEquals(expected, PushController.failedReason.toString());
     }
 
     @Test
     @SneakyThrows
     public void shouldLogIncorrectlyDataTypeForAttributeValueInConflictsButNotUpdateMarkerAndThrowExceptionOnSyncFailure409Conflict() {
+        String expected = CONFLICT_OBJ_ATTRIBUTE_VALUE + ": Value 'UIC' is not a valid numeric type for attribute rOb84aQKSyC, " +
+                CONFLICT_OBJ_ATTRIBUTE_VALUE + ": Value 'UIC' is not a valid numeric type for attribute rOb84aQKSyC, ";
         List<Conflict> conflicts = Collections.singletonList(
                 new Conflict(CONFLICT_OBJ_ATTRIBUTE_VALUE, "Value 'UIC' is not a valid numeric type for attribute rOb84aQKSyC"));
 
@@ -445,11 +459,21 @@ public class TrackedEntityInstanceWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
+        assertEquals(expected, PushController.failedReason.toString());
     }
 
     @Test
     @SneakyThrows
     public void shouldLogMultipleConflictsButNotUpdateMarkerAndThrowExceptionOnSyncFailure409Conflict() {
+        String expected = CONFLICT_OBJ_ATTRIBUTE + ": Invalid attribute rOb34aQ&$#F, " +
+                CONFLICT_OBJ_ATTRIBUTE_VALUE + ": Value 'Male' is not a valid option for attribute fBfqVUqF and option set P7lTQFwJ, " +
+                CONFLICT_OBJ_ORG_UNIT + ": Org unit null does not exist, " +
+                CONFLICT_OBJ_TEI_TYPE + ": Invalid trackedEntityType o0kaqrZa79Y@#&, " +
+                CONFLICT_OBJ_ATTRIBUTE_VALUE + ": Value 'UIC' is not a valid numeric type for attribute rOb84aQKSyC, " +
+                CONFLICT_OBJ_ATTRIBUTE + "Invalid attribute rOb34aQ&$#, " +
+                CONFLICT_OBJ_TEI_TYPE + "Missing required property trackedEntityType, " +
+                CONFLICT_OBJ_ORG_UNIT + "Org unit null does not exist, " ;
+
         String patient3 = "{\"trackedEntity\": \"%teUID\", " +
                 "\"trackedEntityInstance\": \"\", " +
                 "\"orgUnit\":\"orgUnitUID\"," +
