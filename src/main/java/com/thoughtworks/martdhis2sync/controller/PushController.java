@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.thoughtworks.martdhis2sync.model.LookupTable;
 import com.thoughtworks.martdhis2sync.model.MappingJson;
 import com.thoughtworks.martdhis2sync.service.EventService;
+import com.thoughtworks.martdhis2sync.service.LoggerService;
 import com.thoughtworks.martdhis2sync.service.MappingService;
 import com.thoughtworks.martdhis2sync.service.ProgramEnrollmentService;
 import com.thoughtworks.martdhis2sync.service.TEIService;
@@ -30,12 +31,16 @@ public class PushController {
     @Autowired
     private EventService eventService;
 
+    @Autowired
+    private LoggerService loggerService;
+
     public static boolean IS_DELTA_EXISTS = false;
 
     @PutMapping(value = "/pushData")
     public void pushData(@RequestParam String service, @RequestParam String user)
             throws Exception {
         IS_DELTA_EXISTS = false;
+        loggerService.addLog(service, user, "Comments");
 
         Map<String, Object> mapping = mappingService.getMapping(service);
 
