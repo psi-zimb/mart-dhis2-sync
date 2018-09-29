@@ -87,8 +87,10 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     private void processErrorResponse(List<ImportSummary> importSummaries) {
         for (ImportSummary importSummary : importSummaries) {
             if (isConflicted(importSummary)) {
-                importSummary.getConflicts().forEach(conflict ->
-                        logger.error(LOG_PREFIX + conflict.getObject() + ": " + conflict.getValue()));
+                importSummary.getConflicts().forEach(conflict -> {
+                    logger.error(LOG_PREFIX + conflict.getObject() + ": " + conflict.getValue());
+                    PushController.failedReason.append(String.format("%s: %s, ", conflict.getObject(), conflict.getValue()));
+                });
                 if (mapIterator.hasNext()) {
                     mapIterator.next();
                 }
@@ -110,8 +112,10 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
                 }
             } else if (isConflicted(importSummary)) {
                 isSyncFailure = true;
-                importSummary.getConflicts().forEach(
-                        conflict -> logger.error(LOG_PREFIX + conflict.getValue()));
+                importSummary.getConflicts().forEach(conflict -> {
+                    logger.error(LOG_PREFIX + conflict.getValue());
+                    PushController.failedReason.append(String.format("%s, ", conflict.getValue()));
+                });
                 if (mapIterator.hasNext()) {
                     mapIterator.next();
                 }

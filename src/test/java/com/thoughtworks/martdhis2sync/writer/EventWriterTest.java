@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.writer;
 
+import com.thoughtworks.martdhis2sync.controller.PushController;
 import com.thoughtworks.martdhis2sync.model.Conflict;
 import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
 import com.thoughtworks.martdhis2sync.model.EventTracker;
@@ -88,6 +89,7 @@ public class EventWriterTest {
         setValuesForMemberFields(writer, "dataSource", dataSource);
         setValuesForMemberFields(writer, "logger", logger);
         mockStatic(EventUtil.class);
+        PushController.failedReason = new StringBuilder();
     }
 
     @Test
@@ -229,6 +231,7 @@ public class EventWriterTest {
     @Test
     @SneakyThrows
     public void shouldLogDescriptionAndThrowExceptionWhenRequestBodyHasIncorrectProgramForNewEvents() {
+        String expected = "Event.program does not point to a valid program: rleFtLk_1, Event.program does not point to a valid program: rleFtLk_1, ";
         String event1 = getEventRequestBody("","we4FSLEGq", "incorrectProgram");
         String event2 = getEventRequestBody("","lejUhau", "incorrectProgram");
         List<String> list = Arrays.asList(event1, event2);
@@ -260,11 +263,13 @@ public class EventWriterTest {
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
         verify(logger, times(2)).error("EVENT SYNC: Event.program does not point to a valid program: rleFtLk_1");
+        assertEquals(expected, PushController.failedReason.toString());
     }
 
     @Test
     @SneakyThrows
     public void shouldUpdateReferencesForFirstEventAndLogDescriptionForSecondEventWhenFirstEventHasCorrectProgramAndSecondHasIncorrectProgram() {
+        String expected = "Event.program does not point to a valid program: incorrectProgram, ";
         String event1 = getEventRequestBody("","we4FsLEGq", "correctProgram");
         String event2 = getEventRequestBody("","lejUhQu", "incorrectProgram");
         List<String> list = Arrays.asList(event1, event2);
@@ -309,11 +314,13 @@ public class EventWriterTest {
         verify(preparedStatement, times(1)).setString(2, "we4FsLEGq");
         verify(preparedStatement, times(1)).setString(3, "correctProgram");
         verify(logger, times(1)).error("EVENT SYNC: Event.program does not point to a valid program: incorrectProgram");
+        assertEquals(expected, PushController.failedReason.toString());
     }
 
     @Test
     @SneakyThrows
     public void shouldUpdateReferencesForSecondEventAndLogDescriptionForFirstEventWhenFirstEventHasIncorrectProgramAndSecondHasCorrectProgram() {
+        String expected = "Event.program does not point to a valid program: incorrectProgram, ";
         String event1 = getEventRequestBody("","we4FsLEGq", "incorrectProgram");
         String event2 = getEventRequestBody("","lejUhQu", "correctProgram");
         List<String> list = Arrays.asList(event1, event2);
@@ -358,11 +365,13 @@ public class EventWriterTest {
         verify(preparedStatement, times(1)).setString(2, "lejUhQu");
         verify(preparedStatement, times(1)).setString(3, "correctProgram");
         verify(logger, times(1)).error("EVENT SYNC: Event.program does not point to a valid program: incorrectProgram");
+        assertEquals(expected, PushController.failedReason.toString());
     }
 
     @Test
     @SneakyThrows
     public void shouldLogConflictMessageAndDoNotUpdateTrackerWhenTheResponseHasErrorWithConfilct() {
+        String expected = "jfDdErl: value_not_true_only, ";
         String event1 = getEventRequestBody("","we4FsLEGq", "correctProgram");
         List<String> list = Collections.singletonList(event1);
         String requestBody = "{\"events\":[" + event1 + "]}";
@@ -392,6 +401,7 @@ public class EventWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(0)).getConnection();
         verify(logger, times(1)).error("EVENT SYNC: jfDdErl: value_not_true_only");
+        assertEquals(expected, PushController.failedReason.toString());
     }
 
     @Test
@@ -448,7 +458,7 @@ public class EventWriterTest {
         verify(preparedStatement, times(1)).setString(2, "wF4FsLEGq");
         verify(preparedStatement, times(1)).setString(3, "correctProgram");
         verify(logger, times(1)).error("EVENT SYNC: jfDdErl: value_not_true_only");
-
+        assertEquals("jfDdErl: value_not_true_only, ", PushController.failedReason.toString());
     }
 
     private String getEventRequestBody(String event, String tei, String program) {
