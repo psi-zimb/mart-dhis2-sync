@@ -13,4 +13,8 @@ public class LoggerService {
     public void addLog(String service, String user, String comments) {
         loggerDAO.addLog(service, user, comments);
     }
+
+    public void updateLog(String service, String status, String failedReason) {
+        loggerDAO.updateLog(service, status, failedReason);
+    }
 }
