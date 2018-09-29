@@ -154,7 +154,7 @@
             CREATE TABLE public.log(
                 log_id SERIAL PRIMARY KEY,
                 program text,
-                user text,
+                synced_by text,
                 comments text,
                 status text,
                 failure_reason text,
