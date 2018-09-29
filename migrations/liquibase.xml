@@ -143,4 +143,23 @@
             );
         </sql>
     </changeSet>
+    <changeSet id="290920181100" author="Mahitha">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="log" schemaName="public"/>
+            </not>
+        </preConditions>
+        <comment>Creating a Log table to track status of the each sync</comment>
+        <sql>
+            CREATE TABLE public.log(
+                log_id SERIAL PRIMARY KEY,
+                program text,
+                user text,
+                comments text,
+                status text,
+                failure_reason text,
+                date_created TIMESTAMP
+            );
+        </sql>
+    </changeSet>
 </databaseChangeLog>
