@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.writer;
 
+import com.thoughtworks.martdhis2sync.controller.PushController;
 import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
@@ -110,6 +111,7 @@ public class ProgramEnrollmentWriterTest {
         requestBody = getRequestBody(list);
 
         mockStatic(EnrollmentUtil.class);
+        PushController.failedReason = new StringBuilder();
     }
 
     private String getRequestBody(List<? extends Enrollment> list) {
@@ -246,6 +248,10 @@ public class ProgramEnrollmentWriterTest {
     @Test
     @SneakyThrows
     public void shouldLogConflictsAndThrowExceptionOnEnrollmentSyncFailureWith409Conflict() {
+        String expected = CONFLICT_OBJ_ENROLLMENT_INCIDENT_DATE + ": Incident Date can't be future date :Mon Oct 01 00:00:00 IST 2018, " +
+        CONFLICT_OBJ_ENROLLMENT_DATE + ": Enrollment Date can't be future date :Mon Sept 01 00:00:00 IST 2018, " +
+                CONFLICT_OBJ_ENROLLMENT_INCIDENT_DATE + ": Incident Date can't be future date :Mon Oct 01 00:00:00 IST 2018, " +
+                CONFLICT_OBJ_ENROLLMENT_DATE + ": Enrollment Date can't be future date :Mon Sept 01 00:00:00 IST 2018, ";
         List<Conflict> conflicts = Arrays.asList(
                 new Conflict(CONFLICT_OBJ_ENROLLMENT_INCIDENT_DATE, "Incident Date can't be future date :Mon Oct 01 00:00:00 IST 2018"),
                 new Conflict(CONFLICT_OBJ_ENROLLMENT_DATE, "Enrollment Date can't be future date :Mon Sept 01 00:00:00 IST 2018"));
@@ -270,11 +276,13 @@ public class ProgramEnrollmentWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
+        assertEquals(expected, PushController.failedReason.toString());
     }
 
     @Test
     @SneakyThrows
     public void shouldLogDescriptionAndThrowExceptionOnEnrollmentSyncFailureWith409Conflict() {
+        String expected = "TrackedEntityInstance TEI_UID_1 already has an active enrollment in program Ox4qJuR5jAI, ";
         ImportSummary importSummaryForPatientWithAlreadyActiveEnrollment = new ImportSummary("", IMPORT_SUMMARY_RESPONSE_ERROR,
                 new ImportCount(0, 0, 1, 0),
                 "TrackedEntityInstance TEI_UID_1 already has an active enrollment in program Ox4qJuR5jAI", new ArrayList<>(), null);
@@ -303,6 +311,7 @@ public class ProgramEnrollmentWriterTest {
         verify(dataSource, times(1)).getConnection();
         verify(preparedStatement, times(1)).executeUpdate();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
+        assertEquals(expected, PushController.failedReason.toString());
     }
 
     @Test
