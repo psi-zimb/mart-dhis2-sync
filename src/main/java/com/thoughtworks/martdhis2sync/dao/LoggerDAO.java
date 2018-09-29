@@ -25,7 +25,7 @@ public class LoggerDAO {
 
     public void addLog(String service, String user, String comments) {
         String sql = "INSERT INTO log (program, synced_by, comments, status, failure_reason, date_created) " +
-                "VALUES (:service, :user, :comments, 'pending', '', :dateCreated)";
+                "VALUES (:service, :user, :comments, 'pending', '', :dateCreated);";
         Date date = getDateFromString(GetUTCDateTimeAsString(), DATEFORMAT_WITH_24HR_TIME);
 
         MapSqlParameterSource parameterSource = new MapSqlParameterSource();
@@ -40,6 +40,24 @@ public class LoggerDAO {
             logger.info(LOG_PREFIX + "Successfully inserted into log table");
         } else {
             logger.error(LOG_PREFIX + "Failed to insert into log table");
+        }
+    }
+
+    public void updateLog(String service, String status, String failedReason) {
+        String sql = "UPDATE log SET status = :status, failure_reason = :failedReason " +
+                "WHERE program = :service AND status = 'pending';";
+
+        MapSqlParameterSource parameterSource = new MapSqlParameterSource();
+        parameterSource.addValue("status", status);
+        parameterSource.addValue("failedReason", failedReason);
+        parameterSource.addValue("service", service);
+
+        int update = parameterJdbcTemplate.update(sql, parameterSource);
+
+        if (update == 1) {
+            logger.info(LOG_PREFIX + String.format("Successfully updated status of the %s sync", service));
+        } else {
+            logger.error(LOG_PREFIX + String.format("Failed updated status of the %s sync", service));
         }
     }
 }

@@ -46,7 +46,9 @@ public class LoggerDAOTest {
     private String user = "Superman";
     private String comments = "comments";
     String sql = "INSERT INTO log (program, synced_by, comments, status, failure_reason, date_created) " +
-            "VALUES (:service, :user, :comments, 'pending', '', :dateCreated)";
+            "VALUES (:service, :user, :comments, 'pending', '', :dateCreated);";
+    String updateSql = "UPDATE log SET status = :status, failure_reason = :failedReason " +
+            "WHERE program = :service AND status = 'pending';";
     String dateStr = "2018-01-02 10:00:00";
 
     @Before
@@ -61,7 +63,7 @@ public class LoggerDAOTest {
     }
 
     @Test
-    public void shouldLogSuccessMessageOnLogUpdate() throws Exception {
+    public void shouldLogSuccessMessageOnLogInsert() {
         when(parameterJdbcTemplate.update(sql, mapSqlParameterSource)).thenReturn(1);
 
         loggerDAO.addLog(service, user, comments);
@@ -75,7 +77,7 @@ public class LoggerDAOTest {
     }
 
     @Test
-    public void shouldLogErrorMessageOnLogUpdateFail() throws Exception {
+    public void shouldLogErrorMessageOnLogInsertFail() {
         when(parameterJdbcTemplate.update(sql, mapSqlParameterSource)).thenReturn(0);
 
         loggerDAO.addLog(service, user, comments);
@@ -86,5 +88,31 @@ public class LoggerDAOTest {
         BatchUtil.getDateFromString(dateStr, BatchUtil.DATEFORMAT_WITH_24HR_TIME);
         verify(parameterJdbcTemplate, times(1)).update(sql, mapSqlParameterSource);
         verify(logger, times(1)).error("LoggerDAO: Failed to insert into log table");
+    }
+
+    @Test
+    public void shouldLogForSuccessMessageOnLogUpdate() {
+        String status = "success";
+        String failedReason = "";
+
+        when(parameterJdbcTemplate.update(updateSql, mapSqlParameterSource)).thenReturn(1);
+
+        loggerDAO.updateLog(service, status, failedReason);
+
+        verify(parameterJdbcTemplate, times(1)).update(updateSql, mapSqlParameterSource);
+        verify(logger, times(1)).info("LoggerDAO: Successfully updated status of the HT Service sync");
+    }
+
+    @Test
+    public void shouldLogForErrorMessageOnLogUpdateFail() {
+        String status = "failed";
+        String failedReason = "conflict";
+
+        when(parameterJdbcTemplate.update(updateSql, mapSqlParameterSource)).thenReturn(0);
+
+        loggerDAO.updateLog(service, status, failedReason);
+
+        verify(parameterJdbcTemplate, times(1)).update(updateSql, mapSqlParameterSource);
+        verify(logger, times(1)).error("LoggerDAO: Failed updated status of the HT Service sync");
     }
 }
