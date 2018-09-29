@@ -37,4 +37,16 @@ public class LoggerServiceTest {
 
         verify(loggerDAO, times(1)).addLog(service, user, comments);
     }
+
+    @Test
+    public void shouldCallLoggerDAOUpdate() {
+        String service = "HT Service";
+        String status = "failed";
+        String failedReason = "conflict";
+        doNothing().when(loggerDAO).updateLog(service, status, failedReason);
+
+        loggerService.updateLog(service, status, failedReason);
+
+        verify(loggerDAO, times(1)).updateLog(service, status, failedReason);
+    }
 }
