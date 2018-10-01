@@ -52,11 +52,11 @@ public class PushController {
             teiService.triggerJob(service, user, lookupTable.getInstance(), mappingJson.getInstance());
             programEnrollmentService.triggerJob(service, user, lookupTable.getEnrollments());
             eventService.triggerJob(service, user, lookupTable.getEvent(), mappingJson.getEvent(), lookupTable.getEnrollments());
-        } catch (SyncFailedException ignored) {
-        }
 
-        if(!IS_DELTA_EXISTS) {
-            throw new Exception("NO DATA TO SYNC");
+            if(!IS_DELTA_EXISTS) {
+                throw new Exception("NO DATA TO SYNC");
+            }
+        } catch (SyncFailedException ignored) {
         }
     }
 }
