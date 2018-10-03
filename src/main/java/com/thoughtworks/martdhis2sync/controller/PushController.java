@@ -59,10 +59,11 @@ public class PushController {
             teiService.triggerJob(service, user, lookupTable.getInstance(), mappingJson.getInstance());
             programEnrollmentService.triggerJob(service, user, lookupTable.getEnrollments());
             eventService.triggerJob(service, user, lookupTable.getEvent(), mappingJson.getEvent(), lookupTable.getEnrollments());
-            loggerService.updateLog(service, SUCCESS, "");
             if(!IS_DELTA_EXISTS) {
+                loggerService.updateLog(service, FAILED, "No data to sync");
                 throw new Exception("NO DATA TO SYNC");
             }
+            loggerService.updateLog(service, SUCCESS, "");
         } catch (SyncFailedException e) {
             loggerService.updateLog(service, FAILED, removeChars(failedReason, COMMA_AND_SPACE_SIZE));
         }
