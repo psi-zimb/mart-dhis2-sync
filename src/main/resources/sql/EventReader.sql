@@ -4,7 +4,7 @@ SELECT event.*,
   orgTracker.id as orgunit_id,
   event_tracker.event_id AS event_id
 FROM %s event
-INNER JOIN %s enrollment ON event."Patient_Identifier" = enrollment."Patient_Identifier"
+INNER JOIN %s enrollment ON event."Patient_Identifier" = enrollment."Patient_Identifier" AND event.enrollment_date = enrollment.enrollment_date
 INNER JOIN orgunit_tracker orgTracker ON event."OrgUnit" = orgTracker.orgunit
 INNER JOIN instance_tracker insTracker ON event."Patient_Identifier" = insTracker.patient_id
 INNER JOIN enrollment_tracker enrTracker ON insTracker.instance_id = enrTracker.instance_id
