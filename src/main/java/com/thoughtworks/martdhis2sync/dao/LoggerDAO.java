@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.GetUTCDateTimeAsString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getStringFromDate;
 
 @Component
 public class LoggerDAO {
@@ -26,13 +26,14 @@ public class LoggerDAO {
     public void addLog(String service, String user, String comments) {
         String sql = "INSERT INTO log (program, synced_by, comments, status, failure_reason, date_created) " +
                 "VALUES (:service, :user, :comments, 'pending', '', :dateCreated);";
-        Date date = getDateFromString(GetUTCDateTimeAsString(), DATEFORMAT_WITH_24HR_TIME);
+        String stringFromDate = getStringFromDate(new Date(), DATEFORMAT_WITH_24HR_TIME);
+        Date dateFromString = getDateFromString(stringFromDate, DATEFORMAT_WITH_24HR_TIME);
 
         MapSqlParameterSource parameterSource = new MapSqlParameterSource();
         parameterSource.addValue("service", service);
         parameterSource.addValue("user", user);
         parameterSource.addValue("comments", comments);
-        parameterSource.addValue("dateCreated", date);
+        parameterSource.addValue("dateCreated", dateFromString);
 
         int update = parameterJdbcTemplate.update(sql, parameterSource);
 
