@@ -58,7 +58,8 @@ public class LoggerDAOTest {
         setValuesForMemberFields(loggerDAO, "logger", logger);
         mockStatic(BatchUtil.class);
         whenNew(MapSqlParameterSource.class).withNoArguments().thenReturn(mapSqlParameterSource);
-        when(BatchUtil.GetUTCDateTimeAsString()).thenReturn(dateStr);
+        whenNew(Date.class).withNoArguments().thenReturn(date);
+        when(BatchUtil.getStringFromDate(date, DATEFORMAT_WITH_24HR_TIME)).thenReturn(dateStr);
         when(BatchUtil.getDateFromString(dateStr, DATEFORMAT_WITH_24HR_TIME)).thenReturn(date);
     }
 
@@ -69,7 +70,7 @@ public class LoggerDAOTest {
         loggerDAO.addLog(service, user, comments);
 
         verifyStatic();
-        BatchUtil.GetUTCDateTimeAsString();
+        BatchUtil.getStringFromDate(date, DATEFORMAT_WITH_24HR_TIME);
         verifyStatic();
         BatchUtil.getDateFromString(dateStr, BatchUtil.DATEFORMAT_WITH_24HR_TIME);
         verify(parameterJdbcTemplate, times(1)).update(sql, mapSqlParameterSource);
@@ -83,7 +84,7 @@ public class LoggerDAOTest {
         loggerDAO.addLog(service, user, comments);
 
         verifyStatic();
-        BatchUtil.GetUTCDateTimeAsString();
+        BatchUtil.getStringFromDate(date, DATEFORMAT_WITH_24HR_TIME);
         verifyStatic();
         BatchUtil.getDateFromString(dateStr, BatchUtil.DATEFORMAT_WITH_24HR_TIME);
         verify(parameterJdbcTemplate, times(1)).update(sql, mapSqlParameterSource);
