@@ -1,8 +1,13 @@
 package com.thoughtworks.martdhis2sync.service;
 
+import com.thoughtworks.martdhis2sync.controller.PushController;
 import com.thoughtworks.martdhis2sync.listener.JobCompletionNotificationListener;
 import com.thoughtworks.martdhis2sync.step.StepBuilderContract;
-import org.springframework.batch.core.*;
+import org.springframework.batch.core.BatchStatus;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
@@ -39,6 +44,11 @@ public class JobService {
                         .toJobParameters());
 
         if (jobExecution.getStatus() == BatchStatus.FAILED) {
+            StringBuilder exceptionMessage = new StringBuilder();
+            jobExecution.getAllFailureExceptions().forEach(exp -> {
+                exceptionMessage.append(exp.getMessage() + ", ");
+            });
+            PushController.failedReason = exceptionMessage;
             throw new SyncFailedException(jobName.toUpperCase() + " FAILED");
         }
     }
