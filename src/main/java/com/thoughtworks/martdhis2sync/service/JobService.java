@@ -44,11 +44,13 @@ public class JobService {
                         .toJobParameters());
 
         if (jobExecution.getStatus() == BatchStatus.FAILED) {
-            StringBuilder exceptionMessage = new StringBuilder();
             jobExecution.getAllFailureExceptions().forEach(exp -> {
-                exceptionMessage.append(exp.getMessage() + ", ");
+                String message = exp.getMessage();
+                if(message != null) {
+                    PushController.failedReason.append(message).append(", ");
+                };
             });
-            PushController.failedReason = exceptionMessage;
+
             throw new SyncFailedException(jobName.toUpperCase() + " FAILED");
         }
     }
