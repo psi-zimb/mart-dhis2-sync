@@ -267,7 +267,7 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
                     ps.setString(2, enrollment.getInstance_id());
                     ps.setString(3, enrollment.getProgram());
                     ps.setString(4, enrollment.getStatus());
-                    ps.setInt(5, enrollment.getProgram_unique_id());
+                    ps.setString(5, enrollment.getProgram_unique_id());
                     ps.setString(6, user);
                     ps.setTimestamp(7, Timestamp.valueOf(BatchUtil.GetUTCDateTimeAsString()));
                     updateCount += ps.executeUpdate();

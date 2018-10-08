@@ -40,7 +40,7 @@ public class ProgramEnrollmentProcessor implements ItemProcessor {
                 getFormattedDateString(getUnquotedString(tableRowJsonObject.get("incident_date").toString()),
                         DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME),
                 getUnquotedString(tableRowJsonObject.get("status").toString().toUpperCase()),
-                tableRowJsonObject.get("program_unique_id").getAsInt());
+                tableRowJsonObject.get("program_unique_id").toString());
     }
 
     private void updateLatestDateCreated(String dateCreated) {

@@ -18,5 +18,5 @@ public class Enrollment {
     private String program_start_date;
     private String incident_date;
     private String status;
-    private int program_unique_id;
+    private String program_unique_id;
 }
