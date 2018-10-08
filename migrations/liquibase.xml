@@ -5,6 +5,23 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
 
+    <changeSet id="120808102018" author="Pavan">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sqlCheck expectedResult="text">
+                    SELECT DATA_TYPE
+                    FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE TABLE_NAME = 'enrollment_tracker'
+                    AND COLUMN_NAME = 'program_unique_id'
+                </sqlCheck>
+            </not>
+        </preConditions>
+        <comment>Changing data type of program_unique_id of enrollment_tracker</comment>
+        <sql>
+            ALTER TABLE enrollment_tracker
+            ALTER COLUMN program_unique_id type text;
+        </sql>
+    </changeSet>
     <changeSet id="122412092018" author="Pratibha">
         <preConditions onFail="MARK_RAN">
             <not>
