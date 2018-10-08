@@ -103,9 +103,9 @@ public class ProgramEnrollmentWriterTest {
         setValuesForMemberFields(writer, "responseEntity", responseEntity);
 
         Enrollment enrollments1 = new Enrollment(EMPTY_STRING, "tm02QkL2wJP", "aHoRX5uGMLU",
-                "ORG_UNIT", "2018-09-14", "2018-09-14", "ACTIVE", 1 );
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "ACTIVE", "1");
         Enrollment enrollments2 = new Enrollment(EMPTY_STRING, "tm02QkL2wJP", "aHoRX5uGMLU",
-                "ORG_UNIT", "2018-09-14", "2018-09-14", "ACTIVE", 1 );
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "ACTIVE", "1");
 
         list = Arrays.asList(enrollments1, enrollments2);
         requestBody = getRequestBody(list);
@@ -319,9 +319,9 @@ public class ProgramEnrollmentWriterTest {
     public void shouldUpdateTrackerAndMarkerTablesOnSuccessfullySyncingOnlyCompletedOrCancelledEnrollments() {
 
         Enrollment enrollments1 = new Enrollment(referenceUIDs.get(0), "tm02QkL2wJP", "aHoRX5uGMLU",
-                "ORG_UNIT", "2018-09-14", "2018-09-14", "COMPLETED", 1 );
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "COMPLETED", "1");
         Enrollment enrollments2 = new Enrollment(referenceUIDs.get(1), "tm02QkL2wJP", "aHoRX5uGMLU",
-                "ORG_UNIT", "2018-09-14", "2018-09-14", "CANCELLED", 1 );
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "CANCELLED", "1");
 
         list = Arrays.asList(enrollments1, enrollments2);
         requestBody = getRequestBody(list);
