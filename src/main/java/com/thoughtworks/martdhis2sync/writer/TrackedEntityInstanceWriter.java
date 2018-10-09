@@ -89,7 +89,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
             if (isConflicted(importSummary)) {
                 importSummary.getConflicts().forEach(conflict -> {
                     logger.error(LOG_PREFIX + conflict.getObject() + ": " + conflict.getValue());
-                    PushController.failedReason.append(String.format("%s: %s, ", conflict.getObject(), conflict.getValue()));
+                    PushController.statusInfo.append(String.format("%s: %s, ", conflict.getObject(), conflict.getValue()));
                 });
                 if (mapIterator.hasNext()) {
                     mapIterator.next();
@@ -114,7 +114,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
                 isSyncFailure = true;
                 importSummary.getConflicts().forEach(conflict -> {
                     logger.error(LOG_PREFIX + conflict.getValue());
-                    PushController.failedReason.append(String.format("%s, ", conflict.getValue()));
+                    PushController.statusInfo.append(String.format("%s, ", conflict.getValue()));
                 });
                 if (mapIterator.hasNext()) {
                     mapIterator.next();

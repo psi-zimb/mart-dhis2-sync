@@ -47,7 +47,7 @@ public class JobService {
             jobExecution.getAllFailureExceptions().forEach(exp -> {
                 String message = exp.getMessage();
                 if(message != null) {
-                    PushController.failedReason.append(message).append(", ");
+                    PushController.statusInfo.append(message).append(", ");
                 };
             });
 
