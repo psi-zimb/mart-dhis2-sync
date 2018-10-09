@@ -60,7 +60,7 @@ public class PushController {
             eventService.triggerJob(requestBody.getService(), requestBody.getUser(),
                     lookupTable.getEvent(), mappingJson.getEvent(), lookupTable.getEnrollments());
             if (!IS_DELTA_EXISTS) {
-                loggerService.updateLog(requestBody.getService(), FAILED, "No data to sync");
+                loggerService.updateLog(requestBody.getService(), SUCCESS, "No delta data to sync");
                 throw new Exception("NO DATA TO SYNC");
             }
             loggerService.updateLog(requestBody.getService(), SUCCESS, "");
