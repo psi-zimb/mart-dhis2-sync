@@ -99,7 +99,7 @@ public class JobServiceTest {
         setValuesForMemberFields(jobService, "jobLauncher", jobLauncher);
         setValuesForMemberFields(jobService, "listener", listener);
         setValuesForMemberFields(jobService, "jobBuilderFactory", jobBuilderFactory);
-        PushController.failedReason = new StringBuilder();
+        PushController.statusInfo = new StringBuilder();
     }
 
     @Test
@@ -165,7 +165,7 @@ public class JobServiceTest {
     }
 
     @Test
-    public void shouldUpdateFailedReasonWhenExceptionIsThere() throws Exception {
+    public void shouldUpdateStatusInfoWhenExceptionIsThere() throws Exception {
         jobMocks();
         jobParametersMocks();
         String expMessage = "Failed to Initialize the Reader";
@@ -196,7 +196,7 @@ public class JobServiceTest {
             verify(execution, times(1)).getAllFailureExceptions();
             verify(throwable, times(1)).getMessage();
 
-            assertEquals(expMessage + ", ", PushController.failedReason.toString());
+            assertEquals(expMessage + ", ", PushController.statusInfo.toString());
         }
     }
 

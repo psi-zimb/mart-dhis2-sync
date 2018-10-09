@@ -45,9 +45,9 @@ public class LoggerDAOTest {
     private String service = "HT Service";
     private String user = "Superman";
     private String comments = "comments";
-    String sql = "INSERT INTO log (program, synced_by, comments, status, failure_reason, date_created) " +
+    String sql = "INSERT INTO log (program, synced_by, comments, status, status_info, date_created) " +
             "VALUES (:service, :user, :comments, 'pending', '', :dateCreated);";
-    String updateSql = "UPDATE log SET status = :status, failure_reason = :failedReason " +
+    String updateSql = "UPDATE log SET status = :status, status_info = :statusInfo " +
             "WHERE program = :service AND status = 'pending';";
     String dateStr = "2018-01-02 10:00:00";
 
@@ -94,11 +94,11 @@ public class LoggerDAOTest {
     @Test
     public void shouldLogForSuccessMessageOnLogUpdate() {
         String status = "success";
-        String failedReason = "";
+        String statusInfo = "";
 
         when(parameterJdbcTemplate.update(updateSql, mapSqlParameterSource)).thenReturn(1);
 
-        loggerDAO.updateLog(service, status, failedReason);
+        loggerDAO.updateLog(service, status, statusInfo);
 
         verify(parameterJdbcTemplate, times(1)).update(updateSql, mapSqlParameterSource);
         verify(logger, times(1)).info("LoggerDAO: Successfully updated status of the HT Service sync");
@@ -107,11 +107,11 @@ public class LoggerDAOTest {
     @Test
     public void shouldLogForErrorMessageOnLogUpdateFail() {
         String status = "failed";
-        String failedReason = "conflict";
+        String statusInfo = "conflict";
 
         when(parameterJdbcTemplate.update(updateSql, mapSqlParameterSource)).thenReturn(0);
 
-        loggerDAO.updateLog(service, status, failedReason);
+        loggerDAO.updateLog(service, status, statusInfo);
 
         verify(parameterJdbcTemplate, times(1)).update(updateSql, mapSqlParameterSource);
         verify(logger, times(1)).error("LoggerDAO: Failed updated status of the HT Service sync");

@@ -34,7 +34,7 @@ public class PushController {
     private LoggerService loggerService;
 
     public static boolean IS_DELTA_EXISTS = false;
-    public static StringBuilder failedReason = new StringBuilder();
+    public static StringBuilder statusInfo = new StringBuilder();
     private static final String SUCCESS = "success";
     private static final String FAILED = "failed";
     private static final int COMMA_AND_SPACE_SIZE = 2;
@@ -43,7 +43,7 @@ public class PushController {
     public void pushData(@RequestBody DHISSyncRequestBody requestBody)
             throws Exception {
         IS_DELTA_EXISTS = false;
-        failedReason = new StringBuilder();
+        statusInfo = new StringBuilder();
         loggerService.addLog(requestBody.getService(), requestBody.getUser(), requestBody.getComment());
 
         Map<String, Object> mapping = mappingService.getMapping(requestBody.getService());
@@ -65,7 +65,7 @@ public class PushController {
             }
             loggerService.updateLog(requestBody.getService(), SUCCESS, "");
         } catch (SyncFailedException e) {
-            loggerService.updateLog(requestBody.getService(), FAILED, removeChars(failedReason, COMMA_AND_SPACE_SIZE));
+            loggerService.updateLog(requestBody.getService(), FAILED, removeChars(statusInfo, COMMA_AND_SPACE_SIZE));
         }
     }
 }

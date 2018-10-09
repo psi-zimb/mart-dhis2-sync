@@ -42,11 +42,11 @@ public class LoggerServiceTest {
     public void shouldCallLoggerDAOUpdate() {
         String service = "HT Service";
         String status = "failed";
-        String failedReason = "conflict";
-        doNothing().when(loggerDAO).updateLog(service, status, failedReason);
+        String statusInfo = "conflict";
+        doNothing().when(loggerDAO).updateLog(service, status, statusInfo);
 
-        loggerService.updateLog(service, status, failedReason);
+        loggerService.updateLog(service, status, statusInfo);
 
-        verify(loggerDAO, times(1)).updateLog(service, status, failedReason);
+        verify(loggerDAO, times(1)).updateLog(service, status, statusInfo);
     }
 }

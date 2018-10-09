@@ -115,7 +115,7 @@ public class TrackedEntityInstanceWriterTest {
         list = Arrays.asList(patient1, patient2);
 
         requestBody = "{\"trackedEntityInstances\":[" + patient1 + "," + patient2 + "]}";
-        PushController.failedReason = new StringBuilder("");
+        PushController.statusInfo = new StringBuilder("");
 
         mockStatic(TEIUtil.class);
     }
@@ -281,7 +281,7 @@ public class TrackedEntityInstanceWriterTest {
         verify(preparedStatement, times(1)).executeUpdate();
         verify(markerUtil, times(0))
                 .updateMarkerEntry(anyString(), anyString(), anyString());
-        assertEquals("No org unit ID in tracked entity instance object, ", PushController.failedReason.toString());
+        assertEquals("No org unit ID in tracked entity instance object, ", PushController.statusInfo.toString());
     }
 
     @Test(expected = Exception.class)
@@ -325,7 +325,7 @@ public class TrackedEntityInstanceWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
-        assertEquals(expected, PushController.failedReason.toString());
+        assertEquals(expected, PushController.statusInfo.toString());
     }
 
     @Test
@@ -388,7 +388,7 @@ public class TrackedEntityInstanceWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
-        assertEquals(expected, PushController.failedReason.toString());
+        assertEquals(expected, PushController.statusInfo.toString());
     }
 
     @Test
@@ -423,7 +423,7 @@ public class TrackedEntityInstanceWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
-        assertEquals(expected, PushController.failedReason.toString());
+        assertEquals(expected, PushController.statusInfo.toString());
     }
 
     @Test
@@ -459,7 +459,7 @@ public class TrackedEntityInstanceWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
-        assertEquals(expected, PushController.failedReason.toString());
+        assertEquals(expected, PushController.statusInfo.toString());
     }
 
     @Test

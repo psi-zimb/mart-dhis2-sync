@@ -179,4 +179,13 @@
             );
         </sql>
     </changeSet>
+    <changeSet id="091020181724" author="Mahitha">
+        <preConditions onFail="MARK_RAN">
+                <columnExists columnName="failure_reason" tableName="log"/>
+        </preConditions>
+        <comment>Renaming failure_reason to status_info in log table</comment>
+        <sql>
+            ALTER TABLE log RENAME COLUMN failure_reason TO status_info;
+        </sql>
+    </changeSet>
 </databaseChangeLog>

@@ -111,7 +111,7 @@ public class ProgramEnrollmentWriterTest {
         requestBody = getRequestBody(list);
 
         mockStatic(EnrollmentUtil.class);
-        PushController.failedReason = new StringBuilder();
+        PushController.statusInfo = new StringBuilder();
     }
 
     private String getRequestBody(List<? extends Enrollment> list) {
@@ -276,7 +276,7 @@ public class ProgramEnrollmentWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
-        assertEquals(expected, PushController.failedReason.toString());
+        assertEquals(expected, PushController.statusInfo.toString());
     }
 
     @Test
@@ -311,7 +311,7 @@ public class ProgramEnrollmentWriterTest {
         verify(dataSource, times(1)).getConnection();
         verify(preparedStatement, times(1)).executeUpdate();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
-        assertEquals(expected, PushController.failedReason.toString());
+        assertEquals(expected, PushController.statusInfo.toString());
     }
 
     @Test
