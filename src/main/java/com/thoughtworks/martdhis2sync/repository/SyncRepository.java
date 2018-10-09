@@ -47,7 +47,7 @@ public class SyncRepository {
                     e.getStatusCode());
             logger.error(LOG_PREFIX + e);
         } catch (HttpServerErrorException e) {
-            updatedFailedReason(e.getMessage());
+            updatedStatusInfo(e.getMessage());
             logger.error(LOG_PREFIX + e);
             throw e;
         }
@@ -55,9 +55,9 @@ public class SyncRepository {
         return responseEntity;
     }
 
-    private void updatedFailedReason(String message) {
+    private void updatedStatusInfo(String message) {
         message = message == null ? "" : message;
-        PushController.failedReason.append(String.format("500 Internal Server Error %s, ", message));
+        PushController.statusInfo.append(String.format("500 Internal Server Error %s, ", message));
     }
 
     public ResponseEntity<OrgUnitResponse> getOrgUnits(String url) {

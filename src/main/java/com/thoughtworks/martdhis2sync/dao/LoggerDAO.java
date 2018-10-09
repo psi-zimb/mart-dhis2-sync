@@ -24,7 +24,7 @@ public class LoggerDAO {
     private static final String LOG_PREFIX = "LoggerDAO: ";
 
     public void addLog(String service, String user, String comments) {
-        String sql = "INSERT INTO log (program, synced_by, comments, status, failure_reason, date_created) " +
+        String sql = "INSERT INTO log (program, synced_by, comments, status, status_info, date_created) " +
                 "VALUES (:service, :user, :comments, 'pending', '', :dateCreated);";
         String stringFromDate = getStringFromDate(new Date(), DATEFORMAT_WITH_24HR_TIME);
         Date dateFromString = getDateFromString(stringFromDate, DATEFORMAT_WITH_24HR_TIME);
@@ -44,13 +44,13 @@ public class LoggerDAO {
         }
     }
 
-    public void updateLog(String service, String status, String failedReason) {
-        String sql = "UPDATE log SET status = :status, failure_reason = :failedReason " +
+    public void updateLog(String service, String status, String statusInfo) {
+        String sql = "UPDATE log SET status = :status, status_info = :statusInfo " +
                 "WHERE program = :service AND status = 'pending';";
 
         MapSqlParameterSource parameterSource = new MapSqlParameterSource();
         parameterSource.addValue("status", status);
-        parameterSource.addValue("failedReason", failedReason);
+        parameterSource.addValue("statusInfo", statusInfo);
         parameterSource.addValue("service", service);
 
         int update = parameterJdbcTemplate.update(sql, parameterSource);

@@ -14,7 +14,7 @@ public class LoggerService {
         loggerDAO.addLog(service, user, comments);
     }
 
-    public void updateLog(String service, String status, String failedReason) {
-        loggerDAO.updateLog(service, status, failedReason);
+    public void updateLog(String service, String status, String statusInfo) {
+        loggerDAO.updateLog(service, status, statusInfo);
     }
 }
