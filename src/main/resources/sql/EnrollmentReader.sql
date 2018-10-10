@@ -8,7 +8,7 @@ INNER JOIN orgunit_tracker orgTracker
 LEFT JOIN enrollment_tracker enrTracker
   ON mappedTable.program = enrTracker.program
     AND enrTracker.instance_id = insTracker.instance_id
-    AND enrTracker.program_unique_id = mappedTable.program_unique_id
+    AND enrTracker.program_unique_id = mappedTable.program_unique_id::text
   WHERE mappedTable.date_created > COALESCE((SELECT last_synced_date
                                     FROM marker
                                     WHERE category='enrollment' AND program_name='%s'), '-infinity');
