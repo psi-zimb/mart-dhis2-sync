@@ -45,6 +45,7 @@ public class SyncRepository {
             responseEntity = new ResponseEntity<>(
                     new Gson().fromJson(e.getResponseBodyAsString(), DHISSyncResponse.class),
                     e.getStatusCode());
+            PushController.statusInfo.append(String.format("%s, ", e.getStatusCode()));
             logger.error(LOG_PREFIX + e);
         } catch (HttpServerErrorException e) {
             updatedStatusInfo(e.getMessage());

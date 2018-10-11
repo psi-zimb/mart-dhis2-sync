@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -74,7 +75,9 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
             processResponse(responseEntity.getBody().getResponse().getImportSummaries());
         } else {
             isSyncFailure = true;
-            processErrorResponse(responseEntity.getBody().getResponse().getImportSummaries());
+            if (!StringUtils.isEmpty(responseEntity)) {
+                processErrorResponse(responseEntity.getBody().getResponse().getImportSummaries());
+            }
         }
         updateTracker();
         if (isSyncFailure) {
