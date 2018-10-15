@@ -75,7 +75,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
             processResponse(responseEntity.getBody().getResponse().getImportSummaries());
         } else {
             isSyncFailure = true;
-            if (!StringUtils.isEmpty(responseEntity)) {
+            if (!StringUtils.isEmpty(responseEntity) && !StringUtils.isEmpty(responseEntity.getBody())) {
                 processErrorResponse(responseEntity.getBody().getResponse().getImportSummaries());
             }
         }
