@@ -542,4 +542,23 @@ public class TrackedEntityInstanceWriterTest {
         verify(preparedStatement, times(1)).executeUpdate();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
     }
+
+    @Test
+    @SneakyThrows
+    public void shouldHandleUnauthorizedResponse() {
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.UNAUTHORIZED);
+        when(DHISSyncResponse.getResponse()).thenReturn(response);
+        when(responseEntity.getBody()).thenReturn(null);
+        when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
+
+        try {
+            writer.write(list);
+        } catch (Exception e) {
+            assertEquals(e.getClass(), Exception.class);
+        }
+
+        verify(syncRepository, times(1)).sendData(uri, requestBody);
+        verify(markerUtil, times(0))
+                .updateMarkerEntry(anyString(), anyString(), anyString());
+    }
 }
