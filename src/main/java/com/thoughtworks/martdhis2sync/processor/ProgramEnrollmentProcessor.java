@@ -34,7 +34,7 @@ public class ProgramEnrollmentProcessor implements ItemProcessor {
                 tableRowJsonObject.get("enrollment_id").toString(),
                 getUnquotedString(tableRowJsonObject.get("instance_id").toString()),
                 getUnquotedString(tableRowJsonObject.get("program").toString()),
-                getUnquotedString(tableRowJsonObject.get("OrgUnit").toString()),
+                getUnquotedString(tableRowJsonObject.get("orgunit_id").toString()),
                 getFormattedDateString(getUnquotedString(tableRowJsonObject.get("enrollment_date").toString()),
                         DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME),
                 getFormattedDateString(getUnquotedString(tableRowJsonObject.get("incident_date").toString()),
