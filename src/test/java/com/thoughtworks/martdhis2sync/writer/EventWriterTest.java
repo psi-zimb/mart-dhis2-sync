@@ -461,6 +461,54 @@ public class EventWriterTest {
         assertEquals("jfDdErl: value_not_true_only, ", PushController.statusInfo.toString());
     }
 
+    @Test
+    @SneakyThrows
+    public void shouldLogDescriptionAndThrowExceptionWhenRequestBodyHasIncorrectDataElement() {
+        String expected = "Data element gXNu7zJBTDN__ doesn't exist in the system. Please, provide correct data element, ";
+        String event1 = "{\"event\": \"\", " +
+                "\"trackedEntityInstance\": \"we4FSLEGq\", " +
+                "\"enrollment\": \"JsFDLAwe\", " +
+                "\"program\": \"incorrectProgram\", " +
+                "\"programStage\": \"LDLJuyNm\", " +
+                "\"orgUnit\":\"LoHtOW\", " +
+                "\"eventDate\": \"2018-09-24\", " +
+                "\"status\": \"ACTIVE\"" +
+                "\"dataValues\":[" +
+                "{\"dataElement\": \"gXNu7zJBTDN__\", \"value\": \"12\"}" +
+                "]}";
+        List<String> list = Collections.singletonList(event1);
+        String requestBody = "{\"events\":[" + event1 + "]}";
+        EventTracker eventTracker1 = new EventTracker("", "alRfLwm", "rleFtLk_1", "1", "ofdlLjfd");
+        List<EventTracker> eventTrackers = Collections.singletonList(eventTracker1);
+        List<ImportSummary> importSummaries = Collections.singletonList(
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_ERROR,
+                        new ImportCount(0, 0, 0, 0),
+                        "Data element gXNu7zJBTDN__ doesn't exist in the system. Please, provide correct data element",
+                        null,
+                        "")
+        );
+
+        when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
+        when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.CONFLICT);
+        when(DHISSyncResponse.getResponse()).thenReturn(response);
+        when(response.getImportSummaries()).thenReturn(importSummaries);
+
+        when(EventUtil.getEventTrackers()).thenReturn(eventTrackers);
+
+        try {
+            writer.write(list);
+        } catch (Exception e) {
+            assertEquals(Exception.class, e.getClass());
+        }
+
+        verify(syncRepository, times(1)).sendData(uri, requestBody);
+        verify(dataSource, times(0)).getConnection();
+        verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
+        verify(logger, times(1)).error("EVENT SYNC: Data element gXNu7zJBTDN__ doesn't exist in the system. Please, provide correct data element");
+        assertEquals(expected, PushController.statusInfo.toString());
+    }
+
     private String getEventRequestBody(String event, String tei, String program) {
         return "{\"event\": \""+ event +"\", " +
                 "\"trackedEntityInstance\": \""+ tei +"\", " +
