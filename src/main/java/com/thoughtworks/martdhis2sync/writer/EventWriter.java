@@ -127,7 +127,8 @@ public class EventWriter implements ItemWriter {
     }
 
     private boolean isIgnored(ImportSummary importSummary) {
-        return IMPORT_SUMMARY_RESPONSE_ERROR.equals(importSummary.getStatus()) && importSummary.getImportCount().getIgnored() > 0
+        return (IMPORT_SUMMARY_RESPONSE_ERROR.equals(importSummary.getStatus())
+                || IMPORT_SUMMARY_RESPONSE_WARNING.equals(importSummary.getStatus()))
                 && !StringUtils.isEmpty(importSummary.getDescription());
     }
 
@@ -140,7 +141,6 @@ public class EventWriter implements ItemWriter {
     private boolean isConflicted(ImportSummary importSummary) {
         return (IMPORT_SUMMARY_RESPONSE_ERROR.equals(importSummary.getStatus())
                 || IMPORT_SUMMARY_RESPONSE_WARNING.equals(importSummary.getStatus()))
-                && importSummary.getImportCount().getIgnored() > 0
                 && !importSummary.getConflicts().isEmpty();
     }
 
