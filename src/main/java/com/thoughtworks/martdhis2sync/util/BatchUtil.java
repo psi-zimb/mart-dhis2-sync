@@ -60,10 +60,4 @@ public class BatchUtil {
 
         return length > 0 ? value.deleteCharAt(length - 1).toString() : "";
     }
-
-    public static String removeChars(StringBuilder value, int noOfChars) {
-        int length = value.length();
-
-        return length >= noOfChars ? value.delete(length - noOfChars, length).toString() : value.toString();
-    }
 }

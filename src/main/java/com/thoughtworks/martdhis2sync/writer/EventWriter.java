@@ -5,6 +5,7 @@ import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
 import com.thoughtworks.martdhis2sync.model.EventTracker;
 import com.thoughtworks.martdhis2sync.model.ImportSummary;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
+import com.thoughtworks.martdhis2sync.service.LoggerService;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import org.slf4j.Logger;
@@ -57,6 +58,9 @@ public class EventWriter implements ItemWriter {
     @Autowired
     private DataSource dataSource;
 
+    @Autowired
+    private LoggerService loggerService;
+
     private Iterator<EventTracker> trackerIterator;
 
     private static List<EventTracker> newEventsToSave = new ArrayList<>();
@@ -107,11 +111,11 @@ public class EventWriter implements ItemWriter {
                     trackerIterator.next();
                 }
                 logger.error(LOG_PREFIX + importSummary.getDescription());
-                PushController.statusInfo.append(String.format("%s, ", importSummary.getDescription()));
+                loggerService.collateLogInfo(String.format("%s", importSummary.getDescription()));
             } else if (isConflicted(importSummary)) {
                 importSummary.getConflicts().forEach(conflict -> {
                     logger.error(LOG_PREFIX + conflict.getObject() + ": " + conflict.getValue());
-                    PushController.statusInfo.append(String.format("%s: %s, ", conflict.getObject(), conflict.getValue()));
+                    loggerService.collateLogInfo(String.format("%s: %s", conflict.getObject(), conflict.getValue()));
                 });
                 if(isImported(importSummary)) {
                     processResponse(Collections.singletonList(importSummary));

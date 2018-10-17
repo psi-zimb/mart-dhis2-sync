@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.SyncFailedException;
 import java.util.Map;
 
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeChars;
-
 @RestController
 public class PushController {
 
@@ -34,16 +32,14 @@ public class PushController {
     private LoggerService loggerService;
 
     public static boolean IS_DELTA_EXISTS = false;
-    public static StringBuilder statusInfo = new StringBuilder();
+
     private static final String SUCCESS = "success";
     private static final String FAILED = "failed";
-    private static final int COMMA_AND_SPACE_SIZE = 2;
 
     @PutMapping(value = "/pushData")
     public void pushData(@RequestBody DHISSyncRequestBody requestBody)
             throws Exception {
         IS_DELTA_EXISTS = false;
-        statusInfo = new StringBuilder();
         loggerService.addLog(requestBody.getService(), requestBody.getUser(), requestBody.getComment());
 
         Map<String, Object> mapping = mappingService.getMapping(requestBody.getService());
@@ -60,12 +56,12 @@ public class PushController {
             eventService.triggerJob(requestBody.getService(), requestBody.getUser(),
                     lookupTable.getEvent(), mappingJson.getEvent(), lookupTable.getEnrollments());
             if (!IS_DELTA_EXISTS) {
-                loggerService.updateLog(requestBody.getService(), SUCCESS, "No delta data to sync");
+                loggerService.updateLog(requestBody.getService(), SUCCESS);
                 throw new Exception("NO DATA TO SYNC");
             }
-            loggerService.updateLog(requestBody.getService(), SUCCESS, "");
+            loggerService.updateLog(requestBody.getService(), SUCCESS);
         } catch (SyncFailedException e) {
-            loggerService.updateLog(requestBody.getService(), FAILED, removeChars(statusInfo, COMMA_AND_SPACE_SIZE));
+            loggerService.updateLog(requestBody.getService(), FAILED);
         }
     }
 }
