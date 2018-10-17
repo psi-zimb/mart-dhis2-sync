@@ -1,12 +1,13 @@
 package com.thoughtworks.martdhis2sync.repository;
 
 import com.google.gson.Gson;
-import com.thoughtworks.martdhis2sync.controller.PushController;
 import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
 import com.thoughtworks.martdhis2sync.model.OrgUnitResponse;
+import com.thoughtworks.martdhis2sync.service.LoggerService;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Repository;
@@ -30,6 +31,9 @@ public class SyncRepository {
     @Value("${dhis2.password}")
     private String dhisPassword;
 
+    @Autowired
+    private LoggerService loggerService;
+
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static final String LOG_PREFIX = "SyncRepository: ";
@@ -45,7 +49,7 @@ public class SyncRepository {
             responseEntity = new ResponseEntity<>(
                     new Gson().fromJson(e.getResponseBodyAsString(), DHISSyncResponse.class),
                     e.getStatusCode());
-            PushController.statusInfo.append(String.format("%s %s, ", e.getStatusCode(), e.getStatusText()));
+            loggerService.collateLogInfo(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
             logger.error(LOG_PREFIX + e);
         } catch (HttpServerErrorException e) {
             updatedStatusInfo(e.getMessage());
@@ -58,7 +62,7 @@ public class SyncRepository {
 
     private void updatedStatusInfo(String message) {
         message = message == null ? "" : message;
-        PushController.statusInfo.append(String.format("500 Internal Server Error %s, ", message));
+        loggerService.collateLogInfo(String.format("500 Internal Server Error: %s", message));
     }
 
     public ResponseEntity<OrgUnitResponse> getOrgUnits(String url) {
