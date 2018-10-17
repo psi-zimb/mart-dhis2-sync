@@ -5,6 +5,7 @@ import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
 import com.thoughtworks.martdhis2sync.model.Enrollment;
 import com.thoughtworks.martdhis2sync.model.ImportSummary;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
+import com.thoughtworks.martdhis2sync.service.LoggerService;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
@@ -52,6 +53,9 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
 
     @Autowired
     private MarkerUtil markerUtil;
+
+    @Autowired
+    private LoggerService loggerService;
 
     private Iterator<Enrollment> mapIterator;
 
@@ -179,12 +183,12 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
             if (isIgnored(importSummary)) {
                 if (mapIterator.hasNext()) mapIterator.next();
                 logger.error(LOG_PREFIX + importSummary.getDescription());
-                PushController.statusInfo.append(String.format("%s, ", importSummary.getDescription()));
+                loggerService.collateLogInfo(String.format("%s", importSummary.getDescription()));
             } else if (isConflicted(importSummary)) {
                 if (mapIterator.hasNext()) mapIterator.next();
                 importSummary.getConflicts().forEach(conflict -> {
                     logger.error(LOG_PREFIX + conflict.getObject() + ": " + conflict.getValue());
-                    PushController.statusInfo.append(String.format("%s: %s, ", conflict.getObject(), conflict.getValue()));
+                    loggerService.collateLogInfo(String.format("%s: %s", conflict.getObject(), conflict.getValue()));
                 });
             } else {
                 processImportSummaries(Collections.singletonList(importSummary));

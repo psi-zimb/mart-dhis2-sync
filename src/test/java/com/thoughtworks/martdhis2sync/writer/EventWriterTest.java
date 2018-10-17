@@ -1,13 +1,8 @@
 package com.thoughtworks.martdhis2sync.writer;
 
-import com.thoughtworks.martdhis2sync.controller.PushController;
-import com.thoughtworks.martdhis2sync.model.Conflict;
-import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
-import com.thoughtworks.martdhis2sync.model.EventTracker;
-import com.thoughtworks.martdhis2sync.model.ImportCount;
-import com.thoughtworks.martdhis2sync.model.ImportSummary;
-import com.thoughtworks.martdhis2sync.model.Response;
+import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
+import com.thoughtworks.martdhis2sync.service.LoggerService;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import lombok.SneakyThrows;
@@ -32,15 +27,11 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
-import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_ERROR;
-import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_SUCCESS;
-import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_WARNING;
+import static com.thoughtworks.martdhis2sync.model.ImportSummary.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -76,6 +67,9 @@ public class EventWriterTest {
     @Mock
     private Logger logger;
 
+    @Mock
+    private LoggerService loggerService;
+
     private EventWriter writer;
 
     private String uri = "/api/events?strategy=CREATE_AND_UPDATE";
@@ -88,8 +82,8 @@ public class EventWriterTest {
         setValuesForMemberFields(writer, "markerUtil", markerUtil);
         setValuesForMemberFields(writer, "dataSource", dataSource);
         setValuesForMemberFields(writer, "logger", logger);
+        setValuesForMemberFields(writer, "loggerService", loggerService);
         mockStatic(EventUtil.class);
-        PushController.statusInfo = new StringBuilder();
     }
 
     @Test
@@ -132,8 +126,8 @@ public class EventWriterTest {
     @Test
     @SneakyThrows
     public void shouldNotUpdateTrackerTableAfterSendingOnlyUpdatedEnrollmentsInSync() {
-        String event1 = getEventRequestBody("lJKjgRi","we4FSLEGq", "LAfjIOne");
-        String event2 = getEventRequestBody("pwHIoSl","lejUhau", "LAfjIOne");
+        String event1 = getEventRequestBody("lJKjgRi", "we4FSLEGq", "LAfjIOne");
+        String event2 = getEventRequestBody("pwHIoSl", "lejUhau", "LAfjIOne");
         List<String> list = Arrays.asList(event1, event2);
         String requestBody = "{\"events\":[" + event1 + "," + event2 + "]}";
         EventTracker eventTracker1 = new EventTracker("qsYuLK", "alRfLwm", "rleFtLk", "1", "ofdlLjfd");
@@ -161,8 +155,8 @@ public class EventWriterTest {
     @Test
     @SneakyThrows
     public void shouldUpdateTrackerAndMarkerTablesOnSuccessfullySyncingOnlyNewEnrollments() {
-        String event1 = getEventRequestBody("","we4FSLEGq", "LAfjIOne");
-        String event2 = getEventRequestBody("","lejUhau", "LAfjIOne");
+        String event1 = getEventRequestBody("", "we4FSLEGq", "LAfjIOne");
+        String event2 = getEventRequestBody("", "lejUhau", "LAfjIOne");
         List<String> list = Arrays.asList(event1, event2);
         String requestBody = "{\"events\":[" + event1 + "," + event2 + "]}";
         EventTracker eventTracker1 = new EventTracker("", "alRfLwm", "rleFtLk", "1", "ofdlLjfd");
@@ -196,8 +190,8 @@ public class EventWriterTest {
     @Test
     @SneakyThrows
     public void shouldHandleSQLException() {
-        String event1 = getEventRequestBody("","we4FSLEGq", "LAfjIOne");
-        String event2 = getEventRequestBody("","lejUhau", "LAfjIOne");
+        String event1 = getEventRequestBody("", "we4FSLEGq", "LAfjIOne");
+        String event2 = getEventRequestBody("", "lejUhau", "LAfjIOne");
         List<String> list = Arrays.asList(event1, event2);
         String requestBody = "{\"events\":[" + event1 + "," + event2 + "]}";
         EventTracker eventTracker1 = new EventTracker("", "alRfLwm", "rleFtLk", "1", "ofdlLjfd");
@@ -231,9 +225,9 @@ public class EventWriterTest {
     @Test
     @SneakyThrows
     public void shouldLogDescriptionAndThrowExceptionWhenRequestBodyHasIncorrectProgramForNewEvents() {
-        String expected = "Event.program does not point to a valid program: rleFtLk_1, Event.program does not point to a valid program: rleFtLk_1, ";
-        String event1 = getEventRequestBody("","we4FSLEGq", "incorrectProgram");
-        String event2 = getEventRequestBody("","lejUhau", "incorrectProgram");
+        String expected = "Event.program does not point to a valid program: rleFtLk_1";
+        String event1 = getEventRequestBody("", "we4FSLEGq", "incorrectProgram");
+        String event2 = getEventRequestBody("", "lejUhau", "incorrectProgram");
         List<String> list = Arrays.asList(event1, event2);
         String requestBody = "{\"events\":[" + event1 + "," + event2 + "]}";
         EventTracker eventTracker1 = new EventTracker("", "alRfLwm", "rleFtLk_1", "1", "ofdlLjfd");
@@ -263,15 +257,15 @@ public class EventWriterTest {
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
         verify(logger, times(2)).error("EVENT SYNC: Event.program does not point to a valid program: rleFtLk_1");
-        assertEquals(expected, PushController.statusInfo.toString());
+        verify(loggerService, times(2)).collateLogInfo(expected);
     }
 
     @Test
     @SneakyThrows
     public void shouldUpdateReferencesForFirstEventAndLogDescriptionForSecondEventWhenFirstEventHasCorrectProgramAndSecondHasIncorrectProgram() {
-        String expected = "Event.program does not point to a valid program: incorrectProgram, ";
-        String event1 = getEventRequestBody("","we4FsLEGq", "correctProgram");
-        String event2 = getEventRequestBody("","lejUhQu", "incorrectProgram");
+        String expected = "Event.program does not point to a valid program: incorrectProgram";
+        String event1 = getEventRequestBody("", "we4FsLEGq", "correctProgram");
+        String event2 = getEventRequestBody("", "lejUhQu", "incorrectProgram");
         List<String> list = Arrays.asList(event1, event2);
         String requestBody = "{\"events\":[" + event1 + "," + event2 + "]}";
         EventTracker eventTracker1 = new EventTracker("", "we4FsLEGq", "correctProgram", "1", "ofdlLjfd");
@@ -314,15 +308,15 @@ public class EventWriterTest {
         verify(preparedStatement, times(1)).setString(2, "we4FsLEGq");
         verify(preparedStatement, times(1)).setString(3, "correctProgram");
         verify(logger, times(1)).error("EVENT SYNC: Event.program does not point to a valid program: incorrectProgram");
-        assertEquals(expected, PushController.statusInfo.toString());
+        verify(loggerService, times(1)).collateLogInfo(expected);
     }
 
     @Test
     @SneakyThrows
     public void shouldUpdateReferencesForSecondEventAndLogDescriptionForFirstEventWhenFirstEventHasIncorrectProgramAndSecondHasCorrectProgram() {
-        String expected = "Event.program does not point to a valid program: incorrectProgram, ";
-        String event1 = getEventRequestBody("","we4FsLEGq", "incorrectProgram");
-        String event2 = getEventRequestBody("","lejUhQu", "correctProgram");
+        String expected = "Event.program does not point to a valid program: incorrectProgram";
+        String event1 = getEventRequestBody("", "we4FsLEGq", "incorrectProgram");
+        String event2 = getEventRequestBody("", "lejUhQu", "correctProgram");
         List<String> list = Arrays.asList(event1, event2);
         String requestBody = "{\"events\":[" + event1 + "," + event2 + "]}";
         EventTracker eventTracker1 = new EventTracker("", "we4FsLEGq", "incorrectProgram", "1", "ofdlLjfd");
@@ -365,14 +359,14 @@ public class EventWriterTest {
         verify(preparedStatement, times(1)).setString(2, "lejUhQu");
         verify(preparedStatement, times(1)).setString(3, "correctProgram");
         verify(logger, times(1)).error("EVENT SYNC: Event.program does not point to a valid program: incorrectProgram");
-        assertEquals(expected, PushController.statusInfo.toString());
+        verify(loggerService, times(1)).collateLogInfo(expected);
     }
 
     @Test
     @SneakyThrows
     public void shouldLogConflictMessageAndDoNotUpdateTrackerWhenTheResponseHasErrorWithConfilct() {
-        String expected = "jfDdErl: value_not_true_only, ";
-        String event1 = getEventRequestBody("","we4FsLEGq", "correctProgram");
+        String expected = "jfDdErl: value_not_true_only";
+        String event1 = getEventRequestBody("", "we4FsLEGq", "correctProgram");
         List<String> list = Collections.singletonList(event1);
         String requestBody = "{\"events\":[" + event1 + "]}";
         EventTracker eventTracker1 = new EventTracker("", "we4FsLEGq", "correctProgram", "1", "ofdlLjfd");
@@ -381,7 +375,7 @@ public class EventWriterTest {
         List<ImportSummary> importSummaries = Collections.singletonList(
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_ERROR,
                         new ImportCount(0, 0, 1, 0), null, conflicts, null)
-                );
+        );
 
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
@@ -401,7 +395,7 @@ public class EventWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(0)).getConnection();
         verify(logger, times(1)).error("EVENT SYNC: jfDdErl: value_not_true_only");
-        assertEquals(expected, PushController.statusInfo.toString());
+        verify(loggerService, times(1)).collateLogInfo(expected);
     }
 
     @Test
@@ -427,7 +421,7 @@ public class EventWriterTest {
         List<ImportSummary> importSummaries = Collections.singletonList(
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_WARNING,
                         new ImportCount(1, 0, 1, 0), null, conflicts, "alEfNBui")
-                );
+        );
         String sqlQuery = "INSERT INTO public.event_tracker(" +
                 "event_id, instance_id, program, program_stage, event_unique_id, created_by, date_created)" +
                 "values (?, ?, ?, ?, ?, ?, ?)";
@@ -458,13 +452,13 @@ public class EventWriterTest {
         verify(preparedStatement, times(1)).setString(2, "wF4FsLEGq");
         verify(preparedStatement, times(1)).setString(3, "correctProgram");
         verify(logger, times(1)).error("EVENT SYNC: jfDdErl: value_not_true_only");
-        assertEquals("jfDdErl: value_not_true_only, ", PushController.statusInfo.toString());
+        verify(loggerService, times(1)).collateLogInfo("jfDdErl: value_not_true_only");
     }
 
     @Test
     @SneakyThrows
     public void shouldLogDescriptionAndThrowExceptionWhenRequestBodyHasIncorrectDataElement() {
-        String expected = "Data element gXNu7zJBTDN__ doesn't exist in the system. Please, provide correct data element, ";
+        String expected = "Data element gXNu7zJBTDN__ doesn't exist in the system. Please, provide correct data element";
         String event1 = "{\"event\": \"\", " +
                 "\"trackedEntityInstance\": \"we4FSLEGq\", " +
                 "\"enrollment\": \"JsFDLAwe\", " +
@@ -506,14 +500,14 @@ public class EventWriterTest {
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
         verify(logger, times(1)).error("EVENT SYNC: Data element gXNu7zJBTDN__ doesn't exist in the system. Please, provide correct data element");
-        assertEquals(expected, PushController.statusInfo.toString());
+        verify(loggerService, times(1)).collateLogInfo(expected);
     }
 
     private String getEventRequestBody(String event, String tei, String program) {
-        return "{\"event\": \""+ event +"\", " +
-                "\"trackedEntityInstance\": \""+ tei +"\", " +
+        return "{\"event\": \"" + event + "\", " +
+                "\"trackedEntityInstance\": \"" + tei + "\", " +
                 "\"enrollment\": \"JsFDLAwe\", " +
-                "\"program\": \""+ program +"\", " +
+                "\"program\": \"" + program + "\", " +
                 "\"programStage\": \"LDLJuyNm\", " +
                 "\"orgUnit\":\"LoHtOW\", " +
                 "\"eventDate\": \"2018-09-24\", " +

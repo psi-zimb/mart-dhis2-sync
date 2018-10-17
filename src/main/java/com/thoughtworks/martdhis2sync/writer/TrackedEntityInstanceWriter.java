@@ -4,6 +4,7 @@ import com.thoughtworks.martdhis2sync.controller.PushController;
 import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
 import com.thoughtworks.martdhis2sync.model.ImportSummary;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
+import com.thoughtworks.martdhis2sync.service.LoggerService;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
@@ -54,6 +55,9 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     @Autowired
     private MarkerUtil markerUtil;
 
+    @Autowired
+    private LoggerService loggerService;
+
     @Value("#{jobParameters['service']}")
     private String programName;
 
@@ -92,7 +96,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
             if (isConflicted(importSummary)) {
                 importSummary.getConflicts().forEach(conflict -> {
                     logger.error(LOG_PREFIX + conflict.getObject() + ": " + conflict.getValue());
-                    PushController.statusInfo.append(String.format("%s: %s, ", conflict.getObject(), conflict.getValue()));
+                    loggerService.collateLogInfo(String.format("%s: %s", conflict.getObject(), conflict.getValue()));
                 });
                 if (mapIterator.hasNext()) {
                     mapIterator.next();
@@ -117,7 +121,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
                 isSyncFailure = true;
                 importSummary.getConflicts().forEach(conflict -> {
                     logger.error(LOG_PREFIX + conflict.getValue());
-                    PushController.statusInfo.append(String.format("%s, ", conflict.getValue()));
+                    loggerService.collateLogInfo(String.format("%s", conflict.getValue()));
                 });
                 if (mapIterator.hasNext()) {
                     mapIterator.next();

@@ -1,6 +1,5 @@
 package com.thoughtworks.martdhis2sync.service;
 
-import com.thoughtworks.martdhis2sync.controller.PushController;
 import com.thoughtworks.martdhis2sync.listener.JobCompletionNotificationListener;
 import com.thoughtworks.martdhis2sync.step.StepBuilderContract;
 import org.springframework.batch.core.BatchStatus;
@@ -32,6 +31,9 @@ public class JobService {
     @Autowired
     private JobBuilderFactory jobBuilderFactory;
 
+    @Autowired
+    private LoggerService loggerService;
+
     public void triggerJob(String programName, String user, String lookupTable, String jobName, StepBuilderContract step, Object mappingObj)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
             JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
@@ -47,8 +49,8 @@ public class JobService {
             jobExecution.getAllFailureExceptions().forEach(exp -> {
                 String message = exp.getMessage();
                 if(message != null) {
-                    PushController.statusInfo.append(message).append(", ");
-                };
+                    loggerService.collateLogInfo(message);
+                }
             });
 
             throw new SyncFailedException(jobName.toUpperCase() + " FAILED");

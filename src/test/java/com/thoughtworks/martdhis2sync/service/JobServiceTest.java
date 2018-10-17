@@ -85,6 +85,9 @@ public class JobServiceTest {
     @Mock
     private Throwable throwable;
 
+    @Mock
+    private LoggerService loggerService;
+
     private JobService jobService;
 
     private String lookUpTable = "patient_identifier";
@@ -99,7 +102,7 @@ public class JobServiceTest {
         setValuesForMemberFields(jobService, "jobLauncher", jobLauncher);
         setValuesForMemberFields(jobService, "listener", listener);
         setValuesForMemberFields(jobService, "jobBuilderFactory", jobBuilderFactory);
-        PushController.statusInfo = new StringBuilder();
+        setValuesForMemberFields(jobService, "loggerService", loggerService);
     }
 
     @Test
@@ -196,7 +199,7 @@ public class JobServiceTest {
             verify(execution, times(1)).getAllFailureExceptions();
             verify(throwable, times(1)).getMessage();
 
-            assertEquals(expMessage + ", ", PushController.statusInfo.toString());
+            verify(loggerService, times(1)).collateLogInfo(expMessage);
         }
     }
 
