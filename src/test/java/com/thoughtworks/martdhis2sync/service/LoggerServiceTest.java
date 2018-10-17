@@ -8,8 +8,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import static com.thoughtworks.martdhis2sync.service.LoggerService.removeChars;
-import static org.junit.Assert.assertEquals;
+import static com.thoughtworks.martdhis2sync.service.LoggerService.CONTACT_ADMIN;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
@@ -46,24 +45,9 @@ public class LoggerServiceTest {
         String status = "failed";
         String statusInfo = "conflict";
 
-        loggerService.collateLogInfo(statusInfo);
+        loggerService.collateLogMessage(statusInfo);
         loggerService.updateLog(service, status);
 
-        verify(loggerDAO, times(1)).updateLog(service, status, statusInfo);
-    }
-
-    @Test
-    public void shouldReturnEmptyStringWhenGivenStringHasLessCharsEqualNoOfRemoveChars() {
-        assertEquals("", removeChars(new StringBuilder("ab"), 2));
-    }
-
-    @Test
-    public void shouldReturnSameStringWhenGivenStringHasLessCharsThanNoOfRemoveChars() {
-        assertEquals("a", removeChars(new StringBuilder("a"), 2));
-    }
-
-    @Test
-    public void shouldRemoveNoOfGivenCharsForTheGivenString() {
-        assertEquals("someVal", removeChars(new StringBuilder("someValue"), 2));
+        verify(loggerDAO, times(1)).updateLog(service, status, statusInfo + ", " + CONTACT_ADMIN);
     }
 }

@@ -49,7 +49,7 @@ public class JobService {
             jobExecution.getAllFailureExceptions().forEach(exp -> {
                 String message = exp.getMessage();
                 if(message != null) {
-                    loggerService.collateLogInfo(message);
+                    loggerService.collateLogMessage(message);
                 }
             });
 

@@ -285,7 +285,7 @@ public class TrackedEntityInstanceWriterTest {
         verify(preparedStatement, times(1)).executeUpdate();
         verify(markerUtil, times(0))
                 .updateMarkerEntry(anyString(), anyString(), anyString());
-        verify(loggerService, times(1)).collateLogInfo(conflictValue);
+        verify(loggerService, times(1)).collateLogMessage(conflictValue);
     }
 
     @Test(expected = Exception.class)
@@ -328,7 +328,7 @@ public class TrackedEntityInstanceWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
-        verify(loggerService, times(2)).collateLogInfo(expected);
+        verify(loggerService, times(2)).collateLogMessage(expected);
     }
 
     @Test
@@ -390,7 +390,7 @@ public class TrackedEntityInstanceWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
-        verify(loggerService, times(2)).collateLogInfo(expected);
+        verify(loggerService, times(2)).collateLogMessage(expected);
     }
 
     @Test
@@ -424,7 +424,7 @@ public class TrackedEntityInstanceWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
-        verify(loggerService, times(2)).collateLogInfo(expected);
+        verify(loggerService, times(2)).collateLogMessage(expected);
     }
 
     @Test
@@ -459,7 +459,7 @@ public class TrackedEntityInstanceWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
-        verify(loggerService, times(2)).collateLogInfo(expected);
+        verify(loggerService, times(2)).collateLogMessage(expected);
     }
 
     @Test
@@ -532,7 +532,7 @@ public class TrackedEntityInstanceWriterTest {
         verify(dataSource, times(1)).getConnection();
         verify(preparedStatement, times(1)).executeUpdate();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
-        verify(loggerService, times(8)).collateLogInfo(anyString());
+        verify(loggerService, times(8)).collateLogMessage(anyString());
     }
 
     @Test
