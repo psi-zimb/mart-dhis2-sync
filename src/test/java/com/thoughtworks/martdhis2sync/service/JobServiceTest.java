@@ -1,6 +1,5 @@
 package com.thoughtworks.martdhis2sync.service;
 
-import com.thoughtworks.martdhis2sync.controller.PushController;
 import com.thoughtworks.martdhis2sync.listener.JobCompletionNotificationListener;
 import com.thoughtworks.martdhis2sync.step.TrackedEntityInstanceStep;
 import org.junit.Before;
@@ -199,7 +198,7 @@ public class JobServiceTest {
             verify(execution, times(1)).getAllFailureExceptions();
             verify(throwable, times(1)).getMessage();
 
-            verify(loggerService, times(1)).collateLogInfo(expMessage);
+            verify(loggerService, times(1)).collateLogMessage(expMessage);
         }
     }
 
