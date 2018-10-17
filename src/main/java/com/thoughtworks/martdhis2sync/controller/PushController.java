@@ -13,6 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.SyncFailedException;
 import java.util.Map;
 
+import static com.thoughtworks.martdhis2sync.service.LoggerService.FAILED;
+import static com.thoughtworks.martdhis2sync.service.LoggerService.NO_DELTA_DATA;
+import static com.thoughtworks.martdhis2sync.service.LoggerService.SUCCESS;
+
+
 @RestController
 public class PushController {
 
@@ -32,9 +37,6 @@ public class PushController {
     private LoggerService loggerService;
 
     public static boolean IS_DELTA_EXISTS = false;
-
-    private static final String SUCCESS = "success";
-    private static final String FAILED = "failed";
 
     @PutMapping(value = "/pushData")
     public void pushData(@RequestBody DHISSyncRequestBody requestBody)
@@ -56,6 +58,7 @@ public class PushController {
             eventService.triggerJob(requestBody.getService(), requestBody.getUser(),
                     lookupTable.getEvent(), mappingJson.getEvent(), lookupTable.getEnrollments());
             if (!IS_DELTA_EXISTS) {
+                loggerService.collateLogMessage(NO_DELTA_DATA);
                 loggerService.updateLog(requestBody.getService(), SUCCESS);
                 throw new Exception("NO DATA TO SYNC");
             }

@@ -4,31 +4,38 @@ import com.thoughtworks.martdhis2sync.dao.LoggerDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 @Component
 public class LoggerService {
 
     @Autowired
     private LoggerDAO loggerDAO;
 
-    private static StringBuilder statusInfo = new StringBuilder();
+    public static final String CONTACT_ADMIN = "Please contact Admin team.";
 
-    private static final int COMMA_AND_SPACE_SIZE = 2;
+    public static final String NO_DELTA_DATA = "No delta data to sync.";
+
+    public static final String SUCCESS = "success";
+
+    public static final String FAILED = "failed";
+
+    private static final Set<String> logMessage = new LinkedHashSet<>();
 
     public void addLog(String service, String user, String comments) {
         loggerDAO.addLog(service, user, comments);
     }
 
     public void updateLog(String service, String status) {
-        loggerDAO.updateLog(service, status, removeChars(statusInfo, COMMA_AND_SPACE_SIZE));
+        if (FAILED.equalsIgnoreCase(status)) {
+            logMessage.add(CONTACT_ADMIN);
+        }
+        String message = logMessage.toString();
+        loggerDAO.updateLog(service, status, message.substring(1, message.length() - 1));
     }
 
-    public void collateLogInfo(String info) {
-        statusInfo.append(info).append(", ");
-    }
-
-    public static String removeChars(StringBuilder value, int noOfChars) {
-        int length = value.length();
-
-        return length >= noOfChars ? value.delete(length - noOfChars, length).toString() : value.toString();
+    public void collateLogMessage(String message) {
+        logMessage.add(message);
     }
 }

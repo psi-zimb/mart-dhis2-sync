@@ -183,12 +183,12 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
             if (isIgnored(importSummary)) {
                 if (mapIterator.hasNext()) mapIterator.next();
                 logger.error(LOG_PREFIX + importSummary.getDescription());
-                loggerService.collateLogInfo(String.format("%s", importSummary.getDescription()));
+                loggerService.collateLogMessage(String.format("%s", importSummary.getDescription()));
             } else if (isConflicted(importSummary)) {
                 if (mapIterator.hasNext()) mapIterator.next();
                 importSummary.getConflicts().forEach(conflict -> {
                     logger.error(LOG_PREFIX + conflict.getObject() + ": " + conflict.getValue());
-                    loggerService.collateLogInfo(String.format("%s: %s", conflict.getObject(), conflict.getValue()));
+                    loggerService.collateLogMessage(String.format("%s: %s", conflict.getObject(), conflict.getValue()));
                 });
             } else {
                 processImportSummaries(Collections.singletonList(importSummary));

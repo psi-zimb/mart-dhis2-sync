@@ -49,20 +49,15 @@ public class SyncRepository {
             responseEntity = new ResponseEntity<>(
                     new Gson().fromJson(e.getResponseBodyAsString(), DHISSyncResponse.class),
                     e.getStatusCode());
-            loggerService.collateLogInfo(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
+            loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
             logger.error(LOG_PREFIX + e);
         } catch (HttpServerErrorException e) {
-            updatedStatusInfo(e.getMessage());
+            loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
             logger.error(LOG_PREFIX + e);
             throw e;
         }
         System.out.println("\nRES: " + responseEntity);
         return responseEntity;
-    }
-
-    private void updatedStatusInfo(String message) {
-        message = message == null ? "" : message;
-        loggerService.collateLogInfo(String.format("500 Internal Server Error: %s", message));
     }
 
     public ResponseEntity<OrgUnitResponse> getOrgUnits(String url) {

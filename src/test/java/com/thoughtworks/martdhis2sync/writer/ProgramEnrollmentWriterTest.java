@@ -275,7 +275,7 @@ public class ProgramEnrollmentWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
-        verify(loggerService, times(4)).collateLogInfo(anyString());
+        verify(loggerService, times(4)).collateLogMessage(anyString());
     }
 
     @Test
@@ -310,7 +310,7 @@ public class ProgramEnrollmentWriterTest {
         verify(dataSource, times(1)).getConnection();
         verify(preparedStatement, times(1)).executeUpdate();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
-        verify(loggerService, times(1)).collateLogInfo(expected);
+        verify(loggerService, times(1)).collateLogMessage(expected);
     }
 
     @Test

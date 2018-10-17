@@ -257,7 +257,7 @@ public class EventWriterTest {
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
         verify(logger, times(2)).error("EVENT SYNC: Event.program does not point to a valid program: rleFtLk_1");
-        verify(loggerService, times(2)).collateLogInfo(expected);
+        verify(loggerService, times(2)).collateLogMessage(expected);
     }
 
     @Test
@@ -308,7 +308,7 @@ public class EventWriterTest {
         verify(preparedStatement, times(1)).setString(2, "we4FsLEGq");
         verify(preparedStatement, times(1)).setString(3, "correctProgram");
         verify(logger, times(1)).error("EVENT SYNC: Event.program does not point to a valid program: incorrectProgram");
-        verify(loggerService, times(1)).collateLogInfo(expected);
+        verify(loggerService, times(1)).collateLogMessage(expected);
     }
 
     @Test
@@ -359,7 +359,7 @@ public class EventWriterTest {
         verify(preparedStatement, times(1)).setString(2, "lejUhQu");
         verify(preparedStatement, times(1)).setString(3, "correctProgram");
         verify(logger, times(1)).error("EVENT SYNC: Event.program does not point to a valid program: incorrectProgram");
-        verify(loggerService, times(1)).collateLogInfo(expected);
+        verify(loggerService, times(1)).collateLogMessage(expected);
     }
 
     @Test
@@ -395,7 +395,7 @@ public class EventWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(0)).getConnection();
         verify(logger, times(1)).error("EVENT SYNC: jfDdErl: value_not_true_only");
-        verify(loggerService, times(1)).collateLogInfo(expected);
+        verify(loggerService, times(1)).collateLogMessage(expected);
     }
 
     @Test
@@ -452,7 +452,7 @@ public class EventWriterTest {
         verify(preparedStatement, times(1)).setString(2, "wF4FsLEGq");
         verify(preparedStatement, times(1)).setString(3, "correctProgram");
         verify(logger, times(1)).error("EVENT SYNC: jfDdErl: value_not_true_only");
-        verify(loggerService, times(1)).collateLogInfo("jfDdErl: value_not_true_only");
+        verify(loggerService, times(1)).collateLogMessage("jfDdErl: value_not_true_only");
     }
 
     @Test
@@ -500,7 +500,7 @@ public class EventWriterTest {
         verify(dataSource, times(0)).getConnection();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
         verify(logger, times(1)).error("EVENT SYNC: Data element gXNu7zJBTDN__ doesn't exist in the system. Please, provide correct data element");
-        verify(loggerService, times(1)).collateLogInfo(expected);
+        verify(loggerService, times(1)).collateLogMessage(expected);
     }
 
     private String getEventRequestBody(String event, String tei, String program) {

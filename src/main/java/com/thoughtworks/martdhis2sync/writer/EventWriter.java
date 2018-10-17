@@ -111,11 +111,11 @@ public class EventWriter implements ItemWriter {
                     trackerIterator.next();
                 }
                 logger.error(LOG_PREFIX + importSummary.getDescription());
-                loggerService.collateLogInfo(String.format("%s", importSummary.getDescription()));
+                loggerService.collateLogMessage(String.format("%s", importSummary.getDescription()));
             } else if (isConflicted(importSummary)) {
                 importSummary.getConflicts().forEach(conflict -> {
                     logger.error(LOG_PREFIX + conflict.getObject() + ": " + conflict.getValue());
-                    loggerService.collateLogInfo(String.format("%s: %s", conflict.getObject(), conflict.getValue()));
+                    loggerService.collateLogMessage(String.format("%s: %s", conflict.getObject(), conflict.getValue()));
                 });
                 if(isImported(importSummary)) {
                     processResponse(Collections.singletonList(importSummary));
