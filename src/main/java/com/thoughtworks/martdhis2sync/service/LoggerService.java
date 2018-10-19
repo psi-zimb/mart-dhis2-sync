@@ -24,6 +24,7 @@ public class LoggerService {
     private static final Set<String> logMessage = new LinkedHashSet<>();
 
     public void addLog(String service, String user, String comments) {
+        logMessage.clear();
         loggerDAO.addLog(service, user, comments);
     }
 
