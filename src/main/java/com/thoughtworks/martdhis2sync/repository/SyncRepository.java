@@ -9,7 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -34,6 +38,9 @@ public class SyncRepository {
     @Autowired
     private LoggerService loggerService;
 
+    @Autowired
+    private RestTemplate restTemplate;
+
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static final String LOG_PREFIX = "SyncRepository: ";
@@ -42,7 +49,7 @@ public class SyncRepository {
         ResponseEntity<DHISSyncResponse> responseEntity;
         System.out.println("\nREQ: " + body);
         try {
-            responseEntity = new RestTemplate()
+            responseEntity = restTemplate
                     .exchange(dhis2Url + uri, HttpMethod.POST, new HttpEntity<>(body, getHttpHeaders()), DHISSyncResponse.class);
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
         } catch (HttpClientErrorException e) {
@@ -63,7 +70,7 @@ public class SyncRepository {
     public ResponseEntity<OrgUnitResponse> getOrgUnits(String url) {
         ResponseEntity<OrgUnitResponse> responseEntity = null;
         try {
-            responseEntity = new RestTemplate()
+            responseEntity = restTemplate
                     .exchange((url.isEmpty() ? dhis2Url + URI_ORG_UNIT : url), HttpMethod.GET,
                             new HttpEntity<>(getHttpHeaders()), OrgUnitResponse.class);
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
