@@ -5,7 +5,6 @@ import com.thoughtworks.martdhis2sync.model.ImportSummary;
 import com.thoughtworks.martdhis2sync.model.OrgUnitResponse;
 import com.thoughtworks.martdhis2sync.model.Response;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
