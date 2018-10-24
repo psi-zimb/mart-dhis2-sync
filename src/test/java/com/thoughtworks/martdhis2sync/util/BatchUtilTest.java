@@ -11,17 +11,26 @@ import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITHOUT_TIME;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.convertResourceOutputToString;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getFormattedDateString;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.hasValue;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeLastChar;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@PrepareForTest({IOUtils.class, BatchUtil.class})
+@PrepareForTest({IOUtils.class})
 @RunWith(PowerMockRunner.class)
 public class BatchUtilTest {
 
@@ -57,11 +66,8 @@ public class BatchUtilTest {
     @Test
     public void shouldReturnMinDateValueWhenParseThrowsException() throws Exception {
         String expected = "Sun Dec 02 22:17:04 IST 292269055";
-        SimpleDateFormat simpleDateFormat = mock(SimpleDateFormat.class);
-        whenNew(SimpleDateFormat.class).withArguments("yyyy-MM-dd kk:mm:ss").thenReturn(simpleDateFormat);
-        when(simpleDateFormat.parse(null)).thenThrow(ParseException.class);
 
-        Date actual = getDateFromString(null, DATEFORMAT_WITH_24HR_TIME);
+        Date actual = getDateFromString("some", DATEFORMAT_WITH_24HR_TIME);
 
         assertEquals(expected, actual.toString());
     }
@@ -123,5 +129,10 @@ public class BatchUtilTest {
     @Test
     public void shouldRemoveLastCharForTheGivenString() {
         assertEquals("someValu", removeLastChar(new StringBuilder("someValue")));
+    }
+
+    @Test
+    public void shouldGetUnquotedString() {
+        assertEquals("someValue", getUnquotedString("\"someValue\""));
     }
 }
