@@ -162,6 +162,23 @@ public class SyncRepositoryTest {
         assertEquals(orgUnitResponse, orgUnits);
     }
 
+    // Not checking the params with the exact values because of the new keyword in params list. Added just for the sake of coverage
+    @Test
+    public void shouldTakeDefaultUrlWhenTheGivenUriIsEmpty() {
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
+                .thenReturn(orgUnitResponse);
+        when(orgUnitResponse.getStatusCode()).thenReturn(HttpStatus.OK);
+        doNothing().when(logger).info("SyncRepository: Received 200 status code.");
+
+        ResponseEntity<OrgUnitResponse> orgUnits = syncRepository.getOrgUnits("");
+
+        verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
+        verify(orgUnitResponse, times(1)).getStatusCode();
+        verify(logger, times(1)).info("SyncRepository: Received 200 status code.");
+
+        assertEquals(orgUnitResponse, orgUnits);
+    }
+
     @Test
     public void shouldReturnNullAndLogTheError() {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
