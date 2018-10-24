@@ -71,6 +71,21 @@ public class TrackedEntityInstanceProcessorTest {
         assertEquals(teiDate, TEIUtil.date);
     }
 
+    @Test
+    public void shouldNotIncludeTheColumnInTheAttributesOfTheRequestBodyIfTheMappingIsEmptyForThatColumn() {
+        when(teiDate.compareTo(bahmniDate)).thenReturn(1);
+
+        JsonObject mappingJsonObj = getMappingJsonObj();
+        mappingJsonObj.addProperty("Patient_Identifier", "");
+        processor.setMappingObj(mappingJsonObj);
+        String actual = processor.process(getTableRowObject());
+
+        mockVerify();
+
+        assertEquals(getExpected(), actual);
+        assertEquals(teiDate, TEIUtil.date);
+    }
+
     private void mockVerify() {
         verifyStatic();
         TEIUtil.setPatientIds(getTableRowObject());
