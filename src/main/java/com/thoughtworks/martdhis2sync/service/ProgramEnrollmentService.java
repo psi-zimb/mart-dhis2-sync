@@ -32,7 +32,7 @@ public class ProgramEnrollmentService{
             JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
 
         try {
-            jobService.triggerJob(programName, user, lookupTable, PE_JOB_NAME, programEnrollmentStep, new Object());
+            jobService.triggerJob(programName, user, lookupTable, PE_JOB_NAME, programEnrollmentStep, null);
         } catch (Exception e) {
             logger.error(LOG_PREFIX + e.getMessage());
             throw e;

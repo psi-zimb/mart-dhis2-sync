@@ -6,7 +6,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.SyncFailedException;
@@ -15,10 +14,8 @@ import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMember
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(ProgramEnrollmentService.class)
 @PowerMockIgnore("javax.management.*")
 public class ProgramEnrollmentServiceTest {
 
@@ -27,9 +24,6 @@ public class ProgramEnrollmentServiceTest {
 
     @Mock
     private ProgramEnrollmentStep enrollmentStep;
-
-    @Mock
-    private Object object;
 
     private ProgramEnrollmentService programEnrollmentService;
 
@@ -48,10 +42,9 @@ public class ProgramEnrollmentServiceTest {
         String user = "testUser";
         String programName = "Enrollment Service";
 
-        whenNew(Object.class).withNoArguments().thenReturn(object);
         programEnrollmentService.triggerJob(programName, user, lookUpTable);
 
-        verify(jobService, times(1)).triggerJob(programName, user, lookUpTable, jobName, enrollmentStep, object);
+        verify(jobService, times(1)).triggerJob(programName, user, lookUpTable, jobName, enrollmentStep, null);
     }
 
     @Test(expected = SyncFailedException.class)
@@ -61,10 +54,8 @@ public class ProgramEnrollmentServiceTest {
         String user = "Admin";
         String jobName = "Sync Program Enrollment";
 
-        whenNew(Object.class).withNoArguments().thenReturn(object);
-
         doThrow(SyncFailedException.class).when(jobService)
-                .triggerJob(service, user, lookUpTable, jobName, enrollmentStep, object);
+                .triggerJob(service, user, lookUpTable, jobName, enrollmentStep, null);
 
         programEnrollmentService.triggerJob(service, user, lookUpTable);
     }
