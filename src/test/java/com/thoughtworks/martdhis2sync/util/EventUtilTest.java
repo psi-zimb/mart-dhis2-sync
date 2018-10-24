@@ -33,10 +33,11 @@ public class EventUtilTest {
     }
 
     @Test
-    public void shouldAddTheGivenObjectToExistingEventTracker() {
+    public void shouldAddTheGivenObjectToExistingEventTracker() throws NoSuchFieldException, IllegalAccessException {
         JsonObject tableRow = getTableRow("8hUkh8G");
         when(BatchUtil.hasValue(tableRow.get("event_id"))).thenReturn(true);
         when(BatchUtil.getUnquotedString(tableRow.get("event_id").toString())).thenReturn("8hUkh8G");
+        setValueForStaticField(EventUtil.class, "existingEventTrackers", new ArrayList<>());
 
         assertEquals(0, EventUtil.getExistingEventTrackers().size());
 
@@ -46,9 +47,10 @@ public class EventUtilTest {
     }
 
     @Test
-    public void shouldAddTheGivenObjectToNewEventTracker() {
+    public void shouldAddTheGivenObjectToNewEventTracker() throws NoSuchFieldException, IllegalAccessException {
         JsonObject tableRow = getTableRow("");
         when(BatchUtil.hasValue(tableRow.get("event_id"))).thenReturn(false);
+        setValueForStaticField(EventUtil.class, "newEventTrackers", new ArrayList<>());
 
         assertEquals(0, EventUtil.getNewEventTrackers().size());
 
