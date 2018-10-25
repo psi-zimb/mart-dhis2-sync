@@ -8,6 +8,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.LinkedHashSet;
+
+import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValueForStaticField;
 import static com.thoughtworks.martdhis2sync.service.LoggerService.CONTACT_ADMIN;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -49,5 +52,17 @@ public class LoggerServiceTest {
         loggerService.updateLog(service, status);
 
         verify(loggerDAO, times(1)).updateLog(service, status, statusInfo + ", " + CONTACT_ADMIN);
+    }
+
+    @Test
+    public void shouldNotAddContactAdminToTheLogMessageWhenStatusIsSuccess() throws NoSuchFieldException, IllegalAccessException {
+        String service = "HT Service";
+        String status = "success";
+
+        setValueForStaticField(LoggerService.class, "logMessage", new LinkedHashSet<>());
+
+        loggerService.updateLog(service, status);
+
+        verify(loggerDAO, times(1)).updateLog(service, status, "");
     }
 }
