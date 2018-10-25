@@ -62,12 +62,12 @@ public class EventStepTest {
     @Before
     public void setUp() throws Exception {
         eventStep = new EventStep();
+        eventStep.setEnrollmentLookupTable("patient_enrollment");
         setValuesForMemberFields(eventStep, "mappingReader", mappingReader);
         setValuesForMemberFields(eventStep, "processorObjectFactory", objectFactory);
         setValuesForMemberFields(eventStep, "writer", writer);
         setValuesForMemberFields(eventStep, "stepFactory", stepFactory);
         setValuesForMemberFields(eventStep, "markerUtil", markerUtil);
-        setValuesForMemberFields(eventStep, "enrollmentLookupTable", "patient_enrollment");
     }
 
     @Test
