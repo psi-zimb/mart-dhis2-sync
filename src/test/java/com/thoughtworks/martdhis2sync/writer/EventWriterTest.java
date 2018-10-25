@@ -110,12 +110,18 @@ public class EventWriterTest {
         String event2 = getEventRequestBody("", "lejUhau", "LAfjIOne");
         List<String> list = Arrays.asList(event1, event2);
         String requestBody = "{\"events\":[" + event1 + "," + event2 + "]}";
+        List<ImportSummary> importSummaries = Arrays.asList(
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
+                        new ImportCount(0, 0, 1, 0), null, new ArrayList<>(), "qsYuLK"),
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
+                        new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), "jldDj34S"));
+
 
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
         when(DHISSyncResponse.getResponse()).thenReturn(response);
-        when(response.getImportSummaries()).thenReturn(new ArrayList<>());
+        when(response.getImportSummaries()).thenReturn(importSummaries);
 
         writer.write(list);
 

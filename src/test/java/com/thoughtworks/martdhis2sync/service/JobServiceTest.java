@@ -160,6 +160,35 @@ public class JobServiceTest {
         }
     }
 
+    @Test
+    public void shouldNotCallLoggerServiceWhenThereIsNoMessage() throws Exception {
+        jobMocks();
+
+        when(jobLauncher.run(any(Job.class), any(JobParameters.class))).thenReturn(execution);
+        when(execution.getStatus()).thenReturn(BatchStatus.FAILED);
+        when(execution.getAllFailureExceptions()).thenReturn(Collections.singletonList(throwable));
+        when(throwable.getMessage()).thenReturn(null);
+
+        try {
+            jobService.triggerJob(programName, user, lookUpTable, jobName, instanceStep, mappingObj);
+        } catch (SyncFailedException e) {
+            verify(jobBuilderFactory, times(1)).get("syncTrackedEntityInstance");
+            verify(jobBuilder, times(1)).incrementer(any());
+            verify(jobBuilder, times(1)).listener(listener);
+            verify(instanceStep, times(1)).get(lookUpTable, programName, mappingObj);
+            verify(jobBuilder, times(1)).flow(step);
+            verify(flowBuilder, times(1)).end();
+            verify(flowJobBuilder, times(1)).build();
+
+            verify(jobLauncher, times(1)).run(any(Job.class), any(JobParameters.class));
+            verify(execution, times(1)).getStatus();
+            verify(execution, times(1)).getAllFailureExceptions();
+            verify(throwable, times(1)).getMessage();
+
+            verify(loggerService, times(0)).collateLogMessage(null);
+        }
+    }
+
     private void jobMocks() throws Exception {
         when(jobBuilderFactory.get(jobName)).thenReturn(jobBuilder);
         when(jobBuilder.incrementer(any())).thenReturn(jobBuilder);
