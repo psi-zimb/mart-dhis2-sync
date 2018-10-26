@@ -1,6 +1,11 @@
 package com.thoughtworks.martdhis2sync.writer;
 
-import com.thoughtworks.martdhis2sync.model.*;
+import com.thoughtworks.martdhis2sync.model.Conflict;
+import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
+import com.thoughtworks.martdhis2sync.model.Enrollment;
+import com.thoughtworks.martdhis2sync.model.ImportCount;
+import com.thoughtworks.martdhis2sync.model.ImportSummary;
+import com.thoughtworks.martdhis2sync.model.Response;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
@@ -23,6 +28,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
@@ -346,6 +352,115 @@ public class ProgramEnrollmentWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(1)).getConnection();
         verify(preparedStatement, times(2)).executeUpdate();
+        verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    @SneakyThrows
+    public void shouldUpdateTrackerAndMarkerOnlyForNewEnrollmentOnSuccessfullySyncingNewEnrollmentsAndUpdateEnrollments() {
+        Enrollment enrollments1 = new Enrollment("\"" + referenceUIDs.get(0) + "\"", "tm02QkL2wJP", "aHoRX5uGMLU",
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "ACTIVE", "1");
+        Enrollment enrollments2 = new Enrollment(EMPTY_STRING, "tm02QkL2wJP", "aHoRX5uGMLU",
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "ACTIVE", "1");
+
+        list = Arrays.asList(enrollments1, enrollments2);
+        String requestBody = getRequestBody(list);
+
+        importSummaries = Arrays.asList(
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
+                        new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)),
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
+                        new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)));
+
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
+        when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
+        when(DHISSyncResponse.getResponse()).thenReturn(response);
+        when(response.getImportSummaries()).thenReturn(importSummaries);
+        when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
+
+        when(dataSource.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(any())).thenReturn(preparedStatement);
+        when(preparedStatement.executeUpdate()).thenReturn(1);
+
+        writer.write(list);
+
+        verify(syncRepository, times(1)).sendData(uri, requestBody);
+        verify(dataSource, times(1)).getConnection();
+        verify(preparedStatement, times(1)).executeUpdate();
+        verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    @SneakyThrows
+    public void shouldUpdateTrackerAndMarkerOnSuccessfullySyncingOfNewActiveAndUpdatedCancelledEnrollments() {
+        Enrollment enrollments1 = new Enrollment("\"" + referenceUIDs.get(1) + "\"", "tm02QkL2wJP", "aHoRX5uGMLU",
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "CANCELLED", "1");
+        Enrollment enrollments2 = new Enrollment(EMPTY_STRING, "L2wJPtm02Qk", "aHoRX5uGMLU",
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "ACTIVE", "2");
+
+        list = Arrays.asList(enrollments1, enrollments2);
+        String cancelledRequestBody = getRequestBody(Collections.singletonList(enrollments1));
+        String activeRequestBody = getRequestBody(Collections.singletonList(enrollments2));
+        importSummaries = Arrays.asList(
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
+                        new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
+                        new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
+
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
+        when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
+        when(DHISSyncResponse.getResponse()).thenReturn(response);
+        when(response.getImportSummaries()).thenReturn(importSummaries);
+        when(syncRepository.sendData(uri, cancelledRequestBody)).thenReturn(responseEntity);
+        when(syncRepository.sendData(uri, activeRequestBody)).thenReturn(responseEntity);
+
+        when(dataSource.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(any())).thenReturn(preparedStatement);
+        when(preparedStatement.executeUpdate()).thenReturn(1);
+
+        writer.write(list);
+
+        verify(syncRepository, times(1)).sendData(uri, cancelledRequestBody);
+        verify(syncRepository, times(1)).sendData(uri, activeRequestBody);
+        verify(dataSource, times(2)).getConnection();
+        verify(preparedStatement, times(2)).executeUpdate();
+        verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    @SneakyThrows
+    public void shouldUpdateTrackerAndMarkerOnSuccessfullySyncingUpdatesOfActiveAndCancelledEnrollments() {
+        Enrollment enrollments1 = new Enrollment("\"" + referenceUIDs.get(0) + "\"", "tm02QkL2wJP", "aHoRX5uGMLU",
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "CANCELLED", "1");
+        Enrollment enrollments2 = new Enrollment("\""+referenceUIDs.get(1)+"\"", "L2wJPtm02Qk", "aHoRX5uGMLU",
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "ACTIVE", "2");
+
+        list = Arrays.asList(enrollments1, enrollments2);
+        String cancelledRequestBody = getRequestBody(Collections.singletonList(enrollments1));
+        String activeRequestBody = getRequestBody(Collections.singletonList(enrollments2));
+        importSummaries = Arrays.asList(
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
+                        new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
+                        new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
+
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
+        when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
+        when(DHISSyncResponse.getResponse()).thenReturn(response);
+        when(response.getImportSummaries()).thenReturn(importSummaries);
+        when(syncRepository.sendData(uri, cancelledRequestBody)).thenReturn(responseEntity);
+        when(syncRepository.sendData(uri, activeRequestBody)).thenReturn(responseEntity);
+
+        when(dataSource.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(any())).thenReturn(preparedStatement);
+        when(preparedStatement.executeUpdate()).thenReturn(1);
+
+        writer.write(list);
+
+        verify(syncRepository, times(1)).sendData(uri, cancelledRequestBody);
+        verify(syncRepository, times(1)).sendData(uri, activeRequestBody);
+        verify(dataSource, times(1)).getConnection();
+        verify(preparedStatement, times(1)).executeUpdate();
         verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
     }
 }
