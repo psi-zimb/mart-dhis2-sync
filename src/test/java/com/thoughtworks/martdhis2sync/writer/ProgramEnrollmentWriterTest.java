@@ -556,4 +556,64 @@ public class ProgramEnrollmentWriterTest {
         verify(preparedStatement, times(3)).executeUpdate();
         verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
     }
+
+    @Test
+    @SneakyThrows
+    public void shouldSyncDataWhen2RecordsWithoutEnrollmentUidAnd1RecordWithEnrollmentUidExists() {
+        String referenceForPatient3 = "jfh34f9kfd";
+        Enrollment enrollmentSyncWithoutUidForPatient1 = new Enrollment("", "tm02QkL2wJP", "aHoRX5uGMLU",
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "CANCELLED", "1");
+
+        Enrollment enrollmentSyncWithUidForPatient1 = new Enrollment(referenceUIDs.get(0), "tm02QkL2wJP", "aHoRX5uGMLU",
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "CANCELLED", "1");
+
+        Enrollment enrollmentSyncWithoutUidForPatient2 = new Enrollment("", "kL2wJPtm02Q", "aHoRX5uGMLU",
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "COMPLETED", "2");
+
+        Enrollment enrollmentSyncWithUidForPatient2 = new Enrollment(referenceUIDs.get(1), "kL2wJPtm02Q", "aHoRX5uGMLU",
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "COMPLETED", "2");
+
+        Enrollment enrollmentSyncWithUidForPatient3 = new Enrollment(referenceForPatient3, "kL2wJPtm02Q", "aHoRX5uGMLU",
+                "ORG_UNIT", "2018-09-13", "2018-09-13", "COMPLETED", "2");
+
+        list = Arrays.asList(enrollmentSyncWithoutUidForPatient1, enrollmentSyncWithoutUidForPatient2, enrollmentSyncWithUidForPatient3);
+        String requestBody = getRequestBody(Arrays.asList(enrollmentSyncWithoutUidForPatient1, enrollmentSyncWithoutUidForPatient2));
+        String updateRequestBody = getRequestBody(Arrays.asList(enrollmentSyncWithUidForPatient3, enrollmentSyncWithUidForPatient1, enrollmentSyncWithUidForPatient2));
+        List<ImportSummary> firstSyncImportSummary = Arrays.asList(
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
+                        new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
+                        new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1))
+        );
+
+        List<ImportSummary> secondSyncImportSummary = Arrays.asList(
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
+                        new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceForPatient3),
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
+                        new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
+                        new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1))
+        );
+
+        when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
+        when(syncRepository.sendData(uri, updateRequestBody)).thenReturn(responseEntity);
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
+        when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
+        when(DHISSyncResponse.getResponse()).thenReturn(response);
+        when(response.getImportSummaries())
+                .thenReturn(firstSyncImportSummary)
+                .thenReturn(secondSyncImportSummary);
+
+        when(dataSource.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(any())).thenReturn(preparedStatement);
+        when(preparedStatement.executeUpdate()).thenReturn(1);
+
+        writer.write(list);
+
+        verify(syncRepository, times(1)).sendData(uri, requestBody);
+        verify(syncRepository, times(1)).sendData(uri, updateRequestBody);
+        verify(dataSource, times(2)).getConnection();
+        verify(preparedStatement, times(5)).executeUpdate();
+        verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
+    }
 }
