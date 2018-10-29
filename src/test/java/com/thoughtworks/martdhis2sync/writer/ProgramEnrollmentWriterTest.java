@@ -94,7 +94,7 @@ public class ProgramEnrollmentWriterTest {
 
     private String programName = "HTS Service";
 
-    private static final String ENROLLMENT_API_FORMAT = "{\"enrollment\": %s, " +
+    private static final String ENROLLMENT_API_FORMAT = "{\"enrollment\": \"%s\", " +
             "\"trackedEntityInstance\": \"%s\", " +
             "\"orgUnit\":\"%s\"," +
             "\"program\":\"%s\"," +
@@ -112,9 +112,9 @@ public class ProgramEnrollmentWriterTest {
         setValuesForMemberFields(writer, "responseEntity", responseEntity);
         setValuesForMemberFields(writer, "loggerService", loggerService);
 
-        Enrollment enrollments1 = new Enrollment(EMPTY_STRING, "tm02QkL2wJP", "aHoRX5uGMLU",
+        Enrollment enrollments1 = new Enrollment("", "tm02QkL2wJP", "aHoRX5uGMLU",
                 "ORG_UNIT", "2018-09-14", "2018-09-14", "ACTIVE", "1");
-        Enrollment enrollments2 = new Enrollment(EMPTY_STRING, "tm02QkL2wJP", "aHoRX5uGMLU",
+        Enrollment enrollments2 = new Enrollment("", "tm02QkL2wJP", "aHoRX5uGMLU",
                 "ORG_UNIT", "2018-09-14", "2018-09-14", "ACTIVE", "1");
 
         list = Arrays.asList(enrollments1, enrollments2);
@@ -358,9 +358,9 @@ public class ProgramEnrollmentWriterTest {
     @Test
     @SneakyThrows
     public void shouldUpdateTrackerAndMarkerOnlyForNewEnrollmentOnSuccessfullySyncingNewEnrollmentsAndUpdateEnrollments() {
-        Enrollment enrollments1 = new Enrollment("\"" + referenceUIDs.get(0) + "\"", "tm02QkL2wJP", "aHoRX5uGMLU",
+        Enrollment enrollments1 = new Enrollment(referenceUIDs.get(0), "tm02QkL2wJP", "aHoRX5uGMLU",
                 "ORG_UNIT", "2018-09-14", "2018-09-14", "ACTIVE", "1");
-        Enrollment enrollments2 = new Enrollment(EMPTY_STRING, "tm02QkL2wJP", "aHoRX5uGMLU",
+        Enrollment enrollments2 = new Enrollment("", "tm02QkL2wJP", "aHoRX5uGMLU",
                 "ORG_UNIT", "2018-09-14", "2018-09-14", "ACTIVE", "1");
 
         list = Arrays.asList(enrollments1, enrollments2);
@@ -393,9 +393,9 @@ public class ProgramEnrollmentWriterTest {
     @Test
     @SneakyThrows
     public void shouldUpdateTrackerAndMarkerOnSuccessfullySyncingOfNewActiveAndUpdatedCancelledEnrollments() {
-        Enrollment enrollments1 = new Enrollment("\"" + referenceUIDs.get(1) + "\"", "tm02QkL2wJP", "aHoRX5uGMLU",
+        Enrollment enrollments1 = new Enrollment(referenceUIDs.get(1), "tm02QkL2wJP", "aHoRX5uGMLU",
                 "ORG_UNIT", "2018-09-14", "2018-09-14", "CANCELLED", "1");
-        Enrollment enrollments2 = new Enrollment(EMPTY_STRING, "L2wJPtm02Qk", "aHoRX5uGMLU",
+        Enrollment enrollments2 = new Enrollment("", "L2wJPtm02Qk", "aHoRX5uGMLU",
                 "ORG_UNIT", "2018-09-14", "2018-09-14", "ACTIVE", "2");
 
         list = Arrays.asList(enrollments1, enrollments2);
@@ -461,6 +461,99 @@ public class ProgramEnrollmentWriterTest {
         verify(syncRepository, times(1)).sendData(uri, activeRequestBody);
         verify(dataSource, times(1)).getConnection();
         verify(preparedStatement, times(1)).executeUpdate();
+        verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    @SneakyThrows
+    public void shouldSyncDataTwiceForNewCancelledEnrollments() {
+        Enrollment enrollmentForFirstTimeSync = new Enrollment("", "tm02QkL2wJP", "aHoRX5uGMLU",
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "CANCELLED", "1");
+
+        Enrollment enrollmentForSecondTimeSync = new Enrollment(referenceUIDs.get(0), "tm02QkL2wJP", "aHoRX5uGMLU",
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "CANCELLED", "1");
+
+        list = Collections.singletonList(enrollmentForFirstTimeSync);
+        String requestBody = getRequestBody(Collections.singletonList(enrollmentForFirstTimeSync));
+        String updateRequestBody = getRequestBody(Collections.singletonList(enrollmentForSecondTimeSync));
+        List<ImportSummary> firstSyncImportSummary = Collections.singletonList(
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
+                        new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0))
+        );
+
+        List<ImportSummary> secondSyncImportSummary = Collections.singletonList(
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
+                        new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0))
+        );
+
+        when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
+        when(syncRepository.sendData(uri, updateRequestBody)).thenReturn(responseEntity);
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
+        when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
+        when(DHISSyncResponse.getResponse()).thenReturn(response);
+        when(response.getImportSummaries())
+                .thenReturn(firstSyncImportSummary)
+                .thenReturn(secondSyncImportSummary);
+
+        when(dataSource.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(any())).thenReturn(preparedStatement);
+        when(preparedStatement.executeUpdate()).thenReturn(1);
+
+        writer.write(list);
+
+        verify(syncRepository, times(1)).sendData(uri, requestBody);
+        verify(syncRepository, times(1)).sendData(uri, updateRequestBody);
+        verify(dataSource, times(2)).getConnection();
+        verify(preparedStatement, times(2)).executeUpdate();
+        verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    @SneakyThrows
+    public void shouldSyncDataTwiceForNewCancelledAndUpdateCancelEnrollments() {
+        Enrollment enrollmentSyncWithoutUidForPatient1 = new Enrollment("", "tm02QkL2wJP", "aHoRX5uGMLU",
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "CANCELLED", "1");
+
+        Enrollment enrollmentSyncWithUidForPatient1 = new Enrollment(referenceUIDs.get(0), "tm02QkL2wJP", "aHoRX5uGMLU",
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "CANCELLED", "1");
+
+        Enrollment enrollmentSyncWithUidForPatient2 = new Enrollment(referenceUIDs.get(1), "kL2wJPtm02Q", "aHoRX5uGMLU",
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "CANCELLED", "2");
+
+        list = Arrays.asList(enrollmentSyncWithoutUidForPatient1, enrollmentSyncWithUidForPatient2);
+        String requestBody = getRequestBody(Collections.singletonList(enrollmentSyncWithoutUidForPatient1));
+        String updateRequestBody = getRequestBody(Arrays.asList(enrollmentSyncWithUidForPatient2, enrollmentSyncWithUidForPatient1));
+        List<ImportSummary> firstSyncImportSummary = Collections.singletonList(
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
+                        new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0))
+        );
+
+        List<ImportSummary> secondSyncImportSummary = Arrays.asList(
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
+                        new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)),
+                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
+                        new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0))
+        );
+
+        when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
+        when(syncRepository.sendData(uri, updateRequestBody)).thenReturn(responseEntity);
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
+        when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
+        when(DHISSyncResponse.getResponse()).thenReturn(response);
+        when(response.getImportSummaries())
+                .thenReturn(firstSyncImportSummary)
+                .thenReturn(secondSyncImportSummary);
+
+        when(dataSource.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(any())).thenReturn(preparedStatement);
+        when(preparedStatement.executeUpdate()).thenReturn(1);
+
+        writer.write(list);
+
+        verify(syncRepository, times(1)).sendData(uri, requestBody);
+        verify(syncRepository, times(1)).sendData(uri, updateRequestBody);
+        verify(dataSource, times(2)).getConnection();
+        verify(preparedStatement, times(3)).executeUpdate();
         verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
     }
 }

@@ -43,6 +43,7 @@ public class ProgramEnrollmentProcessorTest {
 
         mockStatic(BatchUtil.class);
         when(BatchUtil.getUnquotedString("\""+ dateCreated +"\"")).thenReturn(dateCreated);
+        when(BatchUtil.getUnquotedString("\"\"")).thenReturn("");
         when(BatchUtil.getUnquotedString("\""+ instanceId +"\"")).thenReturn(instanceId);
         when(BatchUtil.getUnquotedString("\""+ program +"\"")).thenReturn(program);
         when(BatchUtil.getUnquotedString("\""+ orgUnit +"\"")).thenReturn(orgUnit);
@@ -76,6 +77,8 @@ public class ProgramEnrollmentProcessorTest {
     }
 
     private void mockVerify() {
+        verifyStatic();
+        BatchUtil.getUnquotedString("\"\"");
         verifyStatic(times(3));
         BatchUtil.getUnquotedString("\""+ dateCreated +"\"");
         verifyStatic(times(1));
@@ -108,6 +111,6 @@ public class ProgramEnrollmentProcessorTest {
     }
 
     private Enrollment getExpected() {
-        return new Enrollment("\"\"", "EmACSYDCxhu", "SxgCPPeiq3c", "ofaUrIe32", "2018-10-25", "2018-10-25", "ACTIVE", "\"v3\"");
+        return new Enrollment("", "EmACSYDCxhu", "SxgCPPeiq3c", "ofaUrIe32", "2018-10-25", "2018-10-25", "ACTIVE", "\"v3\"");
     }
 }
