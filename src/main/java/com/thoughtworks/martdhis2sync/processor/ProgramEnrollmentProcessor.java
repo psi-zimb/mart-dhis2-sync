@@ -31,7 +31,7 @@ public class ProgramEnrollmentProcessor implements ItemProcessor {
         updateLatestDateCreated(dateCreated);
 
         return new Enrollment(
-                tableRowJsonObject.get("enrollment_id").toString(),
+                getUnquotedString(tableRowJsonObject.get("enrollment_id").toString()),
                 getUnquotedString(tableRowJsonObject.get("instance_id").toString()),
                 getUnquotedString(tableRowJsonObject.get("program").toString()),
                 getUnquotedString(tableRowJsonObject.get("orgunit_id").toString()),

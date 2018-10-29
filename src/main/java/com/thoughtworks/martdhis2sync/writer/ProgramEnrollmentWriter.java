@@ -21,16 +21,23 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.sql.DataSource;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.thoughtworks.martdhis2sync.model.Enrollment.*;
+import static com.thoughtworks.martdhis2sync.model.Enrollment.STATUS_ACTIVE;
+import static com.thoughtworks.martdhis2sync.model.Enrollment.STATUS_CANCELLED;
+import static com.thoughtworks.martdhis2sync.model.Enrollment.STATUS_COMPLETED;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_ERROR;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_SUCCESS;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getStringFromDate;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
 import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_ENROLLMENT;
 
 @Component
@@ -75,7 +82,7 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
 
     private static final String LOG_PREFIX = "ENROLLMENT SYNC: ";
 
-    private static final String ENROLLMENT_API_FORMAT = "{\"enrollment\": %s, " +
+    private static final String ENROLLMENT_API_FORMAT = "{\"enrollment\": \"%s\", " +
             "\"trackedEntityInstance\": \"%s\", " +
             "\"orgUnit\":\"%s\"," +
             "\"program\":\"%s\"," +
@@ -102,7 +109,7 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
                     break;
                 case STATUS_COMPLETED:
                 case STATUS_CANCELLED: {
-                    if (enrollment.getEnrollment_id().isEmpty()) {
+                    if (StringUtils.isEmpty(enrollment.getEnrollment_id())) {
                         createToCompleteOrCancelEnrollmentsList.add(enrollment);
                     } else {
                         completedOrCancelledEnrollmentsList.add(enrollment);
@@ -124,7 +131,6 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
             syncNewOrUpdatedEnrollments();
         }
         updateMarker();
-
     }
 
     private void syncNewEnrollmentsToBeMarkedCompleteOrCancel() throws Exception {
@@ -135,9 +141,8 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
     }
 
     private void syncCompletedOrCancelledEnrollments() throws Exception {
-        if (!enrollmentsToSaveInTrackerTable.isEmpty()) {
-            completedOrCancelledEnrollmentsList.addAll(enrollmentsToSaveInTrackerTable);
-        }
+        completedOrCancelledEnrollmentsList.addAll(enrollmentsToSaveInTrackerTable);
+        enrollmentsToSaveInTrackerTable.clear();
         mapIterator = completedOrCancelledEnrollmentsList.iterator();
 
         responseEntity = syncRepository.sendData(URI, getRequestBody(completedOrCancelledEnrollmentsList));
@@ -201,7 +206,7 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
             if (isImported(importSummary)) {
                 while (mapIterator.hasNext()) {
                     Enrollment enrollment = mapIterator.next();
-                    if (EMPTY_STRING.equals(enrollment.getEnrollment_id())) {
+                    if (StringUtils.isEmpty(enrollment.getEnrollment_id())) {
                         enrollment.setEnrollment_id(importSummary.getReference());
                         enrollmentsToSaveInTrackerTable.add(enrollment);
                         break;
@@ -229,13 +234,12 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
 
         int recordsCreated;
         try {
-            if (!completedOrCancelledEnrollmentsList.isEmpty()) {
-                recordsCreated = getUpdateCount(UPDATE_QUERY);
-                logger.info(LOG_PREFIX + "Successfully updated " + recordsCreated + " Enrollments' status.");
-            }
             if (!enrollmentsToSaveInTrackerTable.isEmpty()) {
                 recordsCreated = getInsertCount(INSERT_QUERY);
                 logger.info(LOG_PREFIX + "Successfully inserted " + recordsCreated + " Enrollment UIDs.");
+            } else if (!completedOrCancelledEnrollmentsList.isEmpty()) {
+                recordsCreated = getUpdateCount(UPDATE_QUERY);
+                logger.info(LOG_PREFIX + "Successfully updated " + recordsCreated + " Enrollments' status.");
             }
         } catch (SQLException e) {
             logger.error(LOG_PREFIX + "Exception occurred while inserting Program Enrollment UIDs:" + e.getMessage());
