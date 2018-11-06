@@ -38,9 +38,11 @@ import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_SUCCESS;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -81,19 +83,9 @@ public class ProgramEnrollmentWriterTest {
     private ProgramEnrollmentWriter writer;
 
     private static final String uri = "/api/enrollments?strategy=CREATE_AND_UPDATE";
-
-    private static final String EMPTY_STRING = "\"\"";
-
     private static List<String> referenceUIDs = Arrays.asList("enrollmentABC", "enrollmentXYZ");
-
-    private static List<String> instanceIDs = Arrays.asList("instanceABC", "instanceXYZ");
-
     private String requestBody;
-
     private List<? extends Enrollment> list;
-
-    private String programName = "HTS Service";
-
     private static final String ENROLLMENT_API_FORMAT = "{\"enrollment\": \"%s\", " +
             "\"trackedEntityInstance\": \"%s\", " +
             "\"orgUnit\":\"%s\"," +
@@ -101,6 +93,13 @@ public class ProgramEnrollmentWriterTest {
             "\"enrollmentDate\":\"%s\"," +
             "\"incidentDate\":\"%s\"," +
             "\"status\": \"%s\"}";
+    private static final String UPDATE_QUERY = "UPDATE public.enrollment_tracker " +
+            "SET status = ?, created_by = ?, date_created = ? " +
+            "WHERE enrollment_id = ?";
+    private static final String INSERT_QUERY = "INSERT INTO public.enrollment_tracker(" +
+            "enrollment_id, instance_id, program, status, program_unique_id, created_by, date_created)" +
+            "values (?, ?, ?, ?, ?, ?, ?)";
+    private String user = "superman";
 
     @Before
     public void setUp() throws Exception {
@@ -111,6 +110,7 @@ public class ProgramEnrollmentWriterTest {
         setValuesForMemberFields(writer, "markerUtil", markerUtil);
         setValuesForMemberFields(writer, "responseEntity", responseEntity);
         setValuesForMemberFields(writer, "loggerService", loggerService);
+        setValuesForMemberFields(writer, "user", user);
 
         Enrollment enrollments1 = new Enrollment("", "tm02QkL2wJP", "aHoRX5uGMLU",
                 "ORG_UNIT", "2018-09-14", "2018-09-14", "ACTIVE", "1");
@@ -147,6 +147,8 @@ public class ProgramEnrollmentWriterTest {
         when(responseEntity.getBody()).thenReturn(DHISSyncResponse);
         when(DHISSyncResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(new ArrayList<>());
+        when(dataSource.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(UPDATE_QUERY)).thenReturn(preparedStatement);
 
         writer.write(list);
 
@@ -155,8 +157,14 @@ public class ProgramEnrollmentWriterTest {
 
     @Test
     @SneakyThrows
-    public void shouldNotUpdateTrackerTableAfterSendingOnlyUpdatedEnrollmentsInSync() {
+    public void shouldUpdateTrackerStatusAfterSendingOnlyUpdatedEnrollmentsInSync() {
+        Enrollment enrollments1 = new Enrollment(referenceUIDs.get(0), "tm02QkL2wJP", "aHoRX5uGMLU",
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "ACTIVE", "1");
+        Enrollment enrollments2 = new Enrollment(referenceUIDs.get(1), "tm02QkL2wJP", "aHoRX5uGMLU",
+                "ORG_UNIT", "2018-09-14", "2018-09-14", "ACTIVE", "1");
 
+        list = Arrays.asList(enrollments1, enrollments2);
+        requestBody = getRequestBody(Arrays.asList(enrollments1, enrollments2));
         importSummaries = Arrays.asList(
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
@@ -168,11 +176,27 @@ public class ProgramEnrollmentWriterTest {
         when(DHISSyncResponse.getResponse()).thenReturn(response);
         when(response.getImportSummaries()).thenReturn(importSummaries);
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
+        when(dataSource.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(UPDATE_QUERY)).thenReturn(preparedStatement);
+        doNothing().when(preparedStatement).setString(1, Enrollment.STATUS_ACTIVE);
+        doNothing().when(preparedStatement).setString(2, user);
+        doNothing().when(preparedStatement).setTimestamp(anyInt(), any());
+        doNothing().when(preparedStatement).setString(4, referenceUIDs.get(0));
+        doNothing().when(preparedStatement).setString(4, referenceUIDs.get(1));
+
+        when(preparedStatement.executeUpdate()).thenReturn(1);
 
         writer.write(list);
 
         verify(syncRepository, times(1)).sendData(uri, requestBody);
-        verify(dataSource, times(0)).getConnection();
+        verify(dataSource, times(1)).getConnection();
+        verify(connection, times(1)).prepareStatement(UPDATE_QUERY);
+        verify(preparedStatement, times(2)).setString(1, Enrollment.STATUS_ACTIVE);
+        verify(preparedStatement, times(2)).setString(2, user);
+        verify(preparedStatement, times(2)).setTimestamp(anyInt(), any());
+        verify(preparedStatement, times(1)).setString(4, referenceUIDs.get(0));
+        verify(preparedStatement, times(1)).setString(4, referenceUIDs.get(1));
+        verify(preparedStatement, times(2)).executeUpdate();
     }
 
     @Test
@@ -192,13 +216,14 @@ public class ProgramEnrollmentWriterTest {
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
 
         when(dataSource.getConnection()).thenReturn(connection);
-        when(connection.prepareStatement(any())).thenReturn(preparedStatement);
+        when(connection.prepareStatement(INSERT_QUERY)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(2);
 
         writer.write(list);
 
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(1)).getConnection();
+        verify(connection, times(1)).prepareStatement(INSERT_QUERY);
         verify(preparedStatement, times(2)).executeUpdate();
         verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
     }
@@ -303,7 +328,7 @@ public class ProgramEnrollmentWriterTest {
         when(response.getImportSummaries()).thenReturn(importSummaries);
 
         when(dataSource.getConnection()).thenReturn(connection);
-        when(connection.prepareStatement(any())).thenReturn(preparedStatement);
+        when(connection.prepareStatement(INSERT_QUERY)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
 
         try {
@@ -314,6 +339,7 @@ public class ProgramEnrollmentWriterTest {
 
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(1)).getConnection();
+        verify(connection, times(1)).prepareStatement(INSERT_QUERY);
         verify(preparedStatement, times(1)).executeUpdate();
         verify(markerUtil, times(0)).updateMarkerEntry(anyString(), anyString(), anyString());
         verify(loggerService, times(1)).collateLogMessage(expected);
@@ -344,13 +370,14 @@ public class ProgramEnrollmentWriterTest {
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
 
         when(dataSource.getConnection()).thenReturn(connection);
-        when(connection.prepareStatement(any())).thenReturn(preparedStatement);
+        when(connection.prepareStatement(UPDATE_QUERY)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(2);
 
         writer.write(list);
 
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(dataSource, times(1)).getConnection();
+        verify(connection, times(1)).prepareStatement(UPDATE_QUERY);
         verify(preparedStatement, times(2)).executeUpdate();
         verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
     }
@@ -379,14 +406,17 @@ public class ProgramEnrollmentWriterTest {
         when(syncRepository.sendData(uri, requestBody)).thenReturn(responseEntity);
 
         when(dataSource.getConnection()).thenReturn(connection);
-        when(connection.prepareStatement(any())).thenReturn(preparedStatement);
+        when(connection.prepareStatement(INSERT_QUERY)).thenReturn(preparedStatement);
+        when(connection.prepareStatement(UPDATE_QUERY)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
 
         writer.write(list);
 
         verify(syncRepository, times(1)).sendData(uri, requestBody);
-        verify(dataSource, times(1)).getConnection();
-        verify(preparedStatement, times(1)).executeUpdate();
+        verify(dataSource, times(2)).getConnection();
+        verify(connection, times(1)).prepareStatement(INSERT_QUERY);
+        verify(connection, times(1)).prepareStatement(UPDATE_QUERY);
+        verify(preparedStatement, times(2)).executeUpdate();
         verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
     }
 
@@ -415,7 +445,8 @@ public class ProgramEnrollmentWriterTest {
         when(syncRepository.sendData(uri, activeRequestBody)).thenReturn(responseEntity);
 
         when(dataSource.getConnection()).thenReturn(connection);
-        when(connection.prepareStatement(any())).thenReturn(preparedStatement);
+        when(connection.prepareStatement(INSERT_QUERY)).thenReturn(preparedStatement);
+        when(connection.prepareStatement(UPDATE_QUERY)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
 
         writer.write(list);
@@ -423,6 +454,8 @@ public class ProgramEnrollmentWriterTest {
         verify(syncRepository, times(1)).sendData(uri, cancelledRequestBody);
         verify(syncRepository, times(1)).sendData(uri, activeRequestBody);
         verify(dataSource, times(2)).getConnection();
+        verify(connection, times(1)).prepareStatement(INSERT_QUERY);
+        verify(connection, times(1)).prepareStatement(UPDATE_QUERY);
         verify(preparedStatement, times(2)).executeUpdate();
         verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
     }
@@ -430,9 +463,9 @@ public class ProgramEnrollmentWriterTest {
     @Test
     @SneakyThrows
     public void shouldUpdateTrackerAndMarkerOnSuccessfullySyncingUpdatesOfActiveAndCancelledEnrollments() {
-        Enrollment enrollments1 = new Enrollment("\"" + referenceUIDs.get(0) + "\"", "tm02QkL2wJP", "aHoRX5uGMLU",
+        Enrollment enrollments1 = new Enrollment(referenceUIDs.get(0), "tm02QkL2wJP", "aHoRX5uGMLU",
                 "ORG_UNIT", "2018-09-14", "2018-09-14", "CANCELLED", "1");
-        Enrollment enrollments2 = new Enrollment("\""+referenceUIDs.get(1)+"\"", "L2wJPtm02Qk", "aHoRX5uGMLU",
+        Enrollment enrollments2 = new Enrollment(referenceUIDs.get(1), "L2wJPtm02Qk", "aHoRX5uGMLU",
                 "ORG_UNIT", "2018-09-14", "2018-09-14", "ACTIVE", "2");
 
         list = Arrays.asList(enrollments1, enrollments2);
@@ -440,7 +473,7 @@ public class ProgramEnrollmentWriterTest {
         String activeRequestBody = getRequestBody(Collections.singletonList(enrollments2));
         importSummaries = Arrays.asList(
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
-                        new ImportCount(1, 0, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
+                        new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(0)),
                 new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS,
                         new ImportCount(0, 1, 0, 0), null, new ArrayList<>(), referenceUIDs.get(1)));
 
@@ -452,15 +485,16 @@ public class ProgramEnrollmentWriterTest {
         when(syncRepository.sendData(uri, activeRequestBody)).thenReturn(responseEntity);
 
         when(dataSource.getConnection()).thenReturn(connection);
-        when(connection.prepareStatement(any())).thenReturn(preparedStatement);
+        when(connection.prepareStatement(UPDATE_QUERY)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
 
         writer.write(list);
 
         verify(syncRepository, times(1)).sendData(uri, cancelledRequestBody);
         verify(syncRepository, times(1)).sendData(uri, activeRequestBody);
-        verify(dataSource, times(1)).getConnection();
-        verify(preparedStatement, times(1)).executeUpdate();
+        verify(dataSource, times(2)).getConnection();
+        verify(connection, times(2)).prepareStatement(UPDATE_QUERY);
+        verify(preparedStatement, times(2)).executeUpdate();
         verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
     }
 
@@ -496,7 +530,8 @@ public class ProgramEnrollmentWriterTest {
                 .thenReturn(secondSyncImportSummary);
 
         when(dataSource.getConnection()).thenReturn(connection);
-        when(connection.prepareStatement(any())).thenReturn(preparedStatement);
+        when(connection.prepareStatement(INSERT_QUERY)).thenReturn(preparedStatement);
+        when(connection.prepareStatement(UPDATE_QUERY)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
 
         writer.write(list);
@@ -504,6 +539,8 @@ public class ProgramEnrollmentWriterTest {
         verify(syncRepository, times(1)).sendData(uri, requestBody);
         verify(syncRepository, times(1)).sendData(uri, updateRequestBody);
         verify(dataSource, times(2)).getConnection();
+        verify(connection, times(1)).prepareStatement(INSERT_QUERY);
+        verify(connection, times(1)).prepareStatement(UPDATE_QUERY);
         verify(preparedStatement, times(2)).executeUpdate();
         verify(markerUtil, times(1)).updateMarkerEntry(anyString(), anyString(), anyString());
     }
