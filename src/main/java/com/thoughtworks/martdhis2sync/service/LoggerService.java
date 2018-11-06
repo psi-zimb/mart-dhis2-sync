@@ -21,7 +21,7 @@ public class LoggerService {
 
     public static final String FAILED = "failed";
 
-    private static final Set<String> logMessage = new LinkedHashSet<>();
+    private Set<String> logMessage = new LinkedHashSet<>();
 
     public void addLog(String service, String user, String comments) {
         logMessage.clear();
