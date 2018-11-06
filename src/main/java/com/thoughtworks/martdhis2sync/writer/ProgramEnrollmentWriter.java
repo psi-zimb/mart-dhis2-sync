@@ -68,6 +68,8 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
 
     private List<Enrollment> enrollmentsToSaveInTrackerTable = new ArrayList<>();
 
+    private List<Enrollment> enrollmentsToUpdateInTrackerTable = new ArrayList<>();
+
     private List<Enrollment> newOrUpdatedEnrollmentsList = new ArrayList<>();
 
     private List<Enrollment> completedOrCancelledEnrollmentsList = new ArrayList<>();
@@ -77,8 +79,6 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private ResponseEntity<DHISSyncResponse> responseEntity;
-
-    private static final String EMPTY_STRING = "\"\"";
 
     private static final String LOG_PREFIX = "ENROLLMENT SYNC: ";
 
@@ -143,6 +143,7 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
     private void syncCompletedOrCancelledEnrollments() throws Exception {
         completedOrCancelledEnrollmentsList.addAll(enrollmentsToSaveInTrackerTable);
         enrollmentsToSaveInTrackerTable.clear();
+        enrollmentsToUpdateInTrackerTable.clear();
         mapIterator = completedOrCancelledEnrollmentsList.iterator();
 
         responseEntity = syncRepository.sendData(URI, getRequestBody(completedOrCancelledEnrollmentsList));
@@ -151,6 +152,7 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
 
     private void syncNewOrUpdatedEnrollments() throws Exception {
         enrollmentsToSaveInTrackerTable.clear();
+        enrollmentsToUpdateInTrackerTable.clear();
         mapIterator = newOrUpdatedEnrollmentsList.iterator();
 
         responseEntity = syncRepository.sendData(URI, getRequestBody(newOrUpdatedEnrollmentsList));
@@ -210,7 +212,13 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
                         enrollment.setEnrollment_id(importSummary.getReference());
                         enrollmentsToSaveInTrackerTable.add(enrollment);
                         break;
+                    } else {
+                        enrollmentsToUpdateInTrackerTable.add(enrollment);
                     }
+                }
+            } else if(isUpdated(importSummary)) {
+                if (mapIterator.hasNext()){
+                    enrollmentsToUpdateInTrackerTable.add(mapIterator.next());
                 }
             }
         });
@@ -230,6 +238,10 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
         return IMPORT_SUMMARY_RESPONSE_SUCCESS.equals(importSummary.getStatus()) && importSummary.getImportCount().getImported() == 1;
     }
 
+    private boolean isUpdated(ImportSummary importSummary) {
+        return IMPORT_SUMMARY_RESPONSE_SUCCESS.equals(importSummary.getStatus()) && importSummary.getImportCount().getUpdated() == 1;
+    }
+
     private void updateTracker() {
 
         int recordsCreated;
@@ -237,7 +249,8 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
             if (!enrollmentsToSaveInTrackerTable.isEmpty()) {
                 recordsCreated = getInsertCount(INSERT_QUERY);
                 logger.info(LOG_PREFIX + "Successfully inserted " + recordsCreated + " Enrollment UIDs.");
-            } else if (!completedOrCancelledEnrollmentsList.isEmpty()) {
+            }
+            if (!enrollmentsToUpdateInTrackerTable.isEmpty()) {
                 recordsCreated = getUpdateCount(UPDATE_QUERY);
                 logger.info(LOG_PREFIX + "Successfully updated " + recordsCreated + " Enrollments' status.");
             }
@@ -252,7 +265,7 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
         try (Connection connection = dataSource.getConnection()) {
             try (PreparedStatement ps = connection.prepareStatement(sqlQuery)) {
                 updateCount = 0;
-                for (Enrollment enrollment : completedOrCancelledEnrollmentsList) {
+                for (Enrollment enrollment : enrollmentsToUpdateInTrackerTable) {
                     ps.setString(1, enrollment.getStatus());
                     ps.setString(2, user);
                     ps.setTimestamp(3, Timestamp.valueOf(BatchUtil.GetUTCDateTimeAsString()));
@@ -261,7 +274,7 @@ public class ProgramEnrollmentWriter implements ItemWriter<Enrollment> {
                 }
             }
         }
-        completedOrCancelledEnrollmentsList.clear();
+        enrollmentsToUpdateInTrackerTable.clear();
         return updateCount;
     }
 
