@@ -1,18 +1,18 @@
 package com.thoughtworks.martdhis2sync.service;
 
-import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.model.OrgUnit;
 import com.thoughtworks.martdhis2sync.model.OrgUnitResponse;
+import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.OrgUnitUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-@EnableScheduling
 public class OrgUnitService {
 
     @Autowired
@@ -40,6 +39,7 @@ public class OrgUnitService {
     private static final String LOG_PREFIX = "OrgUnit Service: ";
 
     @Scheduled(cron = "${org.unit.cron.interval}")
+    @PostConstruct
     public void getOrgUnitsList() throws SQLException {
 
         logger.info(LOG_PREFIX + "Started.");
