@@ -2,6 +2,7 @@ package com.thoughtworks.martdhis2sync.repository;
 
 import com.google.gson.Gson;
 import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
+import com.thoughtworks.martdhis2sync.model.DataElementResponse;
 import com.thoughtworks.martdhis2sync.model.OrgUnitResponse;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
 import org.apache.tomcat.util.codec.binary.Base64;
@@ -21,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.Charset;
 
+import static com.thoughtworks.martdhis2sync.service.DateTimeDataElementService.URI_DATE_TIME_DATA_ELEMENTS;
 import static com.thoughtworks.martdhis2sync.service.OrgUnitService.URI_ORG_UNIT;
 
 @Repository
@@ -75,6 +77,20 @@ public class SyncRepository {
                             new HttpEntity<>(getHttpHeaders()), OrgUnitResponse.class);
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
         } catch (Exception e) {
+            logger.error(LOG_PREFIX + e);
+        }
+        return responseEntity;
+    }
+
+    public ResponseEntity<DataElementResponse> getDataElements(String url) {
+        ResponseEntity<DataElementResponse> responseEntity = null;
+        try {
+            responseEntity = restTemplate
+                    .exchange((url.isEmpty() ? dhis2Url + URI_DATE_TIME_DATA_ELEMENTS : url), HttpMethod.GET,
+                            new HttpEntity<>(getHttpHeaders()), DataElementResponse.class);
+            logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
+
+        }catch (Exception e){
             logger.error(LOG_PREFIX + e);
         }
         return responseEntity;
