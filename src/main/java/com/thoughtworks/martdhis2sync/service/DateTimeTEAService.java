@@ -21,7 +21,7 @@ public class DateTimeTEAService {
 
     private ResponseEntity<TrackedEntityAttributeResponse> dateTimeTEAttributes;
     public static String URI_DATE_TIME__T_E_ATTRIBUTES = "/api/trackedEntityAttributes?pageSize=10&filter=valueType:eq:DATETIME";
-    private List<TrackedEntityAttribute> trackedEntityAttributes = new LinkedList<>();
+    private List<String> trackedEntityAttributes = new LinkedList<>();
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static final String LOG_PREFIX = "Tracked Entity Attribute Service: ";
@@ -36,7 +36,9 @@ public class DateTimeTEAService {
                 return;
             }
             url = dateTimeTEAttributes.getBody().getPager().getNextPage();
-            trackedEntityAttributes.addAll(dateTimeTEAttributes.getBody().getTrackedEntityAttributes());
+            dateTimeTEAttributes.getBody().getTrackedEntityAttributes().forEach(
+                    tEA -> trackedEntityAttributes.add(tEA.getId())
+            );
         } while (null != url);
 
         TrackedEntityAttributeUtil.setDateTimeAttributes(trackedEntityAttributes);
