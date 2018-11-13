@@ -1,9 +1,6 @@
 package com.thoughtworks.martdhis2sync.repository;
 
-import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
-import com.thoughtworks.martdhis2sync.model.ImportSummary;
-import com.thoughtworks.martdhis2sync.model.OrgUnitResponse;
-import com.thoughtworks.martdhis2sync.model.Response;
+import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.Charset;
@@ -46,6 +44,9 @@ public class SyncRepositoryTest {
     private ResponseEntity<OrgUnitResponse> orgUnitResponse;
 
     @Mock
+    private ResponseEntity<DataElementResponse> dataElementResponse;
+
+    @Mock
     private Logger logger;
 
     @Mock
@@ -53,17 +54,20 @@ public class SyncRepositoryTest {
 
     private SyncRepository syncRepository;
     private String body = "{" +
-                "\"trackedEntityType\": \"o0kaqrZaY\", " +
-                "\"trackedEntityInstance\": \"EmACSYDCxhu\", " +
-                "\"orgUnit\":\"SxgCPPeiq3c\", " +
-                "\"attributes\":" +
-                    "[" +
-                        "{" +
-                            "\"attribute\": \"rOb34aQLSyC\", " +
-                            "\"value\": \"UIC00014\"" +
-                        "}" +
-                    "]" +
+            "\"trackedEntityType\": \"o0kaqrZaY\", " +
+            "\"trackedEntityInstance\": \"EmACSYDCxhu\", " +
+            "\"orgUnit\":\"SxgCPPeiq3c\", " +
+            "\"attributes\":" +
+            "[" +
+            "{" +
+            "\"attribute\": \"rOb34aQLSyC\", " +
+            "\"value\": \"UIC00014\"" +
+            "}" +
+            "]" +
             "}";
+
+    @Mock
+    private RestClientException restClientException;
 
     @Before
     public void setUp() throws Exception {
@@ -96,12 +100,12 @@ public class SyncRepositoryTest {
                 "\"httpStatusCode\":\"409\", " +
                 "\"status\":\"ERROR\", " +
                 "\"response\":{" +
-                    "\"ignored\":1, " +
-                    "\"importSummaries\": [" +
-                        "{\"description\": \"Program has another active enrollment going on. Not possible to incomplete\"}" +
-                    "]" +
+                "\"ignored\":1, " +
+                "\"importSummaries\": [" +
+                "{\"description\": \"Program has another active enrollment going on. Not possible to incomplete\"}" +
+                "]" +
                 "}" +
-            "}";
+                "}";
 
         ImportSummary importSummary = new ImportSummary();
         importSummary.setDescription("Program has another active enrollment going on. Not possible to incomplete");
@@ -160,6 +164,36 @@ public class SyncRepositoryTest {
         verify(logger, times(1)).info("SyncRepository: Received 200 status code.");
 
         assertEquals(orgUnitResponse, orgUnits);
+    }
+
+    @Test
+    public void shouldGetDataElementsInfoAndLog() {
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
+                .thenReturn(dataElementResponse);
+        when(dataElementResponse.getStatusCode()).thenReturn(HttpStatus.OK);
+        doNothing().when(logger).info("SyncRepository: Received 200 status code.");
+
+        ResponseEntity<DataElementResponse> dataElements = syncRepository.getDataElements("");
+
+        verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
+        verify(dataElementResponse, times(1)).getStatusCode();
+        verify(logger, times(1)).info("SyncRepository: Received 200 status code.");
+
+        assertEquals(dataElementResponse, dataElements);
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenGettingDataElementsInfoAndLogThat() {
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
+                .thenThrow(restClientException);
+        doNothing().when(logger).info("SyncRepository: org.springframework.web.client.HttpServerErrorException: 409 CONFLICT");
+
+        try {
+            syncRepository.getDataElements("");
+        } catch (RestClientException r) {
+            verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
+            verify(logger, times(1)).info("SyncRepository: org.springframework.web.client.HttpServerErrorException: 409 CONFLICT");
+        }
     }
 
     // Not checking the params with the exact values because of the new keyword in params list. Added just for the sake of coverage
