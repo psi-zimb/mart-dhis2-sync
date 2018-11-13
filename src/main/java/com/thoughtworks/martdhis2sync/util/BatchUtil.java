@@ -15,6 +15,7 @@ public class BatchUtil {
 
     private static final String DATEFORMAT = "yyyy-MM-dd HH:mm:ss";
     public static final String DATEFORMAT_WITH_24HR_TIME = "yyyy-MM-dd kk:mm:ss";
+    public static final String DHIS_ACCEPTABLE_DATEFORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     public static final String DATEFORMAT_WITHOUT_TIME = "yyyy-MM-dd";
     public static final String EMPTY_STRING = "\"\"";
 
@@ -24,6 +25,10 @@ public class BatchUtil {
 
     public static String getUnquotedString(String string) {
         return StringUtils.replace(string, "\"", "");
+    }
+
+    public static String getQuotedString(String string) {
+        return "\"" + string + "\"";
     }
 
     public static String GetUTCDateTimeAsString() {

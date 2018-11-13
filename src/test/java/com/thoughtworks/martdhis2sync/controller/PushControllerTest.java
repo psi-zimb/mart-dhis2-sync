@@ -1,11 +1,7 @@
 package com.thoughtworks.martdhis2sync.controller;
 
 import com.thoughtworks.martdhis2sync.model.DHISSyncRequestBody;
-import com.thoughtworks.martdhis2sync.service.EventService;
-import com.thoughtworks.martdhis2sync.service.LoggerService;
-import com.thoughtworks.martdhis2sync.service.MappingService;
-import com.thoughtworks.martdhis2sync.service.ProgramEnrollmentService;
-import com.thoughtworks.martdhis2sync.service.TEIService;
+import com.thoughtworks.martdhis2sync.service.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,6 +39,12 @@ public class PushControllerTest {
     @Mock
     private LoggerService loggerService;
 
+    @Mock
+    private DateTimeDataElementService dateTimeDataElementService;
+
+    @Mock
+    private DateTimeTEAService dateTimeTEAService;
+
     private PushController pushController;
     private String service = "HT Service";
     private String user = "***REMOVED***";
@@ -56,6 +58,8 @@ public class PushControllerTest {
         setValuesForMemberFields(pushController, "programEnrollmentService", programEnrollmentService);
         setValuesForMemberFields(pushController, "eventService", eventService);
         setValuesForMemberFields(pushController, "loggerService", loggerService);
+        setValuesForMemberFields(pushController, "dateTimeDataElementService", dateTimeDataElementService);
+        setValuesForMemberFields(pushController, "dateTimeTEAService", dateTimeTEAService);
     }
 
     @Test
@@ -63,6 +67,8 @@ public class PushControllerTest {
         Map<String, Object> mapping = getMapping();
         DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
 
+        doNothing().when(dateTimeDataElementService).getDataElements();
+        doNothing().when(dateTimeTEAService).getTEAttributes();
         doNothing().when(loggerService).addLog(service, user, comment);
         doNothing().when(loggerService).updateLog(service, "failed");
         when(mappingService.getMapping(service)).thenReturn(mapping);
@@ -70,6 +76,8 @@ public class PushControllerTest {
 
         pushController.pushData(dhisSyncRequestBody);
 
+        verify(dateTimeDataElementService, times(1)).getDataElements();
+        verify(dateTimeTEAService, times(1)).getTEAttributes();
         verify(loggerService, times(1)).addLog(service, user, comment);
         verify(loggerService, times(1)).updateLog(service, "failed");
         verify(mappingService, times(1)).getMapping(service);
@@ -83,6 +91,8 @@ public class PushControllerTest {
         Map<String, Object> mapping = getMapping();
         DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
 
+        doNothing().when(dateTimeDataElementService).getDataElements();
+        doNothing().when(dateTimeTEAService).getTEAttributes();
         doNothing().when(loggerService).addLog(service, user, comment);
         doNothing().when(loggerService).updateLog(service, "failed");
         when(mappingService.getMapping(service)).thenReturn(mapping);
@@ -91,6 +101,8 @@ public class PushControllerTest {
 
         pushController.pushData(dhisSyncRequestBody);
 
+        verify(dateTimeDataElementService, times(1)).getDataElements();
+        verify(dateTimeTEAService, times(1)).getTEAttributes();
         verify(loggerService, times(1)).addLog(service, user, comment);
         verify(loggerService, times(1)).updateLog(service, "failed");
         verify(mappingService, times(1)).getMapping(service);
@@ -106,6 +118,8 @@ public class PushControllerTest {
 
         doNothing().when(loggerService).addLog(service, user, comment);
         doNothing().when(loggerService).updateLog(service, "failed");
+        doNothing().when(dateTimeDataElementService).getDataElements();
+        doNothing().when(dateTimeTEAService).getTEAttributes();
         when(mappingService.getMapping(service)).thenReturn(mapping);
         doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any());
         doNothing().when(programEnrollmentService).triggerJob(service, user, "hts_program_enrollment_table");
@@ -113,6 +127,8 @@ public class PushControllerTest {
 
         pushController.pushData(dhisSyncRequestBody);
 
+        verify(dateTimeDataElementService, times(1)).getDataElements();
+        verify(dateTimeTEAService, times(1)).getTEAttributes();
         verify(loggerService, times(1)).addLog(service, user, comment);
         verify(loggerService, times(1)).updateLog(service, "failed");
         verify(mappingService, times(1)).getMapping(service);
