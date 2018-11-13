@@ -1,6 +1,5 @@
 package com.thoughtworks.martdhis2sync.util;
 
-import com.thoughtworks.martdhis2sync.model.DataElement;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,5 +9,5 @@ public class DataElementsUtil {
 
     @Getter
     @Setter
-    private static List<DataElement> dateTimeElements;
+    private static List<String> dateTimeElements;
 }
