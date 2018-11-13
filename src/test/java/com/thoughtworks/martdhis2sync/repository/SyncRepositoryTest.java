@@ -52,6 +52,12 @@ public class SyncRepositoryTest {
     @Mock
     private LoggerService loggerService;
 
+    @Mock
+    private RestClientException restClientException;
+
+    @Mock
+    private ResponseEntity<TrackedEntityAttributeResponse> trackedEntityAttributeResposne;
+
     private SyncRepository syncRepository;
     private String body = "{" +
             "\"trackedEntityType\": \"o0kaqrZaY\", " +
@@ -65,9 +71,6 @@ public class SyncRepositoryTest {
             "}" +
             "]" +
             "}";
-
-    @Mock
-    private RestClientException restClientException;
 
     @Before
     public void setUp() throws Exception {
@@ -180,6 +183,22 @@ public class SyncRepositoryTest {
         verify(logger, times(1)).info("SyncRepository: Received 200 status code.");
 
         assertEquals(dataElementResponse, dataElements);
+    }
+
+    @Test
+    public void shouldGetTEAttributesInfoAndLog() {
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
+                .thenReturn(trackedEntityAttributeResposne);
+        when(trackedEntityAttributeResposne.getStatusCode()).thenReturn(HttpStatus.OK);
+        doNothing().when(logger).info("SyncRepository: Received 200 status code.");
+
+        ResponseEntity<TrackedEntityAttributeResponse> trackedEntityAttributeResponse = syncRepository.getTrackedEntityAttributes("");
+
+        verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
+        verify(trackedEntityAttributeResponse, times(1)).getStatusCode();
+        verify(logger, times(1)).info("SyncRepository: Received 200 status code.");
+
+        assertEquals(trackedEntityAttributeResponse, trackedEntityAttributeResponse);
     }
 
     @Test
