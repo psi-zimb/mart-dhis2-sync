@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.thoughtworks.martdhis2sync.util.DataElementsUtil;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
 import lombok.Setter;
 import org.springframework.batch.item.ItemProcessor;
@@ -12,14 +13,7 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.Set;
 
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITHOUT_TIME;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.EMPTY_STRING;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getFormattedDateString;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.hasValue;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeLastChar;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
 import static com.thoughtworks.martdhis2sync.util.EventUtil.addExistingEventTracker;
 import static com.thoughtworks.martdhis2sync.util.EventUtil.addNewEventTracker;
 
@@ -92,10 +86,27 @@ public class EventProcessor implements ItemProcessor {
             JsonElement dataElement = mapping.get(key);
             if (hasValue(dataElement)) {
                 String value = tableRow.get(key).toString();
-                dataValues.append(String.format("{\"dataElement\": %s, \"value\": %s},", dataElement.toString(), value));
+                String dataElementInStringFormat = dataElement.toString();
+                dataValues.append(String.format(
+                        "{\"dataElement\": %s, \"value\": %s},",
+                        dataElementInStringFormat,
+                        convertIfDate(dataElementInStringFormat, value)
+                ));
             }
         }
 
         return removeLastChar(dataValues);
+    }
+
+    private String convertIfDate(String elementId, String value) {
+        return DataElementsUtil.getDateTimeElements().contains(getUnquotedString(elementId)) ?
+                getQuotedString(
+                        getFormattedDateString(
+                                getUnquotedString(value),
+                                DATEFORMAT_WITH_24HR_TIME,
+                                DHIS_ACCEPTABLE_DATEFORMAT
+                        )
+                ) :
+                value;
     }
 }

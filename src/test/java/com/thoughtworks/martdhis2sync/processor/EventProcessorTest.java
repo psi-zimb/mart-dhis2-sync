@@ -2,6 +2,7 @@ package com.thoughtworks.martdhis2sync.processor;
 
 import com.google.gson.JsonObject;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
+import com.thoughtworks.martdhis2sync.util.DataElementsUtil;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,7 +12,10 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
@@ -21,7 +25,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({EventUtil.class, BatchUtil.class})
+@PrepareForTest({EventUtil.class, BatchUtil.class, DataElementsUtil.class})
 public class EventProcessorTest {
     @Mock
     private Date eventDate;
@@ -29,12 +33,16 @@ public class EventProcessorTest {
     private EventProcessor processor;
     private Date bahmniDate = new Date(Long.MIN_VALUE);
     private String dateCreated = "2018-02-02 13:46:23";
+    private String dhisAcceptableFormat = "2018-02-02T13:46:23";
     private String dateWithoutTime = "2018-02-02";
-    private String dataValues = "{\"dataElement\": \"gXNu7zJBTDN\", \"value\": \"no\"}";
+    private String dataValues = "{\"dataElement\": \"gXNu7zJBTDN\", \"value\": \"no\"}, {\"dataElement\": \"zJBTDNgXNu7\", \"value\": \"" + dhisAcceptableFormat + "\"}";
+    private List<String> dataElementIds = new LinkedList<>();
 
     @Before
     public void setUp() throws Exception {
         processor = new EventProcessor();
+        dataElementIds.add("zJBTDNgXNu7");
+        dataElementIds.add("XNu7TDNgzJB");
 
         mockStatic(EventUtil.class);
         doNothing().when(EventUtil.class);
@@ -44,11 +52,19 @@ public class EventProcessorTest {
         EventUtil.date = eventDate;
 
         mockStatic(BatchUtil.class);
-        when(BatchUtil.getUnquotedString("\""+ dateCreated +"\"")).thenReturn(dateCreated);
+        mockStatic(DataElementsUtil.class);
+
+        when(getUnquotedString("\"" + dateCreated + "\"")).thenReturn(dateCreated);
         when(BatchUtil.getDateFromString(dateCreated, BatchUtil.DATEFORMAT_WITH_24HR_TIME)).thenReturn(bahmniDate);
-        when(BatchUtil.getFormattedDateString(dateCreated, BatchUtil.DATEFORMAT_WITH_24HR_TIME, BatchUtil.DATEFORMAT_WITHOUT_TIME)).thenReturn(dateWithoutTime);
+        when(getFormattedDateString(dateCreated, BatchUtil.DATEFORMAT_WITH_24HR_TIME, BatchUtil.DATEFORMAT_WITHOUT_TIME)).thenReturn(dateWithoutTime);
         when(BatchUtil.hasValue(getMappingJsonObj().get("crptc"))).thenReturn(true);
         when(BatchUtil.removeLastChar(any())).thenReturn(dataValues);
+        when(DataElementsUtil.getDateTimeElements()).thenReturn(dataElementIds);
+        when(getUnquotedString("\"gXNu7zJBTDN\"")).thenReturn("gXNu7zJBTDN");
+        when(getUnquotedString("\"zJBTDNgXNu7\"")).thenReturn("zJBTDNgXNu7");
+        when(getUnquotedString("\"" + dateCreated + "\"")).thenReturn(dateCreated);
+        when(getFormattedDateString(dateCreated, DATEFORMAT_WITH_24HR_TIME, DHIS_ACCEPTABLE_DATEFORMAT)).thenReturn(dhisAcceptableFormat);
+        when(getQuotedString(dhisAcceptableFormat)).thenReturn("\"" + dhisAcceptableFormat + "\"");
     }
 
     @Test
@@ -115,7 +131,7 @@ public class EventProcessorTest {
 
     private void mockVerify() {
         verifyStatic(times(1));
-        BatchUtil.getUnquotedString("\"" + dateCreated + "\"");
+        getUnquotedString("\"" + dateCreated + "\"");
         verifyStatic();
         BatchUtil.getDateFromString(dateCreated, BatchUtil.DATEFORMAT_WITH_24HR_TIME);
         verifyStatic(times(1));
@@ -124,6 +140,10 @@ public class EventProcessorTest {
         BatchUtil.hasValue(getTableRowObject().get("event_id"));
         verifyStatic(times(1));
         BatchUtil.removeLastChar(any());
+        verifyStatic(times(1));
+        DataElementsUtil.getDateTimeElements();
+        verifyStatic(times(1));
+        getUnquotedString("\"gXNu7zJBTDN\"");
     }
 
     private JsonObject getMappingJsonObj() {
