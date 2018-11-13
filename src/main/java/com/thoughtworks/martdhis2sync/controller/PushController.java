@@ -36,6 +36,12 @@ public class PushController {
     @Autowired
     private LoggerService loggerService;
 
+    @Autowired
+    private DateTimeDataElementService dateTimeDataElementService;
+
+    @Autowired
+    private DateTimeTEAService dateTimeTEAService;
+
     public static boolean IS_DELTA_EXISTS = false;
 
     @PutMapping(value = "/pushData")
@@ -43,6 +49,9 @@ public class PushController {
             throws Exception {
         IS_DELTA_EXISTS = false;
         loggerService.addLog(requestBody.getService(), requestBody.getUser(), requestBody.getComment());
+
+        dateTimeDataElementService.getDataElements();
+        dateTimeTEAService.getTEAttributes();
 
         Map<String, Object> mapping = mappingService.getMapping(requestBody.getService());
 

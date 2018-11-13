@@ -4,7 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
+import com.thoughtworks.martdhis2sync.util.TrackedEntityAttributeUtil;
 import lombok.Setter;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,9 +15,7 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.Set;
 
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
 
 @Component
 public class TrackedEntityInstanceProcessor implements ItemProcessor {
@@ -66,12 +66,28 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
                 String attribute = mappingJsonObject.get(key).toString();
                 String value = tableRowJsonObject.get(key).toString();
                 if (!EMPTY_STRING.equals(attribute)) {
-                    attributeSet.append(String.format("{\"attribute\": %s, \"value\": %s},", attribute, value));
+                    attributeSet.append(String.format(
+                            "{\"attribute\": %s, \"value\": %s},",
+                            attribute,
+                            convertIfDate(attribute, value)
+                    ));
                 }
             }
         }
         attributeSet.deleteCharAt(attributeSet.length() - 1);
         attributeSet.append("]}");
         return attributeSet.toString();
+    }
+
+    private String convertIfDate(String attributeId, String value) {
+        return TrackedEntityAttributeUtil.getDateTimeAttributes().contains(getUnquotedString(attributeId)) ?
+                getQuotedString(
+                        BatchUtil.getFormattedDateString(
+                                getUnquotedString(value),
+                                DATEFORMAT_WITH_24HR_TIME,
+                                DHIS_ACCEPTABLE_DATEFORMAT
+                        )
+                ) :
+                value;
     }
 }
