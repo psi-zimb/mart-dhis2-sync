@@ -1,6 +1,5 @@
 package com.thoughtworks.martdhis2sync.service;
 
-import com.thoughtworks.martdhis2sync.model.DataElement;
 import com.thoughtworks.martdhis2sync.model.DataElementResponse;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.util.DataElementsUtil;
@@ -19,7 +18,7 @@ public class DateTimeDataElementService {
     @Autowired
     private SyncRepository syncRepository;
 
-    private List<DataElement> dateTimeDataElements = new LinkedList<>();
+    private List<String> dateTimeDataElements = new LinkedList<>();
 
     public static final String URI_DATE_TIME_DATA_ELEMENTS = "/api/dataElements?pageSize=1000&filter=valueType:eq:DATETIME";
 
@@ -35,7 +34,9 @@ public class DateTimeDataElementService {
                 logger.error(LOG_PREFIX + "Received empty response.");
                 return;
             }
-            dateTimeDataElements.addAll(dataElementResponse.getBody().getDataElements());
+            dataElementResponse.getBody().getDataElements().forEach(
+                    dataElement -> dateTimeDataElements.add(dataElement.getId())
+            );
             url = dataElementResponse.getBody().getPager().getNextPage();
         }while (null != url);
 
