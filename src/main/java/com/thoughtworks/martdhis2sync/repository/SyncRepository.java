@@ -11,11 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -23,8 +19,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.Charset;
 
-import static com.thoughtworks.martdhis2sync.service.DHISMetaDataService.URI_DATE_TIME_DATA_ELEMENTS;
-import static com.thoughtworks.martdhis2sync.service.DHISMetaDataService.URI_DATE_TIME_T_E_ATTRIBUTES;
 import static com.thoughtworks.martdhis2sync.service.OrgUnitService.URI_ORG_UNIT;
 
 @Repository
@@ -88,7 +82,7 @@ public class SyncRepository {
         ResponseEntity<DataElementResponse> responseEntity = null;
         try {
             responseEntity = restTemplate
-                    .exchange((url.isEmpty() ? dhis2Url + URI_DATE_TIME_DATA_ELEMENTS : url), HttpMethod.GET,
+                    .exchange(url, HttpMethod.GET,
                             new HttpEntity<>(getHttpHeaders()), DataElementResponse.class);
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
 
@@ -102,7 +96,7 @@ public class SyncRepository {
         ResponseEntity<TrackedEntityAttributeResponse> responseEntity = null;
         try {
             responseEntity = restTemplate
-                    .exchange((url.isEmpty() ? dhis2Url + URI_DATE_TIME_T_E_ATTRIBUTES : url), HttpMethod.GET,
+                    .exchange(url, HttpMethod.GET,
                             new HttpEntity<>(getHttpHeaders()), TrackedEntityAttributeResponse.class);
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
 

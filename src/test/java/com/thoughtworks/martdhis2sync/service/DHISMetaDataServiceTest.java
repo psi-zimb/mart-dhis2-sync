@@ -26,6 +26,8 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 @PowerMockIgnore("javax.management.*")
 @PrepareForTest({EventUtil.class, TEIUtil.class})
 public class DHISMetaDataServiceTest {
+    public static final String DATA_ELEMENT = "/api/dataElements?pageSize=1000&filter=valueType:eq:DATETIME";
+    public static final String TRACKED_ENTITY_ATTRIBUTE = "/api/trackedEntityAttributes?pageSize=1000&filter=valueType:eq:DATETIME";
     private DHISMetaDataService dhisMetaDataService;
 
     @Mock
@@ -35,11 +37,13 @@ public class DHISMetaDataServiceTest {
     private List<DataElement> dataElements = new LinkedList<>();
     private ResponseEntity<TrackedEntityAttributeResponse> trackedEntityAttributeResponse;
     private List<TrackedEntityAttribute> trackedEntityAttributes = new LinkedList<>();
+    private String dhis2Url = "http://play.dhis2.org";
 
     @Before
     public void setUp() throws Exception {
         dhisMetaDataService = new DHISMetaDataService();
         setValuesForMemberFields(dhisMetaDataService, "syncRepository", syncRepository);
+        setValuesForMemberFields(dhisMetaDataService, "dhis2Url", dhis2Url);
 
         dataElements.add(new DataElement("asfasdfs", "date"));
         dataElements.add(new DataElement("asfasdfs", "time"));
@@ -56,13 +60,15 @@ public class DHISMetaDataServiceTest {
         dataElementResponseResponse = ResponseEntity.ok(new DataElementResponse(new Pager(), dataElements));
         trackedEntityAttributeResponse = ResponseEntity.ok(new TrackedEntityAttributeResponse(new Pager(), trackedEntityAttributes));
 
-        when(syncRepository.getDataElements("")).thenReturn(dataElementResponseResponse);
-        when(syncRepository.getTrackedEntityAttributes("")).thenReturn(trackedEntityAttributeResponse);
+        when(syncRepository.getDataElements(dhis2Url + DATA_ELEMENT)).thenReturn(dataElementResponseResponse);
+        when(syncRepository.getTrackedEntityAttributes(dhis2Url + TRACKED_ENTITY_ATTRIBUTE)).thenReturn(trackedEntityAttributeResponse);
 
         dhisMetaDataService.filterByTypeDateTime();
 
-        verify(syncRepository, times(1)).getDataElements("");
-        verify(syncRepository, times(1)).getTrackedEntityAttributes("");
+        verify(syncRepository, times(1)).getDataElements(dhis2Url+ DATA_ELEMENT);
+        verify(syncRepository, times(1)).getTrackedEntityAttributes(dhis2Url+ TRACKED_ENTITY_ATTRIBUTE);
+
+
         verifyStatic(times(1));
         EventUtil.setElementsOfTypeDateTime(Arrays.asList("asfasdfs", "asfasdfs"));
         verifyStatic(times(1));
