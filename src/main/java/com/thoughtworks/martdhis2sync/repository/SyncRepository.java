@@ -25,7 +25,7 @@ import java.nio.charset.Charset;
 
 import static com.thoughtworks.martdhis2sync.service.DateTimeDataElementService.URI_DATE_TIME_DATA_ELEMENTS;
 import static com.thoughtworks.martdhis2sync.service.OrgUnitService.URI_ORG_UNIT;
-import static com.thoughtworks.martdhis2sync.service.DateTimeTEAService.URI_DATE_TIME__T_E_ATTRIBUTES;
+import static com.thoughtworks.martdhis2sync.service.DateTimeTEAService.URI_DATE_TIME_T_E_ATTRIBUTES;
 
 @Repository
 public class SyncRepository {
@@ -102,7 +102,7 @@ public class SyncRepository {
         ResponseEntity<TrackedEntityAttributeResponse> responseEntity = null;
         try {
             responseEntity = restTemplate
-                    .exchange((url.isEmpty() ? dhis2Url + URI_DATE_TIME__T_E_ATTRIBUTES : url), HttpMethod.GET,
+                    .exchange((url.isEmpty() ? dhis2Url + URI_DATE_TIME_T_E_ATTRIBUTES : url), HttpMethod.GET,
                             new HttpEntity<>(getHttpHeaders()), TrackedEntityAttributeResponse.class);
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
 
