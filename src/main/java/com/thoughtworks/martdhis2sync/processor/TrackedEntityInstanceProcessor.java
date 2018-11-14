@@ -69,7 +69,7 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
                     attributeSet.append(String.format(
                             "{\"attribute\": %s, \"value\": %s},",
                             attribute,
-                            convertIfDate(attribute, value)
+                            changeFormatIfDate(attribute, value)
                     ));
                 }
             }
@@ -79,7 +79,7 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
         return attributeSet.toString();
     }
 
-    private String convertIfDate(String attributeId, String value) {
+    private String changeFormatIfDate(String attributeId, String value) {
         return TrackedEntityAttributeUtil.getDateTimeAttributes().contains(getUnquotedString(attributeId)) ?
                 getQuotedString(
                         BatchUtil.getFormattedDateString(
