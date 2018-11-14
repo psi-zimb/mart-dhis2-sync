@@ -49,12 +49,16 @@ public class OrgUnitServiceTest {
     private OrgUnitService orgUnitService;
 
     private ResponseEntity<OrgUnitResponse> responseEntity;
+    private String dhis2Url = "http://play.dhis2.org";
+    private String URI_ORG_UNIT = "/api/organisationUnits?pageSize=150000";
+    ;
 
     @Before
     public void setUp() throws Exception {
         orgUnitService = new OrgUnitService();
         setValuesForMemberFields(orgUnitService, "syncRepository", syncRepository);
         setValuesForMemberFields(orgUnitService, "dataSource", dataSource);
+        setValuesForMemberFields(orgUnitService, "dhis2Url", dhis2Url);
     }
 
     @Test
@@ -62,13 +66,13 @@ public class OrgUnitServiceTest {
     public void shouldGetAllOrgUnitsFromDHIS() {
         responseEntity = ResponseEntity.ok(new OrgUnitResponse(new Pager(), orgUnitList));
 
-        when(syncRepository.getOrgUnits("")).thenReturn(responseEntity);
+        when(syncRepository.getOrgUnits(dhis2Url + URI_ORG_UNIT)).thenReturn(responseEntity);
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(any())).thenReturn(preparedStatement);
 
         orgUnitService.getOrgUnitsList();
 
-        verify(syncRepository, times(1)).getOrgUnits("");
+        verify(syncRepository, times(1)).getOrgUnits(dhis2Url + URI_ORG_UNIT);
         verify(dataSource, times(1)).getConnection();
     }
 
@@ -77,12 +81,12 @@ public class OrgUnitServiceTest {
     public void shouldHandleExceptionsThrownWhenTryingToGetOrgUnitsFromDHIS() {
         responseEntity = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new OrgUnitResponse(new Pager(), orgUnitList));
 
-        when(syncRepository.getOrgUnits("")).thenReturn(responseEntity);
+        when(syncRepository.getOrgUnits(dhis2Url + URI_ORG_UNIT)).thenReturn(responseEntity);
         when(dataSource.getConnection()).thenThrow(new SQLException());
 
         orgUnitService.getOrgUnitsList();
 
-        verify(syncRepository, times(1)).getOrgUnits("");
+        verify(syncRepository, times(1)).getOrgUnits(dhis2Url + URI_ORG_UNIT);
         verify(dataSource, times(0)).getConnection();
     }
 

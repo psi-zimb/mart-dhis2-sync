@@ -8,6 +8,7 @@ import com.thoughtworks.martdhis2sync.util.OrgUnitUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -24,13 +25,16 @@ import java.util.List;
 @Component
 public class OrgUnitService {
 
+    @Value("${dhis2.url}")
+    private String dhis2Url;
+
     @Autowired
     private DataSource dataSource;
 
     @Autowired
     private SyncRepository syncRepository;
 
-    public static final String URI_ORG_UNIT = "/api/organisationUnits?pageSize=150000";
+    private static final String URI_ORG_UNIT = "/api/organisationUnits?pageSize=150000";
 
     private List<OrgUnit> orgUnits = new ArrayList<>();
 
@@ -44,17 +48,16 @@ public class OrgUnitService {
 
         logger.info(LOG_PREFIX + "Started.");
         orgUnits.clear();
-        String uri = "";
+        String url = dhis2Url + URI_ORG_UNIT;
         ResponseEntity<OrgUnitResponse> responseEntity;
         do {
-            responseEntity = syncRepository.getOrgUnits(uri);
+            responseEntity = syncRepository.getOrgUnits(url);
             if (null == responseEntity) {
-                logger.error(LOG_PREFIX + "Received empty response.");
                 return;
             }
             orgUnits.addAll(responseEntity.getBody().getOrganisationUnits());
-            uri = responseEntity.getBody().getPager().getNextPage();
-        } while (null != uri);
+            url = responseEntity.getBody().getPager().getNextPage();
+        } while (null != url);
 
         OrgUnitUtil.getOrgUnitMap().clear();
         int count = updateTracker();
