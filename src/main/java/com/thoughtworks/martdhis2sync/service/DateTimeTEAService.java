@@ -1,6 +1,5 @@
 package com.thoughtworks.martdhis2sync.service;
 
-import com.thoughtworks.martdhis2sync.model.TrackedEntityAttribute;
 import com.thoughtworks.martdhis2sync.model.TrackedEntityAttributeResponse;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.util.TrackedEntityAttributeUtil;
@@ -20,7 +19,7 @@ public class DateTimeTEAService {
     private SyncRepository syncRepository;
 
     private ResponseEntity<TrackedEntityAttributeResponse> dateTimeTEAttributes;
-    public static String URI_DATE_TIME__T_E_ATTRIBUTES = "/api/trackedEntityAttributes?pageSize=10&filter=valueType:eq:DATETIME";
+    public static String URI_DATE_TIME_T_E_ATTRIBUTES = "/api/trackedEntityAttributes?pageSize=10&filter=valueType:eq:DATETIME";
     private List<String> trackedEntityAttributes = new LinkedList<>();
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
