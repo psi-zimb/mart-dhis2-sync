@@ -19,8 +19,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.Charset;
 
-import static com.thoughtworks.martdhis2sync.service.OrgUnitService.URI_ORG_UNIT;
-
 @Repository
 public class SyncRepository {
 
@@ -69,7 +67,7 @@ public class SyncRepository {
         ResponseEntity<OrgUnitResponse> responseEntity = null;
         try {
             responseEntity = restTemplate
-                    .exchange((url.isEmpty() ? dhis2Url + URI_ORG_UNIT : url), HttpMethod.GET,
+                    .exchange(url, HttpMethod.GET,
                             new HttpEntity<>(getHttpHeaders()), OrgUnitResponse.class);
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
         } catch (Exception e) {
