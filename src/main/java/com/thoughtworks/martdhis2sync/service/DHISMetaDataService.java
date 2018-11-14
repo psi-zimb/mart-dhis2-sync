@@ -3,8 +3,8 @@ package com.thoughtworks.martdhis2sync.service;
 import com.thoughtworks.martdhis2sync.model.DataElementResponse;
 import com.thoughtworks.martdhis2sync.model.TrackedEntityAttributeResponse;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
-import com.thoughtworks.martdhis2sync.util.DataElementsUtil;
-import com.thoughtworks.martdhis2sync.util.TrackedEntityAttributeUtil;
+import com.thoughtworks.martdhis2sync.util.EventUtil;
+import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +64,7 @@ public class DHISMetaDataService {
     }
 
     public void filterByTypeDateTime() {
-        DataElementsUtil.setDateTimeElements(getDataElements());
-        TrackedEntityAttributeUtil.setDateTimeAttributes(getTEAttributes());
+        EventUtil.setElementsOfTypeDateTime(getDataElements());
+        TEIUtil.setAttributeOfTypeDateTime(getTEAttributes());
     }
 }
