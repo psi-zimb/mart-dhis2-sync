@@ -23,9 +23,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.Charset;
 
-import static com.thoughtworks.martdhis2sync.service.DateTimeDataElementService.URI_DATE_TIME_DATA_ELEMENTS;
+import static com.thoughtworks.martdhis2sync.service.DHISMetaDataService.URI_DATE_TIME_DATA_ELEMENTS;
+import static com.thoughtworks.martdhis2sync.service.DHISMetaDataService.URI_DATE_TIME_T_E_ATTRIBUTES;
 import static com.thoughtworks.martdhis2sync.service.OrgUnitService.URI_ORG_UNIT;
-import static com.thoughtworks.martdhis2sync.service.DateTimeTEAService.URI_DATE_TIME_T_E_ATTRIBUTES;
 
 @Repository
 public class SyncRepository {

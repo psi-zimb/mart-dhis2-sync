@@ -1,8 +1,6 @@
 package com.thoughtworks.martdhis2sync.service;
 
-import com.thoughtworks.martdhis2sync.model.DataElement;
-import com.thoughtworks.martdhis2sync.model.DataElementResponse;
-import com.thoughtworks.martdhis2sync.model.Pager;
+import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.util.DataElementsUtil;
 import org.junit.Before;
@@ -13,7 +11,6 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.http.ResponseEntity;
 
-import javax.sql.DataSource;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -23,22 +20,21 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.management.*")
-public class DateTimeDataElementServiceTest {
-    private DateTimeDataElementService dateTimeDataElementService;
+public class DHISMetaDataServiceTest {
+    private DHISMetaDataService dhisMetaDataService;
 
     @Mock
     private SyncRepository syncRepository;
 
-    @Mock
-    private DataSource dataSource;
-
     private ResponseEntity<DataElementResponse> responseEntity;
     private List<DataElement> dataElements = new LinkedList<>();
+    private ResponseEntity<TrackedEntityAttributeResponse> trackedEntityAttributeResponse;
+    private List<TrackedEntityAttribute> trackedEntityAttributes = new LinkedList<>();
 
     @Before
     public void setUp() throws Exception {
-        dateTimeDataElementService = new DateTimeDataElementService();
-        setValuesForMemberFields(dateTimeDataElementService, "syncRepository", syncRepository);
+        dhisMetaDataService = new DHISMetaDataService();
+        setValuesForMemberFields(dhisMetaDataService, "syncRepository", syncRepository);
 
         dataElements.add(new DataElement("asfasdfs", "date"));
         dataElements.add(new DataElement("gdfdsfsf", "time"));
@@ -48,11 +44,14 @@ public class DateTimeDataElementServiceTest {
     @Test
     public void shouldGetDataElementInfoFromDHIS() {
         responseEntity = ResponseEntity.ok(new DataElementResponse(new Pager(), dataElements));
+        trackedEntityAttributeResponse = ResponseEntity.ok(new TrackedEntityAttributeResponse(new Pager(), trackedEntityAttributes));
 
         when(syncRepository.getDataElements("")).thenReturn(responseEntity);
+        when(syncRepository.getTrackedEntityAttributes("")).thenReturn(trackedEntityAttributeResponse);
 
-        dateTimeDataElementService.getDataElements();
+        dhisMetaDataService.filterByTypeDateTime();
 
         verify(syncRepository, times(1)).getDataElements("");
+        verify(syncRepository, times(1)).getTrackedEntityAttributes("");
     }
 }
