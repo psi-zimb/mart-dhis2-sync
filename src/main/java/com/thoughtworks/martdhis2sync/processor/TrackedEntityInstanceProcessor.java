@@ -6,7 +6,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
-import com.thoughtworks.martdhis2sync.util.TrackedEntityAttributeUtil;
 import lombok.Setter;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
@@ -80,7 +79,7 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
     }
 
     private String changeFormatIfDate(String attributeId, String value) {
-        return TrackedEntityAttributeUtil.getDateTimeAttributes().contains(getUnquotedString(attributeId)) ?
+        return TEIUtil.getAttributeOfTypeDateTime().contains(getUnquotedString(attributeId)) ?
                 getQuotedString(
                         BatchUtil.getFormattedDateString(
                                 getUnquotedString(value),

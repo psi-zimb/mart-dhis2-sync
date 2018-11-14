@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.thoughtworks.martdhis2sync.util.DataElementsUtil;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
 import lombok.Setter;
 import org.springframework.batch.item.ItemProcessor;
@@ -99,7 +98,7 @@ public class EventProcessor implements ItemProcessor {
     }
 
     private String changeFormatIfDate(String elementId, String value) {
-        return DataElementsUtil.getDateTimeElements().contains(getUnquotedString(elementId)) ?
+        return EventUtil.getElementsOfTypeDateTime().contains(getUnquotedString(elementId)) ?
                 getQuotedString(
                         getFormattedDateString(
                                 getUnquotedString(value),

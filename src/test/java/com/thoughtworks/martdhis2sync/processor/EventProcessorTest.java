@@ -2,7 +2,6 @@ package com.thoughtworks.martdhis2sync.processor;
 
 import com.google.gson.JsonObject;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
-import com.thoughtworks.martdhis2sync.util.DataElementsUtil;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +24,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({EventUtil.class, BatchUtil.class, DataElementsUtil.class})
+@PrepareForTest({EventUtil.class, BatchUtil.class})
 public class EventProcessorTest {
     @Mock
     private Date eventDate;
@@ -52,14 +51,13 @@ public class EventProcessorTest {
         EventUtil.date = eventDate;
 
         mockStatic(BatchUtil.class);
-        mockStatic(DataElementsUtil.class);
 
         when(getUnquotedString("\"" + dateCreated + "\"")).thenReturn(dateCreated);
         when(BatchUtil.getDateFromString(dateCreated, BatchUtil.DATEFORMAT_WITH_24HR_TIME)).thenReturn(bahmniDate);
         when(getFormattedDateString(dateCreated, BatchUtil.DATEFORMAT_WITH_24HR_TIME, BatchUtil.DATEFORMAT_WITHOUT_TIME)).thenReturn(dateWithoutTime);
         when(BatchUtil.hasValue(getMappingJsonObj().get("crptc"))).thenReturn(true);
         when(BatchUtil.removeLastChar(any())).thenReturn(dataValues);
-        when(DataElementsUtil.getDateTimeElements()).thenReturn(dataElementIds);
+        when(EventUtil.getElementsOfTypeDateTime()).thenReturn(dataElementIds);
         when(getUnquotedString("\"gXNu7zJBTDN\"")).thenReturn("gXNu7zJBTDN");
         when(getUnquotedString("\"zJBTDNgXNu7\"")).thenReturn("zJBTDNgXNu7");
         when(getUnquotedString("\"" + dateCreated + "\"")).thenReturn(dateCreated);
@@ -141,7 +139,7 @@ public class EventProcessorTest {
         verifyStatic(times(1));
         BatchUtil.removeLastChar(any());
         verifyStatic(times(1));
-        DataElementsUtil.getDateTimeElements();
+        EventUtil.getElementsOfTypeDateTime();
         verifyStatic(times(1));
         getUnquotedString("\"gXNu7zJBTDN\"");
     }

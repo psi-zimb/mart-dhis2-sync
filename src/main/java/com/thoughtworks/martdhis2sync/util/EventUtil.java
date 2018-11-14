@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.thoughtworks.martdhis2sync.model.EventTracker;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,6 +21,10 @@ public class EventUtil {
 
     @Getter
     private static List<EventTracker> existingEventTrackers = new ArrayList<>();
+
+    @Getter
+    @Setter
+    private static List<String> elementsOfTypeDateTime;
 
     @Getter
     private static List<EventTracker> newEventTrackers = new ArrayList<>();
