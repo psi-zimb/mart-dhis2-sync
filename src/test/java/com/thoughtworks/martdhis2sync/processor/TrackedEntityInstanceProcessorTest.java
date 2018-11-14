@@ -3,7 +3,6 @@ package com.thoughtworks.martdhis2sync.processor;
 import com.google.gson.JsonObject;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
-import com.thoughtworks.martdhis2sync.util.TrackedEntityAttributeUtil;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,7 +21,7 @@ import static org.mockito.Mockito.times;
 import static org.powermock.api.mockito.PowerMockito.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({TEIUtil.class, BatchUtil.class, TrackedEntityAttributeUtil.class})
+@PrepareForTest({TEIUtil.class, BatchUtil.class})
 public class TrackedEntityInstanceProcessorTest {
     @Mock
     private Date teiDate;
@@ -40,7 +39,6 @@ public class TrackedEntityInstanceProcessorTest {
         dateTimeAttributes.add("aQLSyCrOb34");
 
         mockStatic(TEIUtil.class);
-        mockStatic(TrackedEntityAttributeUtil.class);
         doNothing().when(TEIUtil.class);
         TEIUtil.setPatientIds(getTableRowObject());
         TEIUtil.date = teiDate;
@@ -52,7 +50,7 @@ public class TrackedEntityInstanceProcessorTest {
         when(getDateFromString(dateCreated, DATEFORMAT_WITH_24HR_TIME)).thenReturn(bahmniDate);
         when(getFormattedDateString(dateCreated, DATEFORMAT_WITH_24HR_TIME, DHIS_ACCEPTABLE_DATEFORMAT)).thenReturn(dhisAcceptableDate);
         when(getQuotedString(dhisAcceptableDate)).thenReturn("\"" + dhisAcceptableDate + "\"");
-        when(TrackedEntityAttributeUtil.getDateTimeAttributes()).thenReturn(dateTimeAttributes);
+        when(TEIUtil.getAttributeOfTypeDateTime()).thenReturn(dateTimeAttributes);
     }
 
     @Test
@@ -104,7 +102,7 @@ public class TrackedEntityInstanceProcessorTest {
         verifyStatic();
         getDateFromString(dateCreated, DATEFORMAT_WITH_24HR_TIME);
         verifyStatic(times(2));
-        TrackedEntityAttributeUtil.getDateTimeAttributes();
+        TEIUtil.getAttributeOfTypeDateTime();
         verifyStatic(times(1));
         BatchUtil.getQuotedString(dhisAcceptableDate);
         verifyStatic(times(1));
