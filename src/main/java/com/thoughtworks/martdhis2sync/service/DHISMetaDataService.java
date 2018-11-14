@@ -8,6 +8,7 @@ import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
@@ -20,27 +21,28 @@ public class DHISMetaDataService {
     @Autowired
     private SyncRepository syncRepository;
 
-    private List<String> dateTimeDataElements = new LinkedList<>();
-    private List<String> trackedEntityAttributes = new LinkedList<>();
+    @Value("${dhis2.url}")
+    private String dhis2Url;
 
     private static final String LOG_PREFIX = "Data Element Service: ";
-    public static final String URI_DATE_TIME_DATA_ELEMENTS = "/api/dataElements?pageSize=1000&filter=valueType:eq:DATETIME";
-    public static final String URI_DATE_TIME_T_E_ATTRIBUTES = "/api/trackedEntityAttributes?pageSize=10&filter=valueType:eq:DATETIME";
+    private static final String URI_DATE_TIME_DATA_ELEMENTS = "/api/dataElements?pageSize=1000&filter=valueType:eq:DATETIME";
+    private static final String URI_DATE_TIME_T_E_ATTRIBUTES = "/api/trackedEntityAttributes?pageSize=1000&filter=valueType:eq:DATETIME";
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private String url;
 
     private List<String> getTEAttributes() {
-        url = "";
+        List<String> trackedEntityAttributes = new LinkedList<>();
+        url = dhis2Url + URI_DATE_TIME_T_E_ATTRIBUTES;
         do {
             ResponseEntity<TrackedEntityAttributeResponse> dateTimeTEAttributes =
-                    syncRepository.getTrackedEntityAttributes("");
-            if (null != dateTimeTEAttributes) {
-                url = dateTimeTEAttributes.getBody().getPager().getNextPage();
-                dateTimeTEAttributes.getBody().getTrackedEntityAttributes().forEach(
-                        tEA -> trackedEntityAttributes.add(tEA.getId())
-                );
+                    syncRepository.getTrackedEntityAttributes(url);
+            if (null == dateTimeTEAttributes) {
+                break;
             }
+            url = dateTimeTEAttributes.getBody().getPager().getNextPage();
+            dateTimeTEAttributes.getBody().getTrackedEntityAttributes()
+                    .forEach(tEA -> trackedEntityAttributes.add(tEA.getId()));
         } while (null != url);
 
         logger.info(LOG_PREFIX + "Received " + trackedEntityAttributes.size() + " Tracked Entity Attributes of type DateTime");
@@ -48,15 +50,16 @@ public class DHISMetaDataService {
     }
 
     private List<String> getDataElements() {
-        url = "";
+        List<String> dateTimeDataElements = new LinkedList<>();
+        url = dhis2Url + URI_DATE_TIME_DATA_ELEMENTS;
         do {
-            ResponseEntity<DataElementResponse> dataElementResponse = syncRepository.getDataElements("");
-            if (null != dataElementResponse) {
-                dataElementResponse.getBody().getDataElements().forEach(
-                        dataElement -> dateTimeDataElements.add(dataElement.getId())
-                );
-                url = dataElementResponse.getBody().getPager().getNextPage();
+            ResponseEntity<DataElementResponse> dataElementResponse = syncRepository.getDataElements(url);
+            if (null == dataElementResponse) {
+                break;
             }
+            dataElementResponse.getBody().getDataElements()
+                    .forEach(dataElement -> dateTimeDataElements.add(dataElement.getId()));
+            url = dataElementResponse.getBody().getPager().getNextPage();
         } while (null != url);
 
         logger.info(LOG_PREFIX + "Received " + dateTimeDataElements.size() + " Data Elements of type DateTime");
