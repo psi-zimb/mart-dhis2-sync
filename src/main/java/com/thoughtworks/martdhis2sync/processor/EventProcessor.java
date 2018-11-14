@@ -90,7 +90,7 @@ public class EventProcessor implements ItemProcessor {
                 dataValues.append(String.format(
                         "{\"dataElement\": %s, \"value\": %s},",
                         dataElementInStringFormat,
-                        convertIfDate(dataElementInStringFormat, value)
+                        changeFormatIfDate(dataElementInStringFormat, value)
                 ));
             }
         }
@@ -98,7 +98,7 @@ public class EventProcessor implements ItemProcessor {
         return removeLastChar(dataValues);
     }
 
-    private String convertIfDate(String elementId, String value) {
+    private String changeFormatIfDate(String elementId, String value) {
         return DataElementsUtil.getDateTimeElements().contains(getUnquotedString(elementId)) ?
                 getQuotedString(
                         getFormattedDateString(
