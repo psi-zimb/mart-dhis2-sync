@@ -13,9 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.SyncFailedException;
 import java.util.Map;
 
-import static com.thoughtworks.martdhis2sync.service.LoggerService.FAILED;
-import static com.thoughtworks.martdhis2sync.service.LoggerService.NO_DELTA_DATA;
-import static com.thoughtworks.martdhis2sync.service.LoggerService.SUCCESS;
+import static com.thoughtworks.martdhis2sync.service.LoggerService.*;
 
 
 @RestController
@@ -37,10 +35,7 @@ public class PushController {
     private LoggerService loggerService;
 
     @Autowired
-    private DateTimeDataElementService dateTimeDataElementService;
-
-    @Autowired
-    private DateTimeTEAService dateTimeTEAService;
+    private DHISMetaDataService dhisMetaDataService;
 
     public static boolean IS_DELTA_EXISTS = false;
 
@@ -50,8 +45,7 @@ public class PushController {
         IS_DELTA_EXISTS = false;
         loggerService.addLog(requestBody.getService(), requestBody.getUser(), requestBody.getComment());
 
-        dateTimeDataElementService.getDataElements();
-        dateTimeTEAService.getTEAttributes();
+        dhisMetaDataService.filterByTypeDateTime();
 
         Map<String, Object> mapping = mappingService.getMapping(requestBody.getService());
 
