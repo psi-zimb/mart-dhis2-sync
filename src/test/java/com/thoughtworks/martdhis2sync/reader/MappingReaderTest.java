@@ -57,6 +57,7 @@ public class MappingReaderTest {
         setValuesForMemberFields(mappingReader, "instanceResource", resource);
         setValuesForMemberFields(mappingReader, "enrollmentResource", resource);
         setValuesForMemberFields(mappingReader, "eventResource", resource);
+        setValuesForMemberFields(mappingReader, "newCompletedEnrResource", resource);
         mockStatic(BatchUtil.class);
     }
 
@@ -172,6 +173,50 @@ public class MappingReaderTest {
         doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
 
         JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getEventReader(lookupTable, programName, enrollmentLookupTable);
+
+        assertEquals(jdbcCursorItemReader, actual);
+
+        verify(jdbcCursorItemReader, times(1)).setDataSource(dataSource);
+        verify(jdbcCursorItemReader, times(1)).setSql(sql);
+        verify(jdbcCursorItemReader, times(1)).setRowMapper(columnMapRowMapper);
+    }
+
+    @Test
+    public void shouldReturnReaderForNewCompletedEnrollments() throws Exception {
+        String eventLookupTable = "event";
+        String enrollmentLookupTable = "enrollment";
+
+        String sql = String.format("SELECT\n" +
+                        "       programEnrollmentsTable.incident_date,\n" +
+                        "       programEnrollmentsTable.date_created     AS enrollment_date_created,\n" +
+                        "       eventsTable.*,\n" +
+                        "       orgTracker.id                            AS orgunit_id,\n" +
+                        "       insTracker.instance_id\n" +
+                        "FROM (SELECT prog.*\n" +
+                        "        FROM %s prog\n" +
+                        "        INNER JOIN marker enrollment_marker ON prog.date_created::TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
+                        "                AND category = 'enrollment' AND program_name =  '%s') AS  programEnrollmentsTable\n" +
+                        "FULL OUTER JOIN (SELECT event.*\n" +
+                        "                    FROM %s event\n" +
+                        "                    INNER JOIN marker event_marker ON event.date_created::TIMESTAMP > COALESCE(event_marker.last_synced_date, '-infinity')\n" +
+                        "                    AND category = 'event' AND program_name =  '%s') AS  eventsTable\n" +
+                        "ON  programEnrollmentsTable.\"Patient_Identifier\" =  eventsTable.\"Patient_Identifier\"\n" +
+                        "    AND eventsTable.enrollment_date = programEnrollmentsTable.enrollment_date\n" +
+                        "INNER JOIN orgunit_tracker orgTracker ON eventsTable.\"OrgUnit\" = orgTracker.orgunit\n" +
+                        "INNER JOIN instance_tracker insTracker ON eventsTable.\"Patient_Identifier\" = insTracker.patient_id\n" +
+                        "LEFT JOIN enrollment_tracker enrolTracker ON enrolTracker.instance_id = insTracker.instance_id\n" +
+                        "WHERE programEnrollmentsTable.status = 'COMPLETED'\n" +
+                        "  AND enrolTracker.instance_id IS NULL;",
+                enrollmentLookupTable, programName, eventLookupTable, programName);
+
+        whenNew(JdbcCursorItemReader.class).withNoArguments().thenReturn(jdbcCursorItemReader);
+        whenNew(ColumnMapRowMapper.class).withNoArguments().thenReturn(columnMapRowMapper);
+        when(BatchUtil.convertResourceOutputToString(resource)).thenReturn(sql);
+        doNothing().when(jdbcCursorItemReader).setDataSource(dataSource);
+        doNothing().when(jdbcCursorItemReader).setSql(sql);
+        doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
+
+        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getNewCompletedEnrollmentReader(eventLookupTable, programName, enrollmentLookupTable);
 
         assertEquals(jdbcCursorItemReader, actual);
 
