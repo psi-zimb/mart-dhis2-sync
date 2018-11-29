@@ -1,8 +1,9 @@
 SELECT
        programEnrollmentsTable.incident_date,
-       programEnrollmentsTable.date_created     AS enrollment_date_created,
+       programEnrollmentsTable.date_created       AS enrollment_date_created,
+       programEnrollmentsTable.program_unique_id  AS program_unique_id,
        eventsTable.*,
-       orgTracker.id                            AS orgunit_id,
+       orgTracker.id                              AS orgunit_id,
        insTracker.instance_id
 FROM (SELECT prog.*
         FROM %s prog
