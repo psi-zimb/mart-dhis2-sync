@@ -12,9 +12,10 @@ import com.thoughtworks.martdhis2sync.util.EventUtil;
 import lombok.Setter;
 import org.springframework.batch.item.ItemProcessor;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -55,6 +56,8 @@ public class NewCompletedEnrollmentProcessor implements ItemProcessor {
     }
 
     private EnrollmentAPIPayLoad getEnrollmentAPIPayLoad(JsonObject tableRowJsonObject, Event event) {
+        List<Event> events = new LinkedList<>();
+        events.add(event);
         return new EnrollmentAPIPayLoad(
                "",
                tableRowJsonObject.get("instance_id").getAsString(),
@@ -66,7 +69,7 @@ public class NewCompletedEnrollmentProcessor implements ItemProcessor {
                        DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME),
                EnrollmentAPIPayLoad.STATUS_ACTIVE,
                tableRowJsonObject.get("program_unique_id").getAsString(),
-                Collections.singletonList(event)
+               events
         );
     }
 
