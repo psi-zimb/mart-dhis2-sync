@@ -18,5 +18,6 @@ public class Event {
     private String orgUnit;
     private String eventDate;
     private String status;
+    private String eventUniqueId;
     private Map<String, String> dataValues;
 }
