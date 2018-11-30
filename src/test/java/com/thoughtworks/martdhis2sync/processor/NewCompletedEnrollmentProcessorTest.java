@@ -27,7 +27,6 @@ import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getFormattedDateString;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.times;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -59,8 +58,6 @@ public class NewCompletedEnrollmentProcessorTest {
 
         mockStatic(EventUtil.class);
         EventUtil.date = bahmniDate;
-        doNothing().when(EventUtil.class);
-        EventUtil.addNewEventTracker(getTableRowObject());
         when(EventUtil.getElementsOfTypeDateTime()).thenReturn(Collections.singletonList("zJBTDNgXNu7"));
 
         mockStatic(BatchUtil.class);
@@ -87,8 +84,6 @@ public class NewCompletedEnrollmentProcessorTest {
         assertEquals(getExpected(), actual);
         assertEquals(enrollmentDate, EnrollmentUtil.date);
         assertEquals(eventDate, EventUtil.date);
-        verifyStatic(times(1));
-        EventUtil.addNewEventTracker(getTableRowObject());
     }
 
     @Test
@@ -111,8 +106,6 @@ public class NewCompletedEnrollmentProcessorTest {
         assertEquals(getExpected(), actual);
         assertEquals(existingEnrDate, EnrollmentUtil.date);
         assertEquals(existingEventDate, EventUtil.date);
-        verifyStatic(times(1));
-        EventUtil.addNewEventTracker(getTableRowObject());
     }
 
     @Test
@@ -133,8 +126,6 @@ public class NewCompletedEnrollmentProcessorTest {
         assertEquals(getExpected(), actual);
         assertEquals(enrollmentDate, EnrollmentUtil.date);
         assertEquals(existingEventDate, EventUtil.date);
-        verifyStatic(times(1));
-        EventUtil.addNewEventTracker(getTableRowObject());
     }
 
     @Test
@@ -155,8 +146,6 @@ public class NewCompletedEnrollmentProcessorTest {
         assertEquals(getExpected(), actual);
         assertEquals(existingEnrDate, EnrollmentUtil.date);
         assertEquals(eventDate, EventUtil.date);
-        verifyStatic(times(1));
-        EventUtil.addNewEventTracker(getTableRowObject());
     }
 
     @Test
@@ -182,8 +171,6 @@ public class NewCompletedEnrollmentProcessorTest {
         assertEquals(expected, actual);
         assertEquals(enrollmentDate, EnrollmentUtil.date);
         assertEquals(eventDate, EventUtil.date);
-        verifyStatic(times(1));
-        EventUtil.addNewEventTracker(tableRowObject);
     }
 
     private void mockVerify() {
@@ -248,6 +235,7 @@ public class NewCompletedEnrollmentProcessorTest {
                 orgUnitId,
                 eventDateValue,
                 status,
+                "1",
                 dataValues
         );
         return new EnrollmentAPIPayLoad(

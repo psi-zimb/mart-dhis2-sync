@@ -25,7 +25,6 @@ import static com.thoughtworks.martdhis2sync.util.BatchUtil.DHIS_ACCEPTABLE_DATE
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getFormattedDateString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.hasValue;
-import static com.thoughtworks.martdhis2sync.util.EventUtil.addNewEventTracker;
 
 public class NewCompletedEnrollmentProcessor implements ItemProcessor {
 
@@ -40,8 +39,6 @@ public class NewCompletedEnrollmentProcessor implements ItemProcessor {
 
         JsonObject tableRowJsonObject = tableRowJsonElement.getAsJsonObject();
         JsonObject mappingJsonObject = mappingObjJsonElement.getAsJsonObject();
-
-        addNewEventTracker(tableRowJsonObject);
 
         updateLatestEventDateCreated(tableRowJsonObject.get("date_created").getAsString());
         updateLatestEnrollmentDateCreated(tableRowJsonObject.get("enrollment_date_created").getAsString());
@@ -86,6 +83,7 @@ public class NewCompletedEnrollmentProcessor implements ItemProcessor {
                 tableRow.get("orgunit_id").getAsString(),
                 dateString,
                 Event.STATUS_COMPLETED,
+                tableRow.get("event_unique_id").getAsString(),
                 getDataValues(tableRow, mapping)
         );
     }
