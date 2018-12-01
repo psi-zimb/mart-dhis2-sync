@@ -1,14 +1,23 @@
 package com.thoughtworks.martdhis2sync.repository;
 
 import com.google.gson.Gson;
-import com.thoughtworks.martdhis2sync.model.*;
+import com.thoughtworks.martdhis2sync.model.DHISEnrollmentSyncResponse;
+import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
+import com.thoughtworks.martdhis2sync.model.DataElementResponse;
+import com.thoughtworks.martdhis2sync.model.OrgUnitResponse;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityAttributeResponse;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceResponse;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -48,6 +57,28 @@ public class SyncRepository {
         } catch (HttpClientErrorException e) {
             responseEntity = new ResponseEntity<>(
                     new Gson().fromJson(e.getResponseBodyAsString(), DHISSyncResponse.class),
+                    e.getStatusCode());
+            loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
+            logger.error(LOG_PREFIX + e);
+        } catch (HttpServerErrorException e) {
+            loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
+            logger.error(LOG_PREFIX + e);
+            throw e;
+        }
+        System.out.println("\nRES: " + responseEntity);
+        return responseEntity;
+    }
+
+    public ResponseEntity<DHISEnrollmentSyncResponse> sendEnrollmentData(String uri, String body) {
+        ResponseEntity<DHISEnrollmentSyncResponse> responseEntity;
+        System.out.println("\nREQ: " + body);
+        try {
+            responseEntity = restTemplate
+                    .exchange(dhis2Url + uri, HttpMethod.POST, new HttpEntity<>(body, getHttpHeaders()), DHISEnrollmentSyncResponse.class);
+            logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
+        } catch (HttpClientErrorException e) {
+            responseEntity = new ResponseEntity<>(
+                    new Gson().fromJson(e.getResponseBodyAsString(), DHISEnrollmentSyncResponse.class),
                     e.getStatusCode());
             loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
             logger.error(LOG_PREFIX + e);

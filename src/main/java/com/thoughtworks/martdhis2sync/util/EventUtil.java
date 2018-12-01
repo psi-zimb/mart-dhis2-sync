@@ -2,6 +2,7 @@ package com.thoughtworks.martdhis2sync.util;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.thoughtworks.martdhis2sync.model.Event;
 import com.thoughtworks.martdhis2sync.model.EventTracker;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,6 +29,8 @@ public class EventUtil {
 
     @Getter
     private static List<EventTracker> newEventTrackers = new ArrayList<>();
+
+    public static List<EventTracker> eventsToSaveInTracker = new ArrayList<>();
 
     public static void addExistingEventTracker(JsonObject tableRow) {
         existingEventTrackers.add(getEventTracker(tableRow));
@@ -59,5 +62,16 @@ public class EventUtil {
     public static void resetEventTrackersList() {
         existingEventTrackers.clear();
         newEventTrackers.clear();
+    }
+
+    public static List<EventTracker> getEventTrackers(List<Event> events) {
+        return events.stream().map(event -> new EventTracker(
+                event.getEvent(),
+                event.getTrackedEntityInstance(),
+                event.getProgram(),
+                event.getEventUniqueId(),
+                event.getProgramStage()
+            )
+        ).collect(Collectors.toList());
     }
 }
