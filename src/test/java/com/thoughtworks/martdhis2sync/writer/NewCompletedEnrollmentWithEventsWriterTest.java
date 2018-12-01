@@ -45,7 +45,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.management.*")
-public class NewCompletedEnrollmentWriterTest {
+public class NewCompletedEnrollmentWithEventsWriterTest {
     @Mock
     private SyncRepository syncRepository;
 
@@ -64,7 +64,7 @@ public class NewCompletedEnrollmentWriterTest {
     @Mock
     private EnrollmentResponse response;
 
-    private NewCompletedEnrollmentWriter writer;
+    private NewCompletedEnrollmentWithEventsWriter writer;
 
     private String uri = "/api/enrollments?strategy=CREATE_AND_UPDATE";
 
@@ -115,7 +115,7 @@ public class NewCompletedEnrollmentWriterTest {
         ProcessedTableRow processedTableRow3 = getProcessedTableRow(patientIdentifier3, payLoad3);
 
         processedTableRows = Arrays.asList(processedTableRow1, processedTableRow2, processedTableRow3);
-        writer = new NewCompletedEnrollmentWriter();
+        writer = new NewCompletedEnrollmentWithEventsWriter();
 
         setValuesForMemberFields(writer, "syncRepository", syncRepository);
         setValuesForMemberFields(writer, "loggerService", loggerService);
