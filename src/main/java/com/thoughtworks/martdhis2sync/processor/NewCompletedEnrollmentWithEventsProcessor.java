@@ -26,7 +26,7 @@ import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getFormattedDateString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.hasValue;
 
-public class NewCompletedEnrollmentProcessor implements ItemProcessor {
+public class NewCompletedEnrollmentWithEventsProcessor implements ItemProcessor {
 
     @Setter
     private Object mappingObj;
