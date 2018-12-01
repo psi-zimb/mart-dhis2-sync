@@ -38,7 +38,7 @@ import static com.thoughtworks.martdhis2sync.util.EventUtil.eventsToSaveInTracke
 
 @Component
 @StepScope
-public class NewCompletedEnrollmentWriter implements ItemWriter<ProcessedTableRow> {
+public class NewCompletedEnrollmentWithEventsWriter implements ItemWriter<ProcessedTableRow> {
     private static final String URI = "/api/enrollments?strategy=CREATE_AND_UPDATE";
 
     @Autowired
