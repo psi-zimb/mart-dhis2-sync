@@ -1,7 +1,6 @@
 package com.thoughtworks.martdhis2sync.service;
 
 import com.thoughtworks.martdhis2sync.listener.JobCompletionNotificationListener;
-import com.thoughtworks.martdhis2sync.step.TrackedEntityInstanceStep;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +21,7 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 
 import java.io.SyncFailedException;
 import java.util.Collections;
+import java.util.LinkedList;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static org.mockito.Matchers.any;
@@ -46,10 +46,10 @@ public class JobServiceTest {
     private JobCompletionNotificationListener listener;
 
     @Mock
-    private TrackedEntityInstanceStep instanceStep;
+    private Step step1;
 
     @Mock
-    private Step step;
+    private Step step2;
 
     @Mock
     private JobFlowBuilder flowBuilder;
@@ -76,6 +76,7 @@ public class JobServiceTest {
     private String programName = "serviceName";
     private String user = "Admin";
     private String jobName = "syncTrackedEntityInstance";
+    private LinkedList<Step> steps = new LinkedList<>();
 
     @Before
     public void setUp() throws Exception {
@@ -84,6 +85,7 @@ public class JobServiceTest {
         setValuesForMemberFields(jobService, "listener", listener);
         setValuesForMemberFields(jobService, "jobBuilderFactory", jobBuilderFactory);
         setValuesForMemberFields(jobService, "loggerService", loggerService);
+        steps.add(step1);
     }
 
     @Test
@@ -92,13 +94,12 @@ public class JobServiceTest {
         jobMocks();
         when(jobLauncher.run(any(Job.class), any(JobParameters.class))).thenReturn(execution);
 
-        jobService.triggerJob(programName, user, lookUpTable, jobName, instanceStep, mappingObj);
+        jobService.triggerJob(programName, user, jobName, steps);
 
         verify(jobBuilderFactory, times(1)).get("syncTrackedEntityInstance");
         verify(jobBuilder, times(1)).incrementer(any());
         verify(jobBuilder, times(1)).listener(listener);
-        verify(instanceStep, times(1)).get(lookUpTable, programName, mappingObj);
-        verify(jobBuilder, times(1)).flow(step);
+        verify(jobBuilder, times(1)).flow(step1);
         verify(flowBuilder, times(1)).end();
         verify(flowJobBuilder, times(1)).build();
     }
@@ -110,7 +111,7 @@ public class JobServiceTest {
         when(jobLauncher.run(any(Job.class), any(JobParameters.class)))
                 .thenThrow(new JobExecutionAlreadyRunningException("Job Execution Already Running"));
 
-        jobService.triggerJob(programName, user, lookUpTable, jobName, instanceStep, mappingObj);
+        jobService.triggerJob(programName, user, jobName, steps);
     }
 
     @Test(expected = SyncFailedException.class)
@@ -119,13 +120,12 @@ public class JobServiceTest {
         when(jobLauncher.run(any(Job.class), any(JobParameters.class))).thenReturn(execution);
         when(execution.getStatus()).thenReturn(BatchStatus.FAILED);
 
-        jobService.triggerJob(programName, user, lookUpTable, jobName, instanceStep, mappingObj);
+        jobService.triggerJob(programName, user, jobName, steps);
 
         verify(jobBuilderFactory, times(1)).get("syncTrackedEntityInstance");
         verify(jobBuilder, times(1)).incrementer(any());
         verify(jobBuilder, times(1)).listener(listener);
-        verify(instanceStep, times(1)).get(lookUpTable, programName, mappingObj);
-        verify(jobBuilder, times(1)).flow(step);
+        verify(jobBuilder, times(1)).flow(step1);
         verify(flowBuilder, times(1)).end();
         verify(flowJobBuilder, times(1)).build();
     }
@@ -141,13 +141,12 @@ public class JobServiceTest {
         when(throwable.getMessage()).thenReturn(expMessage);
 
         try {
-            jobService.triggerJob(programName, user, lookUpTable, jobName, instanceStep, mappingObj);
+            jobService.triggerJob(programName, user, jobName, steps);
         } catch (SyncFailedException e) {
             verify(jobBuilderFactory, times(1)).get("syncTrackedEntityInstance");
             verify(jobBuilder, times(1)).incrementer(any());
             verify(jobBuilder, times(1)).listener(listener);
-            verify(instanceStep, times(1)).get(lookUpTable, programName, mappingObj);
-            verify(jobBuilder, times(1)).flow(step);
+            verify(jobBuilder, times(1)).flow(step1);
             verify(flowBuilder, times(1)).end();
             verify(flowJobBuilder, times(1)).build();
 
@@ -170,13 +169,12 @@ public class JobServiceTest {
         when(throwable.getMessage()).thenReturn(null);
 
         try {
-            jobService.triggerJob(programName, user, lookUpTable, jobName, instanceStep, mappingObj);
+            jobService.triggerJob(programName, user, jobName, steps);
         } catch (SyncFailedException e) {
             verify(jobBuilderFactory, times(1)).get("syncTrackedEntityInstance");
             verify(jobBuilder, times(1)).incrementer(any());
             verify(jobBuilder, times(1)).listener(listener);
-            verify(instanceStep, times(1)).get(lookUpTable, programName, mappingObj);
-            verify(jobBuilder, times(1)).flow(step);
+            verify(jobBuilder, times(1)).flow(step1);
             verify(flowBuilder, times(1)).end();
             verify(flowJobBuilder, times(1)).build();
 
@@ -189,12 +187,29 @@ public class JobServiceTest {
         }
     }
 
+    @Test
+    public void shouldTriggerTheJobWithMultipleSteps() throws Exception {
+        steps.add(step2);
+        jobMocks();
+        when(jobLauncher.run(any(Job.class), any(JobParameters.class))).thenReturn(execution);
+
+        jobService.triggerJob(programName, user, jobName, steps);
+
+        verify(jobBuilderFactory, times(1)).get("syncTrackedEntityInstance");
+        verify(jobBuilder, times(1)).incrementer(any());
+        verify(jobBuilder, times(1)).listener(listener);
+        verify(jobBuilder, times(1)).flow(step1);
+        verify(flowBuilder, times(1)).next(step2);
+        verify(flowBuilder, times(1)).end();
+        verify(flowJobBuilder, times(1)).build();
+    }
+
     private void jobMocks() throws Exception {
         when(jobBuilderFactory.get(jobName)).thenReturn(jobBuilder);
         when(jobBuilder.incrementer(any())).thenReturn(jobBuilder);
         when(jobBuilder.listener(listener)).thenReturn(jobBuilder);
-        when(instanceStep.get(lookUpTable, programName, mappingObj)).thenReturn(step);
-        when(jobBuilder.flow(step)).thenReturn(flowBuilder);
+        when(jobBuilder.flow(step1)).thenReturn(flowBuilder);
+        when(flowBuilder.next(step2)).thenReturn(flowBuilder);
         when(flowBuilder.end()).thenReturn(flowJobBuilder);
         when(flowJobBuilder.build()).thenReturn(job);
     }
