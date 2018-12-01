@@ -30,12 +30,6 @@ public class PushControllerTest {
     private TEIService teiService;
 
     @Mock
-    private ProgramEnrollmentService programEnrollmentService;
-
-    @Mock
-    private EventService eventService;
-
-    @Mock
     private LoggerService loggerService;
 
     @Mock
@@ -51,8 +45,6 @@ public class PushControllerTest {
         pushController = new PushController();
         setValuesForMemberFields(pushController, "mappingService", mappingService);
         setValuesForMemberFields(pushController, "teiService", teiService);
-        setValuesForMemberFields(pushController, "programEnrollmentService", programEnrollmentService);
-        setValuesForMemberFields(pushController, "eventService", eventService);
         setValuesForMemberFields(pushController, "loggerService", loggerService);
         setValuesForMemberFields(pushController, "dhisMetaDataService", dhisMetaDataService);
     }
@@ -79,66 +71,6 @@ public class PushControllerTest {
         verify(loggerService, times(1)).updateLog(service, "failed");
         verify(mappingService, times(1)).getMapping(service);
         verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any());
-        verify(programEnrollmentService, times(0)).triggerJob(service, user, "hts_program_enrollment_table");
-        verify(eventService, times(0)).triggerJob(anyString(), anyString(), anyString(), any(), anyString());
-        verify(teiService, times(1)).setSearchableAttributes(Collections.singletonList("UIC"));
-    }
-
-    @Test
-    public void shouldNotCallEventServiceWhenEnrollmentServiceIsFailed() throws Exception {
-        Map<String, Object> mapping = getMapping();
-        DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
-
-        doNothing().when(dhisMetaDataService).filterByTypeDateTime();
-        doNothing().when(dhisMetaDataService).getTrackedEntityInstances(getDhisSyncRequestBody().getService());
-        doNothing().when(loggerService).addLog(service, user, comment);
-        doNothing().when(loggerService).updateLog(service, "failed");
-        when(mappingService.getMapping(service)).thenReturn(mapping);
-        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any());
-        doThrow(new SyncFailedException("enrollment sync failed")).when(programEnrollmentService).triggerJob(service, user, "hts_program_enrollment_table");
-
-        pushController.pushData(dhisSyncRequestBody);
-
-        verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
-        verify(dhisMetaDataService, times(1)).getTrackedEntityInstances(
-                getDhisSyncRequestBody().getService()
-        );
-        verify(loggerService, times(1)).addLog(service, user, comment);
-        verify(loggerService, times(1)).updateLog(service, "failed");
-        verify(mappingService, times(1)).getMapping(service);
-        verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any());
-        verify(programEnrollmentService, times(1)).triggerJob(service, user, "hts_program_enrollment_table");
-        verify(eventService, times(0)).triggerJob(anyString(), anyString(), anyString(), any(), anyString());
-        verify(teiService, times(1)).setSearchableAttributes(Collections.singletonList("UIC"));
-    }
-
-    @Test
-    public void shouldCallLoggerUpdateWithStatusAsFailedOnEventServiceFail() throws Exception {
-        Map<String, Object> mapping = getMapping();
-        DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
-
-        doNothing().when(loggerService).addLog(service, user, comment);
-        doNothing().when(loggerService).updateLog(service, "failed");
-        doNothing().when(dhisMetaDataService).getTrackedEntityInstances(getDhisSyncRequestBody().getService());
-        doNothing().when(dhisMetaDataService).filterByTypeDateTime();
-        when(mappingService.getMapping(service)).thenReturn(mapping);
-        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any());
-        doNothing().when(programEnrollmentService).triggerJob(service, user, "hts_program_enrollment_table");
-        doThrow(new SyncFailedException("event sync failed")).when(eventService).triggerJob(anyString(), anyString(), anyString(), any(), anyString());
-
-        pushController.pushData(dhisSyncRequestBody);
-
-        verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
-        verify(dhisMetaDataService, times(1)).getTrackedEntityInstances(
-                getDhisSyncRequestBody().getService()
-        );
-        verify(loggerService, times(1)).addLog(service, user, comment);
-        verify(loggerService, times(1)).updateLog(service, "failed");
-        verify(mappingService, times(1)).getMapping(service);
-        verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any());
-        verify(programEnrollmentService, times(1)).triggerJob(service, user, "hts_program_enrollment_table");
-        verify(eventService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyString());
-        verify(teiService, times(1)).setSearchableAttributes(Collections.singletonList("UIC"));
     }
 
     @Test
@@ -152,8 +84,6 @@ public class PushControllerTest {
         doNothing().when(loggerService).collateLogMessage("No delta data to sync.");
         when(mappingService.getMapping(service)).thenReturn(mapping);
         doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any());
-        doNothing().when(programEnrollmentService).triggerJob(service, user, "hts_program_enrollment_table");
-        doNothing().when(programEnrollmentService).triggerJob(service, user, "hts_program_enrollment_table");
 
         try {
             pushController.pushData(dhisSyncRequestBody);
@@ -166,9 +96,6 @@ public class PushControllerTest {
             verify(loggerService, times(1)).collateLogMessage("No delta data to sync.");
             verify(mappingService, times(1)).getMapping(service);
             verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any());
-            verify(programEnrollmentService, times(1)).triggerJob(service, user, "hts_program_enrollment_table");
-            verify(eventService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyString());
-            verify(teiService, times(1)).setSearchableAttributes(Collections.singletonList("UIC"));
 
             assertEquals("NO DATA TO SYNC", e.getMessage());
         }
