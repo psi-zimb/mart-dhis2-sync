@@ -1,13 +1,15 @@
 package com.thoughtworks.martdhis2sync.service;
 
 import com.thoughtworks.martdhis2sync.listener.JobCompletionNotificationListener;
-import com.thoughtworks.martdhis2sync.step.StepBuilderContract;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+import org.springframework.batch.core.job.builder.FlowBuilder;
+import org.springframework.batch.core.job.builder.FlowJobBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.SyncFailedException;
 import java.util.Date;
+import java.util.List;
 
 @Component
 public class JobService {
@@ -34,11 +37,11 @@ public class JobService {
     @Autowired
     private LoggerService loggerService;
 
-    public void triggerJob(String programName, String user, String lookupTable, String jobName, StepBuilderContract step, Object mappingObj)
+    public void triggerJob(String programName, String user, String jobName, List<Step> steps)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
             JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
 
-        JobExecution jobExecution = jobLauncher.run(getJob(lookupTable, programName, jobName, step, mappingObj),
+        JobExecution jobExecution = jobLauncher.run(getJob(jobName, steps),
                 new JobParametersBuilder()
                         .addDate("date", new Date())
                         .addString("service", programName)
@@ -57,12 +60,17 @@ public class JobService {
         }
     }
 
-    private Job getJob(String lookupTable, String programName, String jobName, StepBuilderContract step, Object mappingObj) {
+    private Job getJob(String jobName, List<Step> steps) {
+        Step firstStep = steps.remove(0);
+        FlowBuilder<FlowJobBuilder> flow = getFlow(jobName, firstStep);
+        steps.forEach(flow::next);
+        return flow.end().build();
+    }
+
+    private FlowBuilder<FlowJobBuilder> getFlow(String jobName, Step step) {
         return jobBuilderFactory.get(jobName)
                 .incrementer(new RunIdIncrementer())
                 .listener(listener)
-                .flow(step.get(lookupTable, programName, mappingObj))
-                .end()
-                .build();
+                .flow(step);
     }
 }

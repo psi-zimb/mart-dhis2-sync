@@ -17,7 +17,7 @@ import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_INSTANCE;
 
 
 @Component
-public class TrackedEntityInstanceStep implements StepBuilderContract {
+public class TrackedEntityInstanceStep {
 
     @Autowired
     private MappingReader mappingReader;
@@ -39,7 +39,6 @@ public class TrackedEntityInstanceStep implements StepBuilderContract {
 
     private static final String TEI_STEP_NAME = "Tracked Entity Step";
 
-    @Override
     public Step get(String lookupTable, String programName, Object mappingObj) {
         TEIUtil.resetPatientTEIUidMap();
         TEIUtil.date = markerUtil.getLastSyncedDate(programName, CATEGORY_INSTANCE);
