@@ -27,12 +27,6 @@ public class PushController {
     private TEIService teiService;
 
     @Autowired
-    private ProgramEnrollmentService programEnrollmentService;
-
-    @Autowired
-    private EventService eventService;
-
-    @Autowired
     private LoggerService loggerService;
 
     @Autowired
@@ -59,10 +53,6 @@ public class PushController {
         try {
             teiService.triggerJob(requestBody.getService(), requestBody.getUser(),
                     lookupTable.getInstance(), mappingJson.getInstance());
-            programEnrollmentService.triggerJob(requestBody.getService(),
-                    requestBody.getUser(), lookupTable.getEnrollments());
-            eventService.triggerJob(requestBody.getService(), requestBody.getUser(),
-                    lookupTable.getEvent(), mappingJson.getEvent(), lookupTable.getEnrollments());
             if (!IS_DELTA_EXISTS) {
                 loggerService.collateLogMessage(NO_DELTA_DATA);
                 loggerService.updateLog(requestBody.getService(), SUCCESS);
