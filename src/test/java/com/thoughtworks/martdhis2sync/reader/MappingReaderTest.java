@@ -57,7 +57,7 @@ public class MappingReaderTest {
         setValuesForMemberFields(mappingReader, "instanceResource", resource);
         setValuesForMemberFields(mappingReader, "enrollmentResource", resource);
         setValuesForMemberFields(mappingReader, "eventResource", resource);
-        setValuesForMemberFields(mappingReader, "newCompletedEnrResource", resource);
+        setValuesForMemberFields(mappingReader, "newCompletedEnrWithEventsResource", resource);
         mockStatic(BatchUtil.class);
     }
 

@@ -29,8 +29,8 @@ public class MappingReader {
     @Value("classpath:sql/EventReader.sql")
     private Resource eventResource;
 
-    @Value("classpath:sql/NewCompletedEnrollment.sql")
-    private Resource newCompletedEnrResource;
+    @Value("classpath:sql/NewCompletedEnrollmentWithEvents.sql")
+    private Resource newCompletedEnrWithEventsResource;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -69,7 +69,7 @@ public class MappingReader {
     }
 
     public JdbcCursorItemReader<Map<String, Object>> getNewCompletedEnrollmentReader(String eventLookupTable, String programName, String enrollmentLookupTable) {
-        String sql = String.format(getSql(newCompletedEnrResource), enrollmentLookupTable, programName, eventLookupTable, programName);
+        String sql = String.format(getSql(newCompletedEnrWithEventsResource), enrollmentLookupTable, programName, eventLookupTable, programName);
         return get(sql);
     }
 }
