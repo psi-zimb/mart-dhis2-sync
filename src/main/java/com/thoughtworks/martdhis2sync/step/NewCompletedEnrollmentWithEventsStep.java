@@ -38,7 +38,7 @@ public class NewCompletedEnrollmentWithEventsStep {
         EnrollmentUtil.date = markerUtil.getLastSyncedDate(programName, CATEGORY_ENROLLMENT);
         EventUtil.date = markerUtil.getLastSyncedDate(programName, CATEGORY_EVENT);
         return stepFactory.build(NCE_STEP_NAME,
-                mappingReader.getNewCompletedEnrollmentReader(enrLookupTable, programName, envLookupTable),
+                mappingReader.getNewCompletedEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable),
                 getProcessor(mappingObj),
                 writer);
     }
