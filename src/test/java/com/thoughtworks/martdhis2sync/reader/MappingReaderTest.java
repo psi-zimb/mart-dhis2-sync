@@ -182,32 +182,30 @@ public class MappingReaderTest {
     }
 
     @Test
-    public void shouldReturnReaderForNewCompletedEnrollments() throws Exception {
+    public void shouldReturnReaderForNewCompletedEnrollmentsWithEvents() throws Exception {
         String eventLookupTable = "event";
         String enrollmentLookupTable = "enrollment";
 
-        String sql = String.format("SELECT\n" +
-                        "       programEnrollmentsTable.incident_date,\n" +
-                        "       programEnrollmentsTable.date_created     AS enrollment_date_created,\n" +
-                        "       eventsTable.*,\n" +
-                        "       orgTracker.id                            AS orgunit_id,\n" +
+        String sql = String.format("SELECT enrTable.incident_date,\n" +
+                        "       enrTable.date_created       AS enrollment_date_created,\n" +
+                        "       enrTable.program_unique_id  AS program_unique_id,\n" +
+                        "       evnTable.*,\n" +
+                        "       orgTracker.id                              AS orgunit_id,\n" +
                         "       insTracker.instance_id\n" +
-                        "FROM (SELECT prog.*\n" +
-                        "        FROM %s prog\n" +
-                        "        INNER JOIN marker enrollment_marker ON prog.date_created::TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
-                        "                AND category = 'enrollment' AND program_name =  '%s') AS  programEnrollmentsTable\n" +
-                        "FULL OUTER JOIN (SELECT event.*\n" +
-                        "                    FROM %s event\n" +
-                        "                    INNER JOIN marker event_marker ON event.date_created::TIMESTAMP > COALESCE(event_marker.last_synced_date, '-infinity')\n" +
-                        "                    AND category = 'event' AND program_name =  '%s') AS  eventsTable\n" +
-                        "ON  programEnrollmentsTable.\"Patient_Identifier\" =  eventsTable.\"Patient_Identifier\"\n" +
-                        "    AND eventsTable.enrollment_date = programEnrollmentsTable.enrollment_date\n" +
-                        "INNER JOIN orgunit_tracker orgTracker ON eventsTable.\"OrgUnit\" = orgTracker.orgunit\n" +
-                        "INNER JOIN instance_tracker insTracker ON eventsTable.\"Patient_Identifier\" = insTracker.patient_id\n" +
-                        "LEFT JOIN enrollment_tracker enrolTracker ON enrolTracker.instance_id = insTracker.instance_id\n" +
-                        "WHERE programEnrollmentsTable.status = 'COMPLETED'\n" +
-                        "  AND enrolTracker.instance_id IS NULL;",
-                enrollmentLookupTable, programName, eventLookupTable, programName);
+                        "FROM %s enrTable\n" +
+                        "       LEFT JOIN %s evnTable ON evnTable.\"Patient_Identifier\" = enrTable.\"Patient_Identifier\" AND\n" +
+                        "                                                      evnTable.enrollment_date = enrTable.enrollment_date\n" +
+                        "       INNER JOIN instance_tracker insTracker ON insTracker.patient_id = enrTable.\"Patient_Identifier\"\n" +
+                        "       INNER JOIN orgunit_tracker orgTracker ON orgTracker.orgUnit = enrTable.\"OrgUnit\"\n" +
+                        "       LEFT JOIN enrollment_tracker enrTracker\n" +
+                        "         ON enrTable.program = enrTracker.program AND enrTracker.instance_id = insTracker.instance_id\n" +
+                        "              AND enrTracker.program_unique_id = enrTable.program_unique_id :: text\n" +
+                        "WHERE enrTable.date_created :: TIMESTAMP > COALESCE((SELECT last_synced_date FROM marker WHERE category = 'enrollment'\n" +
+                        "                                                                                           AND program_name = '%s'),\n" +
+                        "                                                    '-infinity')\n" +
+                        "  AND enrTable.status = 'COMPLETED'\n" +
+                        "  AND enrTracker.instance_id IS NULL;\n",
+                enrollmentLookupTable, eventLookupTable, programName);
 
         whenNew(JdbcCursorItemReader.class).withNoArguments().thenReturn(jdbcCursorItemReader);
         whenNew(ColumnMapRowMapper.class).withNoArguments().thenReturn(columnMapRowMapper);
@@ -216,7 +214,7 @@ public class MappingReaderTest {
         doNothing().when(jdbcCursorItemReader).setSql(sql);
         doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
 
-        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getNewCompletedEnrollmentReader(eventLookupTable, programName, enrollmentLookupTable);
+        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getNewCompletedEnrollmentWithEventsReader(eventLookupTable, programName, enrollmentLookupTable);
 
         assertEquals(jdbcCursorItemReader, actual);
 

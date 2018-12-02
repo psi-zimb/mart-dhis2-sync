@@ -73,7 +73,7 @@ public class NewCompletedEnrollmentWithEventsStepTest {
         Date lastSyncedDate = new Date(Long.MIN_VALUE);
         String envLookupTable = "patient_enrollment";
 
-        when(mappingReader.getNewCompletedEnrollmentReader(enrLookupTable, programName, envLookupTable)).thenReturn(jdbcCursorItemReader);
+        when(mappingReader.getNewCompletedEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable)).thenReturn(jdbcCursorItemReader);
         when(objectFactory.getObject()).thenReturn(processor);
         when(stepFactory.build(stepName, jdbcCursorItemReader, processor, writer)).thenReturn(step);
         when(markerUtil.getLastSyncedDate(programName, CATEGORY_EVENT)).thenReturn(lastSyncedDate);
@@ -81,7 +81,7 @@ public class NewCompletedEnrollmentWithEventsStepTest {
 
         Step actual = eventStep.get(enrLookupTable, envLookupTable, programName, mappingObj);
 
-        verify(mappingReader, times(1)).getNewCompletedEnrollmentReader(enrLookupTable, programName, envLookupTable);
+        verify(mappingReader, times(1)).getNewCompletedEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable);
         verify(stepFactory, times(1)).build(stepName, jdbcCursorItemReader, processor, writer);
         verify(markerUtil, times(1)).getLastSyncedDate(programName, CATEGORY_EVENT);
         assertEquals(step, actual);
