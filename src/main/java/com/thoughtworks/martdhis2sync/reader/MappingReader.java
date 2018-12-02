@@ -68,8 +68,8 @@ public class MappingReader {
         return get(sql);
     }
 
-    public JdbcCursorItemReader<Map<String, Object>> getNewCompletedEnrollmentReader(String eventLookupTable, String programName, String enrollmentLookupTable) {
-        String sql = String.format(getSql(newCompletedEnrWithEventsResource), enrollmentLookupTable, programName, eventLookupTable, programName);
+    public JdbcCursorItemReader<Map<String, Object>> getNewCompletedEnrollmentWithEventsReader(String eventLookupTable, String programName, String enrollmentLookupTable) {
+        String sql = String.format(getSql(newCompletedEnrWithEventsResource), enrollmentLookupTable, eventLookupTable, programName);
         return get(sql);
     }
 }
