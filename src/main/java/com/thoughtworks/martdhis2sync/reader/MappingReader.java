@@ -1,7 +1,6 @@
 package com.thoughtworks.martdhis2sync.reader;
 
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
-import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
@@ -14,9 +13,6 @@ import org.springframework.stereotype.Component;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.Map;
-
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getStringFromDate;
 
 @Component
 public class MappingReader {
@@ -35,9 +31,6 @@ public class MappingReader {
 
     @Value("classpath:sql/NewCompletedEnrollmentWithEvents.sql")
     private Resource newCompletedEnrWithEventsResource;
-
-    @Value("classpath:sql/NewCompletedEnrollment.sql")
-    private Resource newCompletedEnrResource;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -77,12 +70,6 @@ public class MappingReader {
 
     public JdbcCursorItemReader<Map<String, Object>> getNewCompletedEnrollmentWithEventsReader(String enrollmentLookupTable, String programName, String eventLookupTable) {
         String sql = String.format(getSql(newCompletedEnrWithEventsResource), enrollmentLookupTable, eventLookupTable, programName);
-        return get(sql);
-    }
-
-    public JdbcCursorItemReader<Map<String, Object>> getNewCompletedEnrollmentReader(String enrollmentLookupTable, String programName) {
-        String sql = String.format(getSql(newCompletedEnrResource), enrollmentLookupTable, programName,
-                getStringFromDate(EnrollmentUtil.date, DATEFORMAT_WITH_24HR_TIME));
         return get(sql);
     }
 }

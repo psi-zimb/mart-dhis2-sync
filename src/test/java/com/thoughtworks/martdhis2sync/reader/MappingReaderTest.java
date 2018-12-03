@@ -19,7 +19,6 @@ import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
@@ -59,7 +58,6 @@ public class MappingReaderTest {
         setValuesForMemberFields(mappingReader, "enrollmentResource", resource);
         setValuesForMemberFields(mappingReader, "eventResource", resource);
         setValuesForMemberFields(mappingReader, "newCompletedEnrWithEventsResource", resource);
-        setValuesForMemberFields(mappingReader, "newCompletedEnrResource", resource);
         mockStatic(BatchUtil.class);
     }
 
@@ -217,42 +215,6 @@ public class MappingReaderTest {
         doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
 
         JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getNewCompletedEnrollmentWithEventsReader(enrollmentLookupTable, programName, eventLookupTable);
-
-        assertEquals(jdbcCursorItemReader, actual);
-
-        verify(jdbcCursorItemReader, times(1)).setDataSource(dataSource);
-        verify(jdbcCursorItemReader, times(1)).setSql(sql);
-        verify(jdbcCursorItemReader, times(1)).setRowMapper(columnMapRowMapper);
-    }
-
-    @Test
-    public void shouldReturnReaderForNewCompletedEnrollments() throws Exception {
-        String enrollmentLookupTable = "enrollment";
-        String utilDate = "2019-10-12 12:00:00";
-
-        String sql = String.format("SELECT enrTable.*, insTracker.instance_id, orgTracker.id as orgunit_id\n" +
-                        "FROM %s enrTable\n" +
-                        "       INNER JOIN orgunit_tracker orgTracker ON orgTracker.orgUnit = enrTable.\"OrgUnit\"\n" +
-                        "       INNER JOIN instance_tracker insTracker ON insTracker.patient_id = enrTable.\"Patient_Identifier\"\n" +
-                        "       LEFT JOIN enrollment_tracker enrolTracker ON enrolTracker.instance_id = insTracker.instance_id\n" +
-                        "WHERE enrTable.date_created :: TIMESTAMP > COALESCE((SELECT last_synced_date\n" +
-                        "                                                     FROM marker\n" +
-                        "                                                     WHERE category = 'enrollment'\n" +
-                        "                                                       AND program_name = '%s'), '-infinity')\n" +
-                        "  AND enrTable.status = 'COMPLETED'\n" +
-                        "  AND enrolTracker.instance_id IS NULL\n" +
-                        "  AND enrTable.date_created :: TIMESTAMP <= '%s';",
-                enrollmentLookupTable, programName, utilDate);
-
-        whenNew(JdbcCursorItemReader.class).withNoArguments().thenReturn(jdbcCursorItemReader);
-        whenNew(ColumnMapRowMapper.class).withNoArguments().thenReturn(columnMapRowMapper);
-        when(BatchUtil.getStringFromDate(any(), any())).thenReturn(utilDate);
-        when(BatchUtil.convertResourceOutputToString(resource)).thenReturn(sql);
-        doNothing().when(jdbcCursorItemReader).setDataSource(dataSource);
-        doNothing().when(jdbcCursorItemReader).setSql(sql);
-        doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
-
-        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getNewCompletedEnrollmentReader(enrollmentLookupTable, programName);
 
         assertEquals(jdbcCursorItemReader, actual);
 
