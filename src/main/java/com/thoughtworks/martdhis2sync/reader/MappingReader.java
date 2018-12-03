@@ -75,7 +75,7 @@ public class MappingReader {
         return get(sql);
     }
 
-    public JdbcCursorItemReader<Map<String, Object>> getNewCompletedEnrollmentWithEventsReader(String eventLookupTable, String programName, String enrollmentLookupTable) {
+    public JdbcCursorItemReader<Map<String, Object>> getNewCompletedEnrollmentWithEventsReader(String enrollmentLookupTable, String programName, String eventLookupTable) {
         String sql = String.format(getSql(newCompletedEnrWithEventsResource), enrollmentLookupTable, eventLookupTable, programName);
         return get(sql);
     }

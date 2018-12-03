@@ -35,6 +35,9 @@ public class PushControllerTest {
     @Mock
     private DHISMetaDataService dhisMetaDataService;
 
+    @Mock
+    private CompletedEnrollmentService completedEnrollmentService;
+
     private PushController pushController;
     private String service = "HT Service";
     private String user = "admin";
@@ -47,10 +50,11 @@ public class PushControllerTest {
         setValuesForMemberFields(pushController, "teiService", teiService);
         setValuesForMemberFields(pushController, "loggerService", loggerService);
         setValuesForMemberFields(pushController, "dhisMetaDataService", dhisMetaDataService);
+        setValuesForMemberFields(pushController, "completedEnrollmentService", completedEnrollmentService);
     }
 
     @Test
-    public void shouldNotCallEnrollmentAndEventServiceWhenTeiServiceIsFailed() throws Exception {
+    public void shouldNotCallEnrollmentServiceWhenTeiServiceIsFailed() throws Exception {
         Map<String, Object> mapping = getMapping();
         DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
 
@@ -84,6 +88,7 @@ public class PushControllerTest {
         doNothing().when(loggerService).collateLogMessage("No delta data to sync.");
         when(mappingService.getMapping(service)).thenReturn(mapping);
         doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any());
+        doNothing().when(completedEnrollmentService).triggerJob(anyString(), anyString(), anyString(),anyString(),  any());
 
         try {
             pushController.pushData(dhisSyncRequestBody);
@@ -96,6 +101,7 @@ public class PushControllerTest {
             verify(loggerService, times(1)).collateLogMessage("No delta data to sync.");
             verify(mappingService, times(1)).getMapping(service);
             verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any());
+            verify(completedEnrollmentService, times(1)).triggerJob(anyString(), anyString(), anyString(), anyString(), any());
 
             assertEquals("NO DATA TO SYNC", e.getMessage());
         }

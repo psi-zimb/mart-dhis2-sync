@@ -382,7 +382,7 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
         verify(responseEntity, times(1)).getBody();
         verify(syncResponse, times(1)).getResponse();
         verify(response, times(1)).getImportSummaries();
-        verify(logger, times(1)).error("NEW COMPLETED ENROLLMENT SYNC: " + description);
+        verify(logger, times(1)).error("NEW COMPLETED ENROLLMENT WITH EVENTS SYNC: " + description);
         verify(loggerService, times(1)).collateLogMessage(description);
     }
 
@@ -472,7 +472,7 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
         verify(responseEntity, times(1)).getBody();
         verify(syncResponse, times(1)).getResponse();
         verify(response, times(1)).getImportSummaries();
-        verify(logger, times(1)).error("NEW COMPLETED ENROLLMENT SYNC: gXNu7zJBTDN: value_not_true_only");
+        verify(logger, times(1)).error("NEW COMPLETED ENROLLMENT WITH EVENTS SYNC: gXNu7zJBTDN: value_not_true_only");
         verify(loggerService, times(1)).collateLogMessage("gXNu7zJBTDN: value_not_true_only");
     }
 
@@ -553,7 +553,7 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
         verify(responseEntity, times(1)).getBody();
         verify(syncResponse, times(1)).getResponse();
         verify(response, times(1)).getImportSummaries();
-        verify(logger, times(1)).error("NEW COMPLETED ENROLLMENT SYNC: " +
+        verify(logger, times(1)).error("NEW COMPLETED ENROLLMENT WITH EVENTS SYNC: " +
                 CONFLICT_OBJ_ENROLLMENT_DATE +": " + conflictMessage);
         verify(loggerService, times(1)).collateLogMessage(CONFLICT_OBJ_ENROLLMENT_DATE +
                 ": " + conflictMessage);
@@ -633,7 +633,7 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
         verify(responseEntity, times(1)).getBody();
         verify(syncResponse, times(1)).getResponse();
         verify(response, times(1)).getImportSummaries();
-        verify(logger, times(1)).error("NEW COMPLETED ENROLLMENT SYNC: " + description);
+        verify(logger, times(1)).error("NEW COMPLETED ENROLLMENT WITH EVENTS SYNC: " + description);
         verify(loggerService, times(1)).collateLogMessage(description);
     }
 

@@ -13,7 +13,6 @@ import com.thoughtworks.martdhis2sync.service.LoggerService;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -37,7 +36,6 @@ import static com.thoughtworks.martdhis2sync.util.EnrollmentUtil.enrollmentsToSa
 import static com.thoughtworks.martdhis2sync.util.EventUtil.eventsToSaveInTracker;
 
 @Component
-@StepScope
 public class NewCompletedEnrollmentWithEventsWriter implements ItemWriter<ProcessedTableRow> {
     private static final String URI = "/api/enrollments?strategy=CREATE_AND_UPDATE";
 
@@ -48,7 +46,7 @@ public class NewCompletedEnrollmentWithEventsWriter implements ItemWriter<Proces
     private LoggerService loggerService;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
-    private static final String LOG_PREFIX = "NEW COMPLETED ENROLLMENT SYNC: ";
+    private static final String LOG_PREFIX = "NEW COMPLETED ENROLLMENT WITH EVENTS SYNC: ";
 
     private List<EventTracker> eventTrackers = new ArrayList<>();
 

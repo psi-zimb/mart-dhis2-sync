@@ -216,7 +216,7 @@ public class MappingReaderTest {
         doNothing().when(jdbcCursorItemReader).setSql(sql);
         doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
 
-        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getNewCompletedEnrollmentWithEventsReader(eventLookupTable, programName, enrollmentLookupTable);
+        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getNewCompletedEnrollmentWithEventsReader(enrollmentLookupTable, programName, eventLookupTable);
 
         assertEquals(jdbcCursorItemReader, actual);
 
