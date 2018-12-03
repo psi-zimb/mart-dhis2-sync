@@ -1,8 +1,9 @@
 SELECT enrTable.incident_date,
        enrTable.date_created       AS enrollment_date_created,
        enrTable.program_unique_id  AS program_unique_id,
+       enrTable.status             AS enrollment_status
        evnTable.*,
-       orgTracker.id                              AS orgunit_id,
+       orgTracker.id               AS orgunit_id,
        insTracker.instance_id
 FROM %s enrTable
        LEFT JOIN %s evnTable ON evnTable."Patient_Identifier" = enrTable."Patient_Identifier" AND
@@ -15,5 +16,5 @@ FROM %s enrTable
 WHERE enrTable.date_created :: TIMESTAMP > COALESCE((SELECT last_synced_date FROM marker WHERE category = 'enrollment'
                                                                                            AND program_name = '%s'),
                                                     '-infinity')
-  AND enrTable.status = 'COMPLETED'
+  AND enrTable.status = 'COMPLETED' OR enrTable.status = 'CANCELLED'
   AND enrTracker.instance_id IS NULL;
