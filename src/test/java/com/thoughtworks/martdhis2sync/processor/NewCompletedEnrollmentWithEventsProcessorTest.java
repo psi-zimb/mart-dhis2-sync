@@ -194,7 +194,7 @@ public class NewCompletedEnrollmentWithEventsProcessorTest {
         tableRowObject.addProperty("incident_date", enrDate);
         tableRowObject.addProperty("enrollment_date_created", enrollmentDateCreated);
         tableRowObject.addProperty("program_unique_id", "1");
-        tableRowObject.addProperty("\"Patient_Identifier\"", patientIdentifier);
+        tableRowObject.addProperty("Patient_Identifier", patientIdentifier);
         tableRowObject.addProperty("program", program);
         tableRowObject.addProperty("program_stage", programStage);
         tableRowObject.addProperty("\"OrgUnit\"", orgUnit);

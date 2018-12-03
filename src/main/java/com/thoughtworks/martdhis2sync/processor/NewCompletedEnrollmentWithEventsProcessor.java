@@ -11,6 +11,7 @@ import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
 import lombok.Setter;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getFormattedDateString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.hasValue;
 
+@Component
 public class NewCompletedEnrollmentWithEventsProcessor implements ItemProcessor {
 
     @Setter
@@ -47,7 +49,7 @@ public class NewCompletedEnrollmentWithEventsProcessor implements ItemProcessor 
         EnrollmentAPIPayLoad enrollmentAPIPayLoad = getEnrollmentAPIPayLoad(tableRowJsonObject, event);
 
         return new ProcessedTableRow(
-                tableRowJsonObject.get("\"Patient_Identifier\"").getAsString(),
+                tableRowJsonObject.get("Patient_Identifier").getAsString(),
                 enrollmentAPIPayLoad
         );
     }

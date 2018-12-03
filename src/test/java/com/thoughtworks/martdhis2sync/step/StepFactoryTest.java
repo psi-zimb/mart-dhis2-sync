@@ -11,9 +11,10 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.step.builder.SimpleStepBuilder;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.core.step.builder.TaskletStepBuilder;
+import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.core.step.tasklet.TaskletStep;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
-import org.springframework.beans.factory.ObjectFactory;
 
 import java.util.Map;
 
@@ -39,9 +40,6 @@ public class StepFactoryTest {
     private JdbcCursorItemReader<Map<String, Object>> jdbcCursorItemReader;
 
     @Mock
-    private ObjectFactory<TrackedEntityInstanceProcessor> processorObjectFactory;
-
-    @Mock
     private TrackedEntityInstanceProcessor processor;
 
     @Mock
@@ -49,6 +47,12 @@ public class StepFactoryTest {
 
     @Mock
     private TaskletStep step;
+
+    @Mock
+    private Tasklet tasklet;
+
+    @Mock
+    private TaskletStepBuilder taskletStepBuilder;
 
     private StepFactory stepFactory;
 
@@ -77,5 +81,20 @@ public class StepFactoryTest {
         verify(simpleStepBuilder, times(1)).processor(processor);
         verify(simpleStepBuilder, times(1)).writer(writer);
         verify(simpleStepBuilder, times(1)).build();
+    }
+
+    @Test
+    public void shouldReturnTaskletStep() {
+        String stepName = "Step Name";
+
+        when(stepBuilderFactory.get(stepName)).thenReturn(stepBuilder);
+        when(stepBuilder.tasklet(tasklet)).thenReturn(taskletStepBuilder);
+        when(taskletStepBuilder.build()).thenReturn(step);
+
+        stepFactory.build(stepName, tasklet);
+
+        verify(stepBuilderFactory, times(1)).get(stepName);
+        verify(stepBuilder, times(1)).tasklet(tasklet);
+        verify(taskletStepBuilder, times(1)).build();
     }
 }

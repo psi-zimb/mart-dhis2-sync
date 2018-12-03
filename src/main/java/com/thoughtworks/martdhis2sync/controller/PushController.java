@@ -32,6 +32,9 @@ public class PushController {
     @Autowired
     private DHISMetaDataService dhisMetaDataService;
 
+    @Autowired
+    private CompletedEnrollmentService completedEnrollmentService;
+
     public static boolean IS_DELTA_EXISTS = false;
 
     @PutMapping(value = "/pushData")
@@ -53,6 +56,8 @@ public class PushController {
         try {
             teiService.triggerJob(requestBody.getService(), requestBody.getUser(),
                     lookupTable.getInstance(), mappingJson.getInstance());
+            completedEnrollmentService.triggerJob(requestBody.getService(), requestBody.getUser(),
+                    lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent());
             if (!IS_DELTA_EXISTS) {
                 loggerService.collateLogMessage(NO_DELTA_DATA);
                 loggerService.updateLog(requestBody.getService(), SUCCESS);
