@@ -66,7 +66,7 @@ public class NewCompletedEnrollmentWithEventsProcessor implements ItemProcessor 
                        DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME),
                getFormattedDateString(tableRowJsonObject.get("incident_date").getAsString(),
                        DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME),
-               EnrollmentAPIPayLoad.STATUS_ACTIVE,
+               tableRowJsonObject.get("enrollment_status").getAsString(),
                tableRowJsonObject.get("program_unique_id").getAsString(),
                events
         );

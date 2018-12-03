@@ -1,6 +1,7 @@
 package com.thoughtworks.martdhis2sync.writer;
 
 import com.thoughtworks.martdhis2sync.model.DHISEnrollmentSyncResponse;
+import com.thoughtworks.martdhis2sync.model.Enrollment;
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.model.EnrollmentImportSummary;
 import com.thoughtworks.martdhis2sync.model.Event;
@@ -225,7 +226,7 @@ public class NewCompletedEnrollmentWithEventsWriter implements ItemWriter<Proces
                         value.getProgram(),
                         value.getProgramStartDate(),
                         value.getIncidentDate(),
-                        value.getStatus(),
+                        Enrollment.STATUS_ACTIVE,
                         getEventBody(events)
                 ))
                 .append(",");
