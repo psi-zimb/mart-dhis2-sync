@@ -1,6 +1,8 @@
 package com.thoughtworks.martdhis2sync.reader;
 
+import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
+import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,6 +60,7 @@ public class MappingReaderTest {
         setValuesForMemberFields(mappingReader, "enrollmentResource", resource);
         setValuesForMemberFields(mappingReader, "eventResource", resource);
         setValuesForMemberFields(mappingReader, "newCompletedEnrWithEventsResource", resource);
+        setValuesForMemberFields(mappingReader, "updatedCompletedEnrWithEventsResource", resource);
         mockStatic(BatchUtil.class);
     }
 
@@ -221,5 +224,186 @@ public class MappingReaderTest {
         verify(jdbcCursorItemReader, times(1)).setDataSource(dataSource);
         verify(jdbcCursorItemReader, times(1)).setSql(sql);
         verify(jdbcCursorItemReader, times(1)).setRowMapper(columnMapRowMapper);
+    }
+
+    @Test
+    public void shouldReturnReaderForUpdatedCompletedEnrollmentsWithEvents() throws Exception {
+        String eventLookupTable = "event";
+        String enrollmentLookupTable = "enrollment";
+        EnrollmentAPIPayLoad enr1 = new EnrollmentAPIPayLoad();
+        enr1.setEnrollmentId("NAH0000000009");
+        EnrollmentAPIPayLoad enr2 = new EnrollmentAPIPayLoad();
+        enr2.setEnrollmentId("NAH0000000004");
+        EnrollmentAPIPayLoad enr3 = new EnrollmentAPIPayLoad();
+        enr3.setEnrollmentId("NAH0000000004");
+        EnrollmentUtil.enrollmentsToSaveInTracker.clear();
+        EnrollmentUtil.enrollmentsToSaveInTracker.add(enr1);
+        EnrollmentUtil.enrollmentsToSaveInTracker.add(enr2);
+        EnrollmentUtil.enrollmentsToSaveInTracker.add(enr3);
+
+        String sql = "SELECT\n" +
+                "  enrollmentsTable.incident_date,\n" +
+                "  enrollmentsTable.date_created      AS enrollment_date_created,\n" +
+                "  enrollmentsTable.program_unique_id AS program_unique_id,\n" +
+                "  eventsTable.*,\n" +
+                "  orgTracker.id                      AS orgunit_id,\n" +
+                "  insTracker.instance_id,\n" +
+                "  enrolTracker.enrollment_id\n" +
+                "FROM (SELECT enrTable.*\n" +
+                "      FROM %s enrTable\n" +
+                "        INNER JOIN marker enrollment_marker\n" +
+                "          ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
+                "             AND category = 'enrollment' AND program_name = '%s') AS enrollmentsTable\n" +
+                "  FULL OUTER JOIN (SELECT evnTable.*\n" +
+                "                   FROM %s evnTable\n" +
+                "                     INNER JOIN marker event_marker\n" +
+                "                       ON evnTable.date_created :: TIMESTAMP > COALESCE(event_marker.last_synced_date, '-infinity')\n" +
+                "                          AND category = 'event' AND program_name = '%s') AS eventsTable\n" +
+                "    ON enrollmentsTable.\"Patient_Identifier\" = eventsTable.\"Patient_Identifier\"\n" +
+                "       AND eventsTable.enrollment_date = enrollmentsTable.enrollment_date\n" +
+                "  INNER JOIN orgunit_tracker orgTracker ON eventsTable.\"OrgUnit\" = orgTracker.orgunit\n" +
+                "  INNER JOIN instance_tracker insTracker ON eventsTable.\"Patient_Identifier\" = insTracker.patient_id\n" +
+                "  LEFT JOIN enrollment_tracker enrolTracker ON enrollmentsTable.program = enrolTracker.program\n" +
+                "                                               AND enrolTracker.instance_id = insTracker.instance_id\n" +
+                "                                               AND enrolTracker.program_unique_id = enrollmentsTable.program_unique_id :: TEXT\n" +
+                "  LEFT JOIN event_tracker evntTracker ON insTracker.instance_id = evntTracker.instance_id\n" +
+                "                                         AND eventsTable.event_unique_id :: TEXT = evntTracker.event_unique_id\n" +
+                "                                         AND eventsTable.program = evntTracker.program\n" +
+                "                                         AND eventsTable.program_stage = evntTracker.program_stage\n" +
+                "WHERE enrollmentsTable.status = 'COMPLETED' OR enrollmentsTable.status = 'CANCELLED'\n" +
+                "                                            AND enrolTracker.instance_id IS NOT NULL %s;\n";
+
+        String formattedSql = "SELECT\n" +
+                "  enrollmentsTable.incident_date,\n" +
+                "  enrollmentsTable.date_created      AS enrollment_date_created,\n" +
+                "  enrollmentsTable.program_unique_id AS program_unique_id,\n" +
+                "  eventsTable.*,\n" +
+                "  orgTracker.id                      AS orgunit_id,\n" +
+                "  insTracker.instance_id,\n" +
+                "  enrolTracker.enrollment_id\n" +
+                "FROM (SELECT enrTable.*\n" +
+                "      FROM enrollment enrTable\n" +
+                "        INNER JOIN marker enrollment_marker\n" +
+                "          ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
+                "             AND category = 'enrollment' AND program_name = 'HTS Service') AS enrollmentsTable\n" +
+                "  FULL OUTER JOIN (SELECT evnTable.*\n" +
+                "                   FROM event evnTable\n" +
+                "                     INNER JOIN marker event_marker\n" +
+                "                       ON evnTable.date_created :: TIMESTAMP > COALESCE(event_marker.last_synced_date, '-infinity')\n" +
+                "                          AND category = 'event' AND program_name = 'HTS Service') AS eventsTable\n" +
+                "    ON enrollmentsTable.\"Patient_Identifier\" = eventsTable.\"Patient_Identifier\"\n" +
+                "       AND eventsTable.enrollment_date = enrollmentsTable.enrollment_date\n" +
+                "  INNER JOIN orgunit_tracker orgTracker ON eventsTable.\"OrgUnit\" = orgTracker.orgunit\n" +
+                "  INNER JOIN instance_tracker insTracker ON eventsTable.\"Patient_Identifier\" = insTracker.patient_id\n" +
+                "  LEFT JOIN enrollment_tracker enrolTracker ON enrollmentsTable.program = enrolTracker.program\n" +
+                "                                               AND enrolTracker.instance_id = insTracker.instance_id\n" +
+                "                                               AND enrolTracker.program_unique_id = enrollmentsTable.program_unique_id :: TEXT\n" +
+                "  LEFT JOIN event_tracker evntTracker ON insTracker.instance_id = evntTracker.instance_id\n" +
+                "                                         AND eventsTable.event_unique_id :: TEXT = evntTracker.event_unique_id\n" +
+                "                                         AND eventsTable.program = evntTracker.program\n" +
+                "                                         AND eventsTable.program_stage = evntTracker.program_stage\n" +
+                "WHERE enrollmentsTable.status = 'COMPLETED' OR enrollmentsTable.status = 'CANCELLED'\n" +
+                "                                            AND enrolTracker.instance_id IS NOT NULL AND enrolTracker.enrollment_id NOT IN ('NAH0000000009','NAH0000000004','NAH0000000004');\n";
+        whenNew(JdbcCursorItemReader.class).withNoArguments().thenReturn(jdbcCursorItemReader);
+        whenNew(ColumnMapRowMapper.class).withNoArguments().thenReturn(columnMapRowMapper);
+        when(BatchUtil.convertResourceOutputToString(resource)).thenReturn(sql);
+        doNothing().when(jdbcCursorItemReader).setDataSource(dataSource);
+        doNothing().when(jdbcCursorItemReader).setSql(formattedSql);
+        doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
+
+        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getUpdatedCompletedEnrollmentWithEventsReader(enrollmentLookupTable, programName, eventLookupTable);
+
+        assertEquals(jdbcCursorItemReader, actual);
+
+        verify(jdbcCursorItemReader, times(1)).setDataSource(dataSource);
+        verify(jdbcCursorItemReader, times(1)).setSql(formattedSql);
+        verify(jdbcCursorItemReader, times(1)).setRowMapper(columnMapRowMapper);
+        EnrollmentUtil.enrollmentsToSaveInTracker.clear();
+    }
+
+    @Test
+    public void shouldNotAddAndClauseTotheReaderSqlWhenEnrollmentsToSaveInTrackerIsEmpty() throws Exception {
+        String eventLookupTable = "event";
+        String enrollmentLookupTable = "enrollment";
+        EnrollmentUtil.enrollmentsToSaveInTracker.clear();
+
+        String sql = "SELECT\n" +
+                "  enrollmentsTable.incident_date,\n" +
+                "  enrollmentsTable.date_created      AS enrollment_date_created,\n" +
+                "  enrollmentsTable.program_unique_id AS program_unique_id,\n" +
+                "  eventsTable.*,\n" +
+                "  orgTracker.id                      AS orgunit_id,\n" +
+                "  insTracker.instance_id,\n" +
+                "  enrolTracker.enrollment_id\n" +
+                "FROM (SELECT enrTable.*\n" +
+                "      FROM %s enrTable\n" +
+                "        INNER JOIN marker enrollment_marker\n" +
+                "          ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
+                "             AND category = 'enrollment' AND program_name = '%s') AS enrollmentsTable\n" +
+                "  FULL OUTER JOIN (SELECT evnTable.*\n" +
+                "                   FROM %s evnTable\n" +
+                "                     INNER JOIN marker event_marker\n" +
+                "                       ON evnTable.date_created :: TIMESTAMP > COALESCE(event_marker.last_synced_date, '-infinity')\n" +
+                "                          AND category = 'event' AND program_name = '%s') AS eventsTable\n" +
+                "    ON enrollmentsTable.\"Patient_Identifier\" = eventsTable.\"Patient_Identifier\"\n" +
+                "       AND eventsTable.enrollment_date = enrollmentsTable.enrollment_date\n" +
+                "  INNER JOIN orgunit_tracker orgTracker ON eventsTable.\"OrgUnit\" = orgTracker.orgunit\n" +
+                "  INNER JOIN instance_tracker insTracker ON eventsTable.\"Patient_Identifier\" = insTracker.patient_id\n" +
+                "  LEFT JOIN enrollment_tracker enrolTracker ON enrollmentsTable.program = enrolTracker.program\n" +
+                "                                               AND enrolTracker.instance_id = insTracker.instance_id\n" +
+                "                                               AND enrolTracker.program_unique_id = enrollmentsTable.program_unique_id :: TEXT\n" +
+                "  LEFT JOIN event_tracker evntTracker ON insTracker.instance_id = evntTracker.instance_id\n" +
+                "                                         AND eventsTable.event_unique_id :: TEXT = evntTracker.event_unique_id\n" +
+                "                                         AND eventsTable.program = evntTracker.program\n" +
+                "                                         AND eventsTable.program_stage = evntTracker.program_stage\n" +
+                "WHERE enrollmentsTable.status = 'COMPLETED' OR enrollmentsTable.status = 'CANCELLED'\n" +
+                "                                            AND enrolTracker.instance_id IS NOT NULL %s;\n";
+
+        String formattedSql = "SELECT\n" +
+                "  enrollmentsTable.incident_date,\n" +
+                "  enrollmentsTable.date_created      AS enrollment_date_created,\n" +
+                "  enrollmentsTable.program_unique_id AS program_unique_id,\n" +
+                "  eventsTable.*,\n" +
+                "  orgTracker.id                      AS orgunit_id,\n" +
+                "  insTracker.instance_id,\n" +
+                "  enrolTracker.enrollment_id\n" +
+                "FROM (SELECT enrTable.*\n" +
+                "      FROM enrollment enrTable\n" +
+                "        INNER JOIN marker enrollment_marker\n" +
+                "          ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
+                "             AND category = 'enrollment' AND program_name = 'HTS Service') AS enrollmentsTable\n" +
+                "  FULL OUTER JOIN (SELECT evnTable.*\n" +
+                "                   FROM event evnTable\n" +
+                "                     INNER JOIN marker event_marker\n" +
+                "                       ON evnTable.date_created :: TIMESTAMP > COALESCE(event_marker.last_synced_date, '-infinity')\n" +
+                "                          AND category = 'event' AND program_name = 'HTS Service') AS eventsTable\n" +
+                "    ON enrollmentsTable.\"Patient_Identifier\" = eventsTable.\"Patient_Identifier\"\n" +
+                "       AND eventsTable.enrollment_date = enrollmentsTable.enrollment_date\n" +
+                "  INNER JOIN orgunit_tracker orgTracker ON eventsTable.\"OrgUnit\" = orgTracker.orgunit\n" +
+                "  INNER JOIN instance_tracker insTracker ON eventsTable.\"Patient_Identifier\" = insTracker.patient_id\n" +
+                "  LEFT JOIN enrollment_tracker enrolTracker ON enrollmentsTable.program = enrolTracker.program\n" +
+                "                                               AND enrolTracker.instance_id = insTracker.instance_id\n" +
+                "                                               AND enrolTracker.program_unique_id = enrollmentsTable.program_unique_id :: TEXT\n" +
+                "  LEFT JOIN event_tracker evntTracker ON insTracker.instance_id = evntTracker.instance_id\n" +
+                "                                         AND eventsTable.event_unique_id :: TEXT = evntTracker.event_unique_id\n" +
+                "                                         AND eventsTable.program = evntTracker.program\n" +
+                "                                         AND eventsTable.program_stage = evntTracker.program_stage\n" +
+                "WHERE enrollmentsTable.status = 'COMPLETED' OR enrollmentsTable.status = 'CANCELLED'\n" +
+                "                                            AND enrolTracker.instance_id IS NOT NULL ;\n";
+        whenNew(JdbcCursorItemReader.class).withNoArguments().thenReturn(jdbcCursorItemReader);
+        whenNew(ColumnMapRowMapper.class).withNoArguments().thenReturn(columnMapRowMapper);
+        when(BatchUtil.convertResourceOutputToString(resource)).thenReturn(sql);
+        doNothing().when(jdbcCursorItemReader).setDataSource(dataSource);
+        doNothing().when(jdbcCursorItemReader).setSql(formattedSql);
+        doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
+
+        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getUpdatedCompletedEnrollmentWithEventsReader(enrollmentLookupTable, programName, eventLookupTable);
+
+        assertEquals(jdbcCursorItemReader, actual);
+
+        verify(jdbcCursorItemReader, times(1)).setDataSource(dataSource);
+        verify(jdbcCursorItemReader, times(1)).setSql(formattedSql);
+        verify(jdbcCursorItemReader, times(1)).setRowMapper(columnMapRowMapper);
+        EnrollmentUtil.enrollmentsToSaveInTracker.clear();
     }
 }
