@@ -109,6 +109,8 @@ public class TrackedEntityInstanceProcessorTest {
 
         String actual = processor.process(tableRowObject);
 
+        tableRowObject.addProperty("instance_id", "w3MoRtzP4SO");
+
         verifyStatic();
         TEIUtil.setPatientIds(tableRowObject);
         verifyStatic(times(2));
@@ -131,7 +133,8 @@ public class TrackedEntityInstanceProcessorTest {
 
     private void mockVerify() {
         verifyStatic();
-        TEIUtil.setPatientIds(getTableRowObject());
+        JsonObject tableRowObject = getTableRowObject();
+        TEIUtil.setPatientIds(tableRowObject);
         verifyStatic(times(2));
         getUnquotedString("\"" + dateCreated + "\"");
         verifyStatic();
