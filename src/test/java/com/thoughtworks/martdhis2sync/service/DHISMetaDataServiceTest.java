@@ -93,7 +93,7 @@ public class DHISMetaDataServiceTest {
     public void shouldGetTrackedEntityInstanceFromDHIS() throws IOException {
         String program = "HIV Testing Service";
         String queryParams = "&filter=HF8Tu4tg:IN:NINETU190995MT;JKAPTA170994MT;";
-        String url = dhis2Url + TRACKED_ENTITY_INSTANCE_URI + "&orgUnit=" + ORG_UNIT_ID + "&ouMode=DESCENDANTS" + queryParams;
+        String url = dhis2Url + TRACKED_ENTITY_INSTANCE_URI + "&ou=" + ORG_UNIT_ID + "&ouMode=DESCENDANTS" + queryParams;
         Map<String, Object> searchableMapping = new HashMap<>();
 
         trackedEntityInstanceResponse = ResponseEntity.ok(new TrackedEntityInstanceResponse(trackedEntityInstances));
