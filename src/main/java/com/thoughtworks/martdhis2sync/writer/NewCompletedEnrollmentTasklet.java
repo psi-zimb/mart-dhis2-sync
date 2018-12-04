@@ -73,7 +73,7 @@ public class NewCompletedEnrollmentTasklet implements Tasklet {
     private void processResponseEntity(ResponseEntity<DHISEnrollmentSyncResponse> responseEntity) {
         Iterator<EnrollmentAPIPayLoad> iterator = EnrollmentUtil.enrollmentsToSaveInTracker.iterator();
         List<EnrollmentImportSummary> enrollmentImportSummaries = responseEntity.getBody().getResponse().getImportSummaries();
-        if (! HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+        if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
             processEnrollmentErrorResponse(enrollmentImportSummaries, iterator);
         }
     }
@@ -121,7 +121,7 @@ public class NewCompletedEnrollmentTasklet implements Tasklet {
                             enrollment.getProgram(),
                             enrollment.getProgramStartDate(),
                             enrollment.getIncidentDate(),
-                            Enrollment.STATUS_COMPLETED
+                            enrollment.getStatus().toUpperCase()
                     ))
                     .append(",");
         });
@@ -132,7 +132,7 @@ public class NewCompletedEnrollmentTasklet implements Tasklet {
     private void updateTrackers(String user) {
         int recordsCreated;
         try {
-            recordsCreated = updateEnrollmentTracker(user);
+            recordsCreated = insertInEnrollmentTracker(user);
             logger.info(LOG_PREFIX + "Successfully inserted " + recordsCreated + " Enrollment UIDs.");
         } catch (SQLException e) {
             logger.error(LOG_PREFIX + "Exception occurred while inserting Program Enrollment UIDs:" + e.getMessage());
@@ -140,7 +140,7 @@ public class NewCompletedEnrollmentTasklet implements Tasklet {
         }
 
         try {
-            recordsCreated = updateEventTracker(user);
+            recordsCreated = insertInEventTracker(user);
             logger.info(LOG_PREFIX + "Successfully inserted " + recordsCreated + " Event UIDs.");
         } catch (SQLException e) {
             logger.error(LOG_PREFIX + "Exception occurred while inserting Event UIDs:" + e.getMessage());
@@ -148,7 +148,7 @@ public class NewCompletedEnrollmentTasklet implements Tasklet {
         }
     }
 
-    private int updateEventTracker(String user) throws SQLException {
+    private int insertInEventTracker(String user) throws SQLException {
         String sqlQuery = "INSERT INTO public.event_tracker(" +
                 "event_id, instance_id, program, program_stage, event_unique_id, created_by, date_created)" +
                 "values (?, ?, ?, ?, ?, ?, ?)";
@@ -171,7 +171,7 @@ public class NewCompletedEnrollmentTasklet implements Tasklet {
         return updateCount;
     }
 
-    private int updateEnrollmentTracker(String user) throws SQLException {
+    private int insertInEnrollmentTracker(String user) throws SQLException {
         String sql = "INSERT INTO public.enrollment_tracker(" +
                 "enrollment_id, instance_id, program, status, program_unique_id, created_by, date_created)" +
                 "values (?, ?, ?, ?, ?, ?, ?)";
