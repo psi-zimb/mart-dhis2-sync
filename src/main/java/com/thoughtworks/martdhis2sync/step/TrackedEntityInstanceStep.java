@@ -5,10 +5,13 @@ import com.thoughtworks.martdhis2sync.reader.MappingReader;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import com.thoughtworks.martdhis2sync.writer.TrackedEntityInstanceWriter;
+import lombok.Setter;
 import org.springframework.batch.core.Step;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_INSTANCE;
 
@@ -31,6 +34,9 @@ public class TrackedEntityInstanceStep implements StepBuilderContract {
     @Autowired
     private StepFactory stepFactory;
 
+    @Setter
+    private List<String> searchableAttributes;
+
     private static final String TEI_STEP_NAME = "Tracked Entity Step";
 
     @Override
@@ -44,6 +50,7 @@ public class TrackedEntityInstanceStep implements StepBuilderContract {
     private TrackedEntityInstanceProcessor getProcessor(Object mappingObj) {
         TrackedEntityInstanceProcessor processor = processorObjectFactory.getObject();
         processor.setMappingObj(mappingObj);
+        processor.setSearchableAttributes(searchableAttributes);
 
         return processor;
     }
