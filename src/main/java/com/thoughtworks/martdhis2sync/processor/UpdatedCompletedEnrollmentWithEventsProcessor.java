@@ -15,7 +15,7 @@ import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
 import static com.thoughtworks.martdhis2sync.util.EventUtil.getDataValues;
 
 @Component
-public class NewCompletedEnrollmentWithEventsProcessor extends EnrollmentWithEventProcessor implements ItemProcessor{
+public class UpdatedCompletedEnrollmentWithEventsProcessor extends EnrollmentWithEventProcessor implements ItemProcessor {
 
     @Setter
     private Object mappingObj;
@@ -27,7 +27,7 @@ public class NewCompletedEnrollmentWithEventsProcessor extends EnrollmentWithEve
 
     EnrollmentAPIPayLoad getEnrollmentAPIPayLoad(JsonObject tableRowJsonObject, List<Event> events) {
         return new EnrollmentAPIPayLoad(
-               "",
+               tableRowJsonObject.get("enrollment_id").getAsString(),
                tableRowJsonObject.get("instance_id").getAsString(),
                tableRowJsonObject.get("enrolled_program").getAsString(),
                tableRowJsonObject.get("orgunit_id").getAsString(),
@@ -50,9 +50,9 @@ public class NewCompletedEnrollmentWithEventsProcessor extends EnrollmentWithEve
         String dateString = getFormattedDateString(eventDate, DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME);
 
         return new Event(
-                "",
+                tableRow.get("event_id").getAsString(),
                 tableRow.get("instance_id").getAsString(),
-                "",
+                tableRow.get("enrollment_id").getAsString(),
                 tableRow.get("program").getAsString(),
                 tableRow.get("program_stage").getAsString(),
                 tableRow.get("orgunit_id").getAsString(),
@@ -62,4 +62,5 @@ public class NewCompletedEnrollmentWithEventsProcessor extends EnrollmentWithEve
                 getDataValues(tableRow, mapping)
         );
     }
+
 }
