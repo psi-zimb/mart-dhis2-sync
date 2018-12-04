@@ -30,7 +30,7 @@ public class DHISMetaDataService {
     @Value("${dhis2.url}")
     private String dhis2Url;
 
-    @Value("${org.unit.id}")
+    @Value("${country.org.unit.id}")
     private String orgUnitID;
 
     @Autowired
@@ -89,7 +89,7 @@ public class DHISMetaDataService {
 
         url.append(dhis2Url);
         url.append(TEI_URI);
-        url.append("&orgUnit=");
+        url.append("&ou=");
         url.append(orgUnitID);
         url.append("&ouMode=DESCENDANTS");
 
