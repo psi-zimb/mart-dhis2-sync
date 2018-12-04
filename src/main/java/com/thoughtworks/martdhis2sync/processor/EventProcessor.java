@@ -9,12 +9,10 @@ import lombok.Setter;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
 import java.util.Set;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
-import static com.thoughtworks.martdhis2sync.util.EventUtil.addExistingEventTracker;
-import static com.thoughtworks.martdhis2sync.util.EventUtil.addNewEventTracker;
+import static com.thoughtworks.martdhis2sync.util.EventUtil.*;
 
 @Component
 public class EventProcessor implements ItemProcessor {
@@ -46,15 +44,8 @@ public class EventProcessor implements ItemProcessor {
             addNewEventTracker(tableRowJsonObject);
         }
 
-        updateLatestDateCreated(getUnquotedString(tableRowJsonObject.get("date_created").toString()));
+        updateLatestEventDateCreated(getUnquotedString(tableRowJsonObject.get("date_created").toString()));
         return createRequestBodyElements(tableRowJsonObject, mappingJsonObject);
-    }
-
-    private void updateLatestDateCreated(String dateCreated) {
-        Date bahmniDateCreated = getDateFromString(dateCreated, DATEFORMAT_WITH_24HR_TIME);
-        if (EventUtil.date.compareTo(bahmniDateCreated) < 1) {
-            EventUtil.date = bahmniDateCreated;
-        }
     }
 
     private String createRequestBodyElements(JsonObject tableRow, JsonObject mapping) {

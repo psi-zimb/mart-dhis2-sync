@@ -13,8 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.hasValue;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
 
 public class EventUtil {
 
@@ -73,5 +72,12 @@ public class EventUtil {
                 event.getProgramStage()
             )
         ).collect(Collectors.toList());
+    }
+
+    public static void updateLatestEventDateCreated(String dateCreated) {
+        Date bahmniDateCreated = getDateFromString(dateCreated, DATEFORMAT_WITH_24HR_TIME);
+        if (date.compareTo(bahmniDateCreated) < 1) {
+            date = bahmniDateCreated;
+        }
     }
 }
