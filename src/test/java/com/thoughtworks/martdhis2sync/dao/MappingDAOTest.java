@@ -11,7 +11,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static org.junit.Assert.assertEquals;
@@ -42,10 +45,10 @@ public class MappingDAOTest {
         setValuesForMemberFields(mappingDAO, "searchableResource", searchableResource);
 
         mappingName = "Patient Identifier Details";
-        getMappingSql = "SELECT lookup_table, mapping_json, config FROM mapping WHERE mapping_name='"+ mappingName +"'";
+        getMappingSql = "SELECT lookup_table, mapping_json, config FROM mapping WHERE mapping_name='" + mappingName + "'";
         expectedMapping = new HashMap<>();
         expectedMapping.put("lookup_table", "{\"instance\": \"patient_identifier\", \"enrollments\": \"patient_enrollments\"}");
-        expectedMapping.put("config", "{\"searchable\": [\"UIC\", \"date_created\"]}");
+        expectedMapping.put("config", "{\"searchable\": [\"patient_id\"]}");
         expectedMapping.put("mapping_json", "{\"instance\": " +
                 "{" +
                 "\"patient_id\": \"HF8Tu4tg\"" +
@@ -76,17 +79,14 @@ public class MappingDAOTest {
                 "INNER JOIN marker m ON pi.date_created :: TIMESTAMP > COALESCE(m.last_synced_date, '-infinity') " +
                 "AND category = 'instance' AND program_name = '%s'";
 
-        String actualSql = "SELECT \"UIC\",\"date_created\" " +
+        String actualSql = "SELECT \"patient_id\" " +
                 "FROM patient_identifier pi " +
                 "INNER JOIN marker m ON pi.date_created :: TIMESTAMP > COALESCE(m.last_synced_date, '-infinity') " +
                 "AND category = 'instance' AND program_name = 'Patient Identifier Details'";
 
-        System.out.println(actualSql);
 
-        record1.put("UIC", "NINETU190995MT");
-        record1.put("date_created", "2018-11-14 05:10:43.000000");
-        record2.put("UIC", "JKAPTA170994MT");
-        record2.put("date_created", "2018-11-14 05:10:43.000000");
+        record1.put("patient_id", "NINETU190995MT");
+        record2.put("patient_id", "JKAPTA170994MT");
 
         List<Map<String, Object>> expected = Arrays.asList(record1, record2);
 
@@ -98,4 +98,5 @@ public class MappingDAOTest {
 
         assertEquals(expected, actual);
     }
+
 }

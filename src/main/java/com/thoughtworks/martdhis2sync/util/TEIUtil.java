@@ -2,6 +2,7 @@ package com.thoughtworks.martdhis2sync.util;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityInstance;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +19,10 @@ public class TEIUtil {
     @Getter
     @Setter
     private static List<String> attributeOfTypeDateTime;
+
+    @Getter
+    @Setter
+    private static List<TrackedEntityInstance> trackedEntityInstances;
 
     public static Date date = new Date(Long.MIN_VALUE);
 

@@ -1,6 +1,10 @@
 package com.thoughtworks.martdhis2sync.service;
 
+import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
+import com.thoughtworks.martdhis2sync.dao.MappingDAO;
 import com.thoughtworks.martdhis2sync.model.DataElementResponse;
+import com.thoughtworks.martdhis2sync.model.MappingJson;
 import com.thoughtworks.martdhis2sync.model.TrackedEntityAttributeResponse;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
@@ -12,8 +16,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class DHISMetaDataService {
@@ -24,9 +30,16 @@ public class DHISMetaDataService {
     @Value("${dhis2.url}")
     private String dhis2Url;
 
+    @Value("${org.unit.id}")
+    private String orgUnitID;
+
+    @Autowired
+    private MappingDAO mappingDAO;
+
     private static final String LOG_PREFIX = "Data Element Service: ";
     private static final String URI_DATE_TIME_DATA_ELEMENTS = "/api/dataElements?pageSize=1000&filter=valueType:eq:DATETIME";
     private static final String URI_DATE_TIME_T_E_ATTRIBUTES = "/api/trackedEntityAttributes?pageSize=1000&filter=valueType:eq:DATETIME";
+    private static final String TEI_URI = "/api/trackedEntityInstances?pageSize=10000";
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private String url;
@@ -69,5 +82,37 @@ public class DHISMetaDataService {
     public void filterByTypeDateTime() {
         EventUtil.setElementsOfTypeDateTime(getDataElements());
         TEIUtil.setAttributeOfTypeDateTime(getTEAttributes());
+    }
+
+    public void getTrackedEntityInstances(String mappingName) throws IOException {
+        StringBuilder url = new StringBuilder();
+
+        url.append(dhis2Url);
+        url.append(TEI_URI);
+        url.append("&orgUnit=");
+        url.append(orgUnitID);
+        url.append("&ouMode=DESCENDANTS");
+
+        Map<String, Object> mapping = mappingDAO.getMapping(mappingName);
+
+        Gson gson = new Gson();
+        LinkedTreeMap instanceMapping = (LinkedTreeMap) gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class).getInstance();
+
+        List<Map<String, Object>> searchableFields = mappingDAO.getSearchableFields(mappingName);
+
+        searchableFields.get(0).keySet().forEach(filter -> {
+            url.append("&filter=");
+            url.append(instanceMapping.get(filter));
+            url.append(":IN:");
+
+            searchableFields.forEach(searchableField -> {
+                url.append(searchableField.get(filter));
+                url.append(";");
+            });
+        });
+
+        TEIUtil.setTrackedEntityInstances(
+                syncRepository.getTrackedEntityInstances(url.toString()).getBody().getTrackedEntityInstances()
+        );
     }
 }
