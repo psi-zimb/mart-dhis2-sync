@@ -1,10 +1,7 @@
 package com.thoughtworks.martdhis2sync.repository;
 
 import com.google.gson.Gson;
-import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
-import com.thoughtworks.martdhis2sync.model.DataElementResponse;
-import com.thoughtworks.martdhis2sync.model.OrgUnitResponse;
-import com.thoughtworks.martdhis2sync.model.TrackedEntityAttributeResponse;
+import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.slf4j.Logger;
@@ -96,6 +93,20 @@ public class SyncRepository {
             responseEntity = restTemplate
                     .exchange(url, HttpMethod.GET,
                             new HttpEntity<>(getHttpHeaders()), TrackedEntityAttributeResponse.class);
+            logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
+
+        }catch (Exception e){
+            logger.error(LOG_PREFIX + e);
+        }
+        return responseEntity;
+    }
+
+    public ResponseEntity<TrackedEntityInstanceResponse> getTrackedEntityInstances(String url) {
+        ResponseEntity<TrackedEntityInstanceResponse> responseEntity = null;
+        try {
+            responseEntity = restTemplate
+                    .exchange(url, HttpMethod.GET,
+                            new HttpEntity<>(getHttpHeaders()), TrackedEntityInstanceResponse.class);
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
 
         }catch (Exception e){

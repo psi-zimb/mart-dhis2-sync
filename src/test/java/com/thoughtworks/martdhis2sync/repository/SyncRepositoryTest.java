@@ -58,6 +58,9 @@ public class SyncRepositoryTest {
     @Mock
     private ResponseEntity<TrackedEntityAttributeResponse> trackedEntityAttributeResposne;
 
+    @Mock
+    private ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstanceResponse;
+
     private SyncRepository syncRepository;
     private String body = "{" +
             "\"trackedEntityType\": \"o0kaqrZaY\", " +
@@ -192,13 +195,29 @@ public class SyncRepositoryTest {
         when(trackedEntityAttributeResposne.getStatusCode()).thenReturn(HttpStatus.OK);
         doNothing().when(logger).info("SyncRepository: Received 200 status code.");
 
-        ResponseEntity<TrackedEntityAttributeResponse> trackedEntityAttributeResponse = syncRepository.getTrackedEntityAttributes("");
+        ResponseEntity<TrackedEntityAttributeResponse> trackedEntityAttributes = syncRepository.getTrackedEntityAttributes("");
 
         verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
-        verify(trackedEntityAttributeResponse, times(1)).getStatusCode();
+        verify(trackedEntityAttributes, times(1)).getStatusCode();
         verify(logger, times(1)).info("SyncRepository: Received 200 status code.");
 
-        assertEquals(trackedEntityAttributeResponse, trackedEntityAttributeResponse);
+        assertEquals(trackedEntityAttributeResposne, trackedEntityAttributes);
+    }
+
+    @Test
+    public void shouldGetTEIsInfoAndLog() {
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
+                .thenReturn(trackedEntityInstanceResponse);
+        when(trackedEntityInstanceResponse.getStatusCode()).thenReturn(HttpStatus.OK);
+        doNothing().when(logger).info("SyncRepository: Received 200 status code.");
+
+        ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstances = syncRepository.getTrackedEntityInstances("");
+
+        verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
+        verify(trackedEntityInstances, times(1)).getStatusCode();
+        verify(logger, times(1)).info("SyncRepository: Received 200 status code.");
+
+        assertEquals(trackedEntityInstanceResponse, trackedEntityInstances);
     }
 
     @Test
