@@ -75,7 +75,8 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
 
         mapIterator = TEIUtil.getPatientIdTEIUidMap().entrySet().iterator();
         newTEIUIDs.clear();
-        newTEIUIDs.putAll(TEIUtil.getTrackedEntityInstanceIDS());
+        newTEIUIDs.putAll(TEIUtil.getTrackedEntityInstanceIDs());
+        TEIUtil.resetTrackedEntityInstaceIDs();
 
         if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
             processResponse(responseEntity.getBody().getResponse().getImportSummaries());
