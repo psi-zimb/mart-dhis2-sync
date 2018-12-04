@@ -15,7 +15,9 @@ import org.springframework.batch.core.step.tasklet.TaskletStep;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.beans.factory.ObjectFactory;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
@@ -55,6 +57,7 @@ public class TrackedEntityInstanceStepTest {
     private StepFactory stepFactory;
 
     private TrackedEntityInstanceStep teiStep;
+    private List<String> searchableAttributes = Arrays.asList("UIC", "date_created");
 
     @Before
     public void setUp() throws Exception {
@@ -64,6 +67,8 @@ public class TrackedEntityInstanceStepTest {
         setValuesForMemberFields(teiStep, "writer", writer);
         setValuesForMemberFields(teiStep, "markerUtil", markerUtil);
         setValuesForMemberFields(teiStep, "stepFactory", stepFactory);
+
+        teiStep.setSearchableAttributes(searchableAttributes);
     }
 
     @Test
@@ -83,6 +88,7 @@ public class TrackedEntityInstanceStepTest {
         verify(mappingReader, times(1)).getInstanceReader(anyString(), anyString());
         verify(processorObjectFactory, times(1)).getObject();
         verify(stepFactory, times(1)).build(stepName, jdbcCursorItemReader, processor, writer);
+        verify(processor, times(1)).setSearchableAttributes(searchableAttributes);
 
         assertEquals("Sun Dec 02 22:17:04 IST 292269055", TEIUtil.date.toString());
     }

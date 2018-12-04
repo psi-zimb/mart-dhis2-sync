@@ -1,6 +1,7 @@
 package com.thoughtworks.martdhis2sync.controller;
 
 import com.google.gson.Gson;
+import com.thoughtworks.martdhis2sync.model.Config;
 import com.thoughtworks.martdhis2sync.model.DHISSyncRequestBody;
 import com.thoughtworks.martdhis2sync.model.LookupTable;
 import com.thoughtworks.martdhis2sync.model.MappingJson;
@@ -45,6 +46,7 @@ public class PushController {
         IS_DELTA_EXISTS = false;
         loggerService.addLog(requestBody.getService(), requestBody.getUser(), requestBody.getComment());
 
+        dhisMetaDataService.getTrackedEntityInstances(requestBody.getService());
         dhisMetaDataService.filterByTypeDateTime();
 
         Map<String, Object> mapping = mappingService.getMapping(requestBody.getService());
@@ -52,6 +54,7 @@ public class PushController {
         Gson gson = new Gson();
         LookupTable lookupTable = gson.fromJson(mapping.get("lookup_table").toString(), LookupTable.class);
         MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
+        teiService.setSearchableAttributes(gson.fromJson(mapping.get("config").toString(), Config.class).getSearchable());
 
         try {
             teiService.triggerJob(requestBody.getService(), requestBody.getUser(),
