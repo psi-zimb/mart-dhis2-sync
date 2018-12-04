@@ -42,6 +42,7 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
         JsonObject tableRowJsonObject = tableRowJsonElement.getAsJsonObject();
         JsonObject mappingJsonObject = mappingObjJsonElement.getAsJsonObject();
 
+        getInstanceId(tableRowJsonObject, mappingJsonObject);
         TEIUtil.setPatientIds(tableRowJsonObject);
         updateLatestDateCreated(tableRowJsonObject.get("date_created").toString());
 
@@ -60,10 +61,10 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
 
         StringBuilder attributeSet = new StringBuilder(
                 String.format("{\"trackedEntityType\": \"%s\", " +
-                                "\"trackedEntityInstance\": \"%s\", " +
+                                "\"trackedEntityInstance\": %s, " +
                                 "\"orgUnit\":%s, \"attributes\":[",
                         teUID,
-                        getInstanceId(tableRowJsonObject, mappingJsonObject),
+                        tableRowJsonObject.get("instance_id").toString(),
                         tableRowJsonObject.get(ORGUNIT_UID).toString()));
         for (String key : keys) {
             if (null != mappingJsonObject.get(key)) {
@@ -83,18 +84,21 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
         return attributeSet.toString();
     }
 
-    private String getInstanceId(JsonObject tableRowJsonObject, JsonObject mappingJsonObject) {
+    private void getInstanceId(JsonObject tableRowJsonObject, JsonObject mappingJsonObject) {
         String instanceId = tableRowJsonObject.get("instance_id").getAsString();
         Map<String, String> searchableMappings = new HashMap<>();
+        List<TrackedEntityInstance> matchedInstances;
+        Set<String> searchableKeySet;
+        String uid;
 
         if (instanceId.isEmpty()) {
             searchableAttributes.forEach(s ->
                     searchableMappings.put(mappingJsonObject.get(s).getAsString(), tableRowJsonObject.get(s).getAsString())
             );
 
-            Set<String> searchableKeySet = searchableMappings.keySet();
+            searchableKeySet = searchableMappings.keySet();
 
-            List<TrackedEntityInstance> matchedInstances = TEIUtil.getTrackedEntityInstances().stream().filter(trackedEntityInstance ->
+            matchedInstances = TEIUtil.getTrackedEntityInstances().stream().filter(trackedEntityInstance ->
                     trackedEntityInstance.getAttributes().stream().filter(attribute ->
                             searchableKeySet.contains(attribute.getAttribute())
                     ).allMatch(attribute ->
@@ -103,13 +107,11 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
             ).collect(Collectors.toList());
 
             if (matchedInstances.size() == 1) {
-                return matchedInstances.get(0).getTrackedEntityInstance();
+                uid = matchedInstances.get(0).getTrackedEntityInstance();
+                tableRowJsonObject.addProperty("instance_id", uid);
+                TEIUtil.setTrackedEntityInstanceIDS(tableRowJsonObject);
             }
-
-            return "";
         }
-
-        return instanceId;
     }
 
     private String changeFormatIfDate(String attributeId, String value) {
