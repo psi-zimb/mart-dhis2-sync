@@ -7,25 +7,16 @@ import com.google.gson.JsonObject;
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.model.Event;
 import com.thoughtworks.martdhis2sync.model.ProcessedTableRow;
-import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
 import lombok.Setter;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITHOUT_TIME;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DHIS_ACCEPTABLE_DATEFORMAT;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getFormattedDateString;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.hasValue;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
+import static com.thoughtworks.martdhis2sync.util.EnrollmentUtil.updateLatestEnrollmentDateCreated;
+import static com.thoughtworks.martdhis2sync.util.EventUtil.updateLatestEventDateCreated;
 
 @Component
 public class NewCompletedEnrollmentWithEventsProcessor implements ItemProcessor {
@@ -117,19 +108,5 @@ public class NewCompletedEnrollmentWithEventsProcessor implements ItemProcessor 
                         DHIS_ACCEPTABLE_DATEFORMAT
                 )
                 : value;
-    }
-
-    private void updateLatestEventDateCreated(String dateCreated) {
-        Date bahmniDateCreated = getDateFromString(dateCreated, DATEFORMAT_WITH_24HR_TIME);
-        if (EventUtil.date.compareTo(bahmniDateCreated) < 1) {
-            EventUtil.date = bahmniDateCreated;
-        }
-    }
-
-    private void updateLatestEnrollmentDateCreated(String dateCreated) {
-        Date bahmniDateCreated = getDateFromString(dateCreated, DATEFORMAT_WITH_24HR_TIME);
-        if (EnrollmentUtil.date.compareTo(bahmniDateCreated) < 1) {
-            EnrollmentUtil.date = bahmniDateCreated;
-        }
     }
 }

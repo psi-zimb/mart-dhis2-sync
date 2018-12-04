@@ -32,12 +32,12 @@ public class NewCompletedEnrollmentWithEventsStep {
     @Autowired
     private MarkerUtil markerUtil;
 
-    private static final String NCE_STEP_NAME = "New Completed Enrollment With Events Step:: ";
+    private static final String STEP_NAME = "New Completed Enrollment With Events Step:: ";
 
     public Step get(String enrLookupTable, String envLookupTable, String programName, Object mappingObj) {
         EnrollmentUtil.date = markerUtil.getLastSyncedDate(programName, CATEGORY_ENROLLMENT);
         EventUtil.date = markerUtil.getLastSyncedDate(programName, CATEGORY_EVENT);
-        return stepFactory.build(NCE_STEP_NAME,
+        return stepFactory.build(STEP_NAME,
                 mappingReader.getNewCompletedEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable),
                 getProcessor(mappingObj),
                 writer);

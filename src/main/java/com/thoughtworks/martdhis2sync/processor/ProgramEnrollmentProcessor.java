@@ -5,17 +5,11 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.thoughtworks.martdhis2sync.model.Enrollment;
-import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITHOUT_TIME;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getFormattedDateString;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
+import static com.thoughtworks.martdhis2sync.util.EnrollmentUtil.updateLatestEnrollmentDateCreated;
 
 @Component
 public class ProgramEnrollmentProcessor implements ItemProcessor {
@@ -28,7 +22,7 @@ public class ProgramEnrollmentProcessor implements ItemProcessor {
         JsonObject tableRowJsonObject = tableRowJsonElement.getAsJsonObject();
 
         String dateCreated = getUnquotedString(tableRowJsonObject.get("date_created").toString());
-        updateLatestDateCreated(dateCreated);
+        updateLatestEnrollmentDateCreated(dateCreated);
 
         return new Enrollment(
                 getUnquotedString(tableRowJsonObject.get("enrollment_id").toString()),
@@ -41,12 +35,5 @@ public class ProgramEnrollmentProcessor implements ItemProcessor {
                         DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME),
                 getUnquotedString(tableRowJsonObject.get("status").toString().toUpperCase()),
                 tableRowJsonObject.get("program_unique_id").toString());
-    }
-
-    private void updateLatestDateCreated(String dateCreated) {
-        Date bahmniDateCreated = getDateFromString(dateCreated, DATEFORMAT_WITH_24HR_TIME);
-        if (EnrollmentUtil.date.compareTo(bahmniDateCreated) < 1) {
-            EnrollmentUtil.date = bahmniDateCreated;
-        }
     }
 }
