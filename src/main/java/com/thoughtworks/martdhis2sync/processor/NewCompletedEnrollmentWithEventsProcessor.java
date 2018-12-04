@@ -7,15 +7,17 @@ import com.google.gson.JsonObject;
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.model.Event;
 import com.thoughtworks.martdhis2sync.model.ProcessedTableRow;
-import com.thoughtworks.martdhis2sync.util.EventUtil;
 import lombok.Setter;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
 import static com.thoughtworks.martdhis2sync.util.EnrollmentUtil.updateLatestEnrollmentDateCreated;
+import static com.thoughtworks.martdhis2sync.util.EventUtil.getDataValues;
 import static com.thoughtworks.martdhis2sync.util.EventUtil.updateLatestEventDateCreated;
 
 @Component
@@ -37,23 +39,25 @@ public class NewCompletedEnrollmentWithEventsProcessor implements ItemProcessor 
         updateLatestEnrollmentDateCreated(tableRowJsonObject.get("enrollment_date_created").getAsString());
 
         Event event = getEvent(tableRowJsonObject, mappingJsonObject);
-        EnrollmentAPIPayLoad enrollmentAPIPayLoad = getEnrollmentAPIPayLoad(tableRowJsonObject, event);
+        List<Event> events = new LinkedList<>();
+        if (event != null) {
+            events.add(event);
+        }
+        EnrollmentAPIPayLoad enrollmentAPIPayLoad = getEnrollmentAPIPayLoad(tableRowJsonObject, events);
 
         return new ProcessedTableRow(
-                tableRowJsonObject.get("Patient_Identifier").getAsString(),
+                tableRowJsonObject.get("enrolled_patient_identifier").getAsString(),
                 enrollmentAPIPayLoad
         );
     }
 
-    private EnrollmentAPIPayLoad getEnrollmentAPIPayLoad(JsonObject tableRowJsonObject, Event event) {
-        List<Event> events = new LinkedList<>();
-        events.add(event);
+    private EnrollmentAPIPayLoad getEnrollmentAPIPayLoad(JsonObject tableRowJsonObject, List<Event> events) {
         return new EnrollmentAPIPayLoad(
                "",
                tableRowJsonObject.get("instance_id").getAsString(),
-               tableRowJsonObject.get("program").getAsString(),
+               tableRowJsonObject.get("enrolled_program").getAsString(),
                tableRowJsonObject.get("orgunit_id").getAsString(),
-               getFormattedDateString(tableRowJsonObject.get("enrollment_date").getAsString(),
+               getFormattedDateString(tableRowJsonObject.get("enr_date").getAsString(),
                        DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME),
                getFormattedDateString(tableRowJsonObject.get("incident_date").getAsString(),
                        DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME),
@@ -64,6 +68,10 @@ public class NewCompletedEnrollmentWithEventsProcessor implements ItemProcessor 
     }
 
     private Event getEvent(JsonObject tableRow, JsonObject mapping) {
+        if (StringUtils.isEmpty(tableRow.get("event_unique_id").getAsString())) {
+            return null;
+        }
+
         String eventDate = tableRow.get("event_date").getAsString();
         String dateString = getFormattedDateString(eventDate, DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME);
 
@@ -79,34 +87,5 @@ public class NewCompletedEnrollmentWithEventsProcessor implements ItemProcessor 
                 tableRow.get("event_unique_id").getAsString(),
                 getDataValues(tableRow, mapping)
         );
-    }
-
-    private Map<String, String> getDataValues(JsonObject tableRow, JsonObject mapping) {
-        Set<String> keys = tableRow.keySet();
-        Map<String, String> dataValues = new HashMap<>();
-
-        for (String key : keys) {
-            JsonElement dataElement = mapping.get(key);
-            if (hasValue(dataElement)) {
-                String value = tableRow.get(key).getAsString();
-                String dataElementInStringFormat = dataElement.getAsString();
-                dataValues.put(
-                        dataElementInStringFormat,
-                        changeFormatIfDate(dataElementInStringFormat, value)
-                );
-            }
-        }
-
-        return dataValues;
-    }
-
-    private String changeFormatIfDate(String elementId, String value) {
-        return EventUtil.getElementsOfTypeDateTime().contains(elementId) ?
-                getFormattedDateString(
-                        value,
-                        DATEFORMAT_WITH_24HR_TIME,
-                        DHIS_ACCEPTABLE_DATEFORMAT
-                )
-                : value;
     }
 }

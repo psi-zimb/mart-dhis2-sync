@@ -7,9 +7,7 @@ import com.thoughtworks.martdhis2sync.model.EventTracker;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -79,5 +77,34 @@ public class EventUtil {
         if (date.compareTo(bahmniDateCreated) < 1) {
             date = bahmniDateCreated;
         }
+    }
+
+
+    public static Map<String, String> getDataValues(JsonObject tableRow, JsonObject mapping) {
+        Set<String> keys = tableRow.keySet();
+        Map<String, String> dataValues = new HashMap<>();
+
+        for (String key : keys) {
+            JsonElement dataElement = mapping.get(key);
+            if (hasValue(dataElement)) {
+                String value = tableRow.get(key).getAsString();
+                String dataElementInStringFormat = dataElement.getAsString();
+                dataValues.put(
+                        dataElementInStringFormat,
+                        changeFormatIfDate(dataElementInStringFormat, value)
+                );
+            }
+        }
+        return dataValues;
+    }
+
+    private static String changeFormatIfDate(String elementId, String value) {
+        return EventUtil.getElementsOfTypeDateTime().contains(elementId) ?
+                getFormattedDateString(
+                        value,
+                        DATEFORMAT_WITH_24HR_TIME,
+                        DHIS_ACCEPTABLE_DATEFORMAT
+                )
+                : value;
     }
 }

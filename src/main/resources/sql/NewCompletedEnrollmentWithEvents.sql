@@ -1,7 +1,10 @@
 SELECT enrTable.incident_date,
        enrTable.date_created       AS enrollment_date_created,
        enrTable.program_unique_id  AS program_unique_id,
-       enrTable.status             AS enrollment_status
+       enrTable.program            AS enrolled_program,
+       enrTable.enrollment_date    AS enr_date,
+       enrTable.status             AS enrollment_status,
+       enrTable."Patient_Identifier" AS enrolled_patient_identifier,
        evnTable.*,
        orgTracker.id               AS orgunit_id,
        insTracker.instance_id
