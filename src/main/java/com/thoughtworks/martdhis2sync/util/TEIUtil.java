@@ -25,7 +25,7 @@ public class TEIUtil {
     private static List<TrackedEntityInstance> trackedEntityInstances;
 
     @Getter
-    private static Map<String, String> trackedEntityInstanceIDS = new LinkedHashMap<>();
+    private static Map<String, String> trackedEntityInstanceIDs = new LinkedHashMap<>();
 
     public static Date date = new Date(Long.MIN_VALUE);
 
@@ -47,11 +47,12 @@ public class TEIUtil {
         patientIdTEIUidMap.clear();
     }
 
-    public static void setTrackedEntityInstanceIDS(JsonObject tableRowJsonObject) {
+    public static void resetTrackedEntityInstaceIDs() {
+        trackedEntityInstanceIDs.clear();
+    }
 
-        System.out.println("Patient ID " + tableRowJsonObject.get("Patient_Identifier").getAsString());
-        System.out.println("instance ID " + tableRowJsonObject.get("instance_id").getAsString());
-        trackedEntityInstanceIDS.put(
+    public static void setTrackedEntityInstanceIDs(JsonObject tableRowJsonObject) {
+        trackedEntityInstanceIDs.put(
                 tableRowJsonObject.get("Patient_Identifier").getAsString(),
                 tableRowJsonObject.get("instance_id").getAsString()
         );
