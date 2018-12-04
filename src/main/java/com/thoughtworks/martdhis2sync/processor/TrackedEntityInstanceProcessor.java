@@ -109,7 +109,7 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
             if (matchedInstances.size() == 1) {
                 uid = matchedInstances.get(0).getTrackedEntityInstance();
                 tableRowJsonObject.addProperty("instance_id", uid);
-                TEIUtil.setTrackedEntityInstanceIDS(tableRowJsonObject);
+                TEIUtil.setTrackedEntityInstanceIDs(tableRowJsonObject);
             }
         }
     }
