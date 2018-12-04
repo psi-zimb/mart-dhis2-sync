@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityInstance;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import lombok.Setter;
@@ -11,8 +12,8 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
 
@@ -27,6 +28,9 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
 
     @Setter
     private Object mappingObj;
+
+    @Setter
+    private List<String> searchableAttributes;
 
     @Override
     public String process(Object tableRow) {
@@ -56,9 +60,10 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
 
         StringBuilder attributeSet = new StringBuilder(
                 String.format("{\"trackedEntityType\": \"%s\", " +
-                                "\"trackedEntityInstance\": %s, " +
+                                "\"trackedEntityInstance\": \"%s\", " +
                                 "\"orgUnit\":%s, \"attributes\":[",
-                        teUID, tableRowJsonObject.get("instance_id").toString(),
+                        teUID,
+                        getInstanceId(tableRowJsonObject, mappingJsonObject),
                         tableRowJsonObject.get(ORGUNIT_UID).toString()));
         for (String key : keys) {
             if (null != mappingJsonObject.get(key)) {
@@ -76,6 +81,35 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
         attributeSet.deleteCharAt(attributeSet.length() - 1);
         attributeSet.append("]}");
         return attributeSet.toString();
+    }
+
+    private String getInstanceId(JsonObject tableRowJsonObject, JsonObject mappingJsonObject) {
+        String instanceId = tableRowJsonObject.get("instance_id").getAsString();
+        Map<String, String> searchableMappings = new HashMap<>();
+
+        if (instanceId.isEmpty()) {
+            searchableAttributes.forEach(s ->
+                    searchableMappings.put(mappingJsonObject.get(s).getAsString(), tableRowJsonObject.get(s).getAsString())
+            );
+
+            Set<String> searchableKeySet = searchableMappings.keySet();
+
+            List<TrackedEntityInstance> matchedInstances = TEIUtil.getTrackedEntityInstances().stream().filter(trackedEntityInstance ->
+                    trackedEntityInstance.getAttributes().stream().filter(attribute ->
+                            searchableKeySet.contains(attribute.getAttribute())
+                    ).allMatch(attribute ->
+                            searchableMappings.get(attribute.getAttribute()).equals(attribute.getValue())
+                    )
+            ).collect(Collectors.toList());
+
+            if (matchedInstances.size() == 1) {
+                return matchedInstances.get(0).getTrackedEntityInstance();
+            }
+
+            return "";
+        }
+
+        return instanceId;
     }
 
     private String changeFormatIfDate(String attributeId, String value) {

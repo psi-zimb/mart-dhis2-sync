@@ -1,6 +1,7 @@
 package com.thoughtworks.martdhis2sync.service;
 
 import com.thoughtworks.martdhis2sync.step.TrackedEntityInstanceStep;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobParametersInvalidException;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.SyncFailedException;
+import java.util.List;
 
 @Component
 public class TEIService {
@@ -21,6 +23,9 @@ public class TEIService {
     @Autowired
     private JobService jobService;
 
+    @Setter
+    private List<String> searchableAttributes;
+
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static final String LOG_PREFIX = "TEI Service: ";
@@ -29,6 +34,8 @@ public class TEIService {
     public void triggerJob(String service, String user, String lookupTable, Object mappingObj)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
             JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
+
+        trackedEntityInstanceStep.setSearchableAttributes(searchableAttributes);
 
         try {
             jobService.triggerJob(service, user, lookupTable, TEI_JOB_NAME, trackedEntityInstanceStep, mappingObj);

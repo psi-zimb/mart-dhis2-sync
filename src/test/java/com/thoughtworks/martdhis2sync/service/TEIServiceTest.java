@@ -10,12 +10,11 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 
 import java.io.SyncFailedException;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.management.*")
@@ -28,12 +27,15 @@ public class TEIServiceTest {
     private JobService jobService;
 
     private TEIService teiService;
+    private List<String> searchableAttributes = Arrays.asList("UIC", "date_created");
 
     @Before
     public void setUp() throws Exception {
         teiService = new TEIService();
         setValuesForMemberFields(teiService, "trackedEntityInstanceStep", instanceStep);
         setValuesForMemberFields(teiService, "jobService", jobService);
+
+        teiService.setSearchableAttributes(searchableAttributes);
     }
 
     @Test
@@ -49,6 +51,7 @@ public class TEIServiceTest {
         teiService.triggerJob(service, user, lookUpTable, mappingObj);
 
         verify(jobService, times(1)).triggerJob(service, user, lookUpTable, jobName, instanceStep, mappingObj);
+        verify(instanceStep, times(1)).setSearchableAttributes(searchableAttributes);
     }
 
     @Test(expected = JobExecutionAlreadyRunningException.class)
@@ -62,7 +65,12 @@ public class TEIServiceTest {
         doThrow(JobExecutionAlreadyRunningException.class).when(jobService)
                 .triggerJob(service, user, lookUpTable, jobName, instanceStep, mappingObj);
 
-        teiService.triggerJob(service, user, lookUpTable, mappingObj);
+        try {
+            teiService.triggerJob(service, user, lookUpTable, mappingObj);
+        }catch (Exception e){
+            verify(instanceStep, times(1)).setSearchableAttributes(searchableAttributes);
+            throw e;
+        }
     }
 
     @Test(expected = SyncFailedException.class)
@@ -76,6 +84,11 @@ public class TEIServiceTest {
         doThrow(SyncFailedException.class).when(jobService)
                 .triggerJob(service, user, lookUpTable, jobName, instanceStep, mappingObj);
 
-        teiService.triggerJob(service, user, lookUpTable, mappingObj);
+        try{
+            teiService.triggerJob(service, user, lookUpTable, mappingObj);
+        }catch (Exception e){
+            verify(instanceStep, times(1)).setSearchableAttributes(searchableAttributes);
+            throw e;
+        }
     }
 }
