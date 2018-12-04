@@ -14,29 +14,21 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITHOUT_TIME;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DHIS_ACCEPTABLE_DATEFORMAT;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getFormattedDateString;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.times;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.verifyStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.powermock.api.mockito.PowerMockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({EnrollmentUtil.class, BatchUtil.class, EventUtil.class})
 public class NewCompletedEnrollmentWithEventsProcessorTest {
     private NewCompletedEnrollmentWithEventsProcessor processor;
 
-    private Date bahmniDate = new Date(Long.MIN_VALUE);
     private String eventDateCreated = "2018-10-25 13:46:23";
     private String enrollmentDateCreated = "2018-10-24 13:46:23";
     private String patientIdentifier = "NAH0001";
@@ -48,17 +40,16 @@ public class NewCompletedEnrollmentWithEventsProcessorTest {
     private String program = "SxgCPPeiq3c";
     private String programStage = "m6Yfksc81Tg";
     private String orgUnitId = "ofaUrIe32";
+    Map<String, String> dataValues = new HashMap<>();
 
     @Before
     public void setUp() throws Exception {
+        dataValues.put("gXNu7zJBTDN", "no");
+
         processor = new NewCompletedEnrollmentWithEventsProcessor();
 
         mockStatic(EnrollmentUtil.class);
-        EnrollmentUtil.date = bahmniDate;
-
         mockStatic(EventUtil.class);
-        EventUtil.date = bahmniDate;
-        when(EventUtil.getElementsOfTypeDateTime()).thenReturn(Collections.singletonList("zJBTDNgXNu7"));
 
         mockStatic(BatchUtil.class);
         when(getFormattedDateString(eventDateValue, DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME))
@@ -69,132 +60,71 @@ public class NewCompletedEnrollmentWithEventsProcessorTest {
     }
 
     @Test
-    public void shouldReturnEnrollmentApiRequestBodyForAPatientAndShouldUpdateEventUtilDateAndEnrUtilDateToBahmniDate() throws ParseException {
-        Date enrollmentDate = getDate(enrollmentDateCreated);
-        Date eventDate = getDate(eventDateCreated);
-        when(getDateFromString(eventDateCreated, DATEFORMAT_WITH_24HR_TIME)).thenReturn(eventDate);
-        when(getDateFromString(enrollmentDateCreated, DATEFORMAT_WITH_24HR_TIME)).thenReturn(enrollmentDate);
+    public void shouldReturnEnrollmentApiRequestBodyForAPatient() throws ParseException {
+        JsonObject tableRowObject = getTableRowObjectWithEvent();
+        JsonObject mappingJsonObj = getMappingJsonObj();
 
-        processor.setMappingObj(getMappingJsonObj());
+        doNothing().when(EventUtil.class);
+        EventUtil.updateLatestEventDateCreated(eventDateCreated);
+        doNothing().when(EnrollmentUtil.class);
+        EnrollmentUtil.updateLatestEnrollmentDateCreated(enrollmentDateCreated);
+        when(EventUtil.getDataValues(tableRowObject, mappingJsonObj)).thenReturn(dataValues);
 
-        ProcessedTableRow actual = processor.process(getTableRowObject());
+        processor.setMappingObj(mappingJsonObj);
 
-        mockVerify();
-
-        assertEquals(getExpected(), actual);
-        assertEquals(enrollmentDate, EnrollmentUtil.date);
-        assertEquals(eventDate, EventUtil.date);
-    }
-
-    @Test
-    public void shouldReturnEnrollmentApiRequestBodyForAPatientAndShouldNotUpdateEventUtilDateAndEnrUtilDateToBahmniDate() throws ParseException {
-        Date existingEnrDate = getDate("2018-10-25 13:46:23");
-        EnrollmentUtil.date = existingEnrDate;
-        Date existingEventDate = getDate("2018-10-26 13:46:23");
-        EventUtil.date = existingEventDate;
-        Date enrollmentDate = getDate(enrollmentDateCreated);
-        Date eventDate = getDate(eventDateCreated);
-        when(getDateFromString(eventDateCreated, DATEFORMAT_WITH_24HR_TIME)).thenReturn(eventDate);
-        when(getDateFromString(enrollmentDateCreated, DATEFORMAT_WITH_24HR_TIME)).thenReturn(enrollmentDate);
-
-        processor.setMappingObj(getMappingJsonObj());
-
-        ProcessedTableRow actual = processor.process(getTableRowObject());
-
-        mockVerify();
-
-        assertEquals(getExpected(), actual);
-        assertEquals(existingEnrDate, EnrollmentUtil.date);
-        assertEquals(existingEventDate, EventUtil.date);
-    }
-
-    @Test
-    public void shouldReturnEnrollmentApiRequestBodyForAPatientAndShouldUpdateOnlyEventUtilDateToBahmniDate() throws ParseException {
-        Date existingEventDate = getDate("2018-10-26 13:46:23");
-        EventUtil.date = existingEventDate;
-        Date enrollmentDate = getDate(enrollmentDateCreated);
-        Date eventDate = getDate(eventDateCreated);
-        when(getDateFromString(eventDateCreated, DATEFORMAT_WITH_24HR_TIME)).thenReturn(eventDate);
-        when(getDateFromString(enrollmentDateCreated, DATEFORMAT_WITH_24HR_TIME)).thenReturn(enrollmentDate);
-
-        processor.setMappingObj(getMappingJsonObj());
-
-        ProcessedTableRow actual = processor.process(getTableRowObject());
-
-        mockVerify();
-
-        assertEquals(getExpected(), actual);
-        assertEquals(enrollmentDate, EnrollmentUtil.date);
-        assertEquals(existingEventDate, EventUtil.date);
-    }
-
-    @Test
-    public void shouldReturnEnrollmentApiRequestBodyForAPatientAndShouldUpdateOnlyEnrollmentUtilDateToBahmniDate() throws ParseException {
-        Date existingEnrDate = getDate("2018-10-25 13:46:23");
-        EnrollmentUtil.date = existingEnrDate;
-        Date enrollmentDate = getDate(enrollmentDateCreated);
-        Date eventDate = getDate(eventDateCreated);
-        when(getDateFromString(eventDateCreated, DATEFORMAT_WITH_24HR_TIME)).thenReturn(eventDate);
-        when(getDateFromString(enrollmentDateCreated, DATEFORMAT_WITH_24HR_TIME)).thenReturn(enrollmentDate);
-
-        processor.setMappingObj(getMappingJsonObj());
-
-        ProcessedTableRow actual = processor.process(getTableRowObject());
-
-        mockVerify();
-
-        assertEquals(getExpected(), actual);
-        assertEquals(existingEnrDate, EnrollmentUtil.date);
-        assertEquals(eventDate, EventUtil.date);
-    }
-
-    @Test
-    public void shouldChangeTheFormatForDataValueIfTheDataTypeIsTIMESTAMP() throws ParseException {
-        Date enrollmentDate = getDate(enrollmentDateCreated);
-        Date eventDate = getDate(eventDateCreated);
-
-        when(getDateFromString(eventDateCreated, DATEFORMAT_WITH_24HR_TIME)).thenReturn(eventDate);
-        when(getDateFromString(enrollmentDateCreated, DATEFORMAT_WITH_24HR_TIME)).thenReturn(enrollmentDate);
-        when(getFormattedDateString(eventDateCreated, DATEFORMAT_WITH_24HR_TIME, DHIS_ACCEPTABLE_DATEFORMAT))
-                .thenReturn("2018-10-25T13:46:23");
-
-        processor.setMappingObj(getMappingJsonObj());
-
-        JsonObject tableRowObject = getTableRowObject();
-        tableRowObject.addProperty("date_created_of_event", eventDateCreated);
         ProcessedTableRow actual = processor.process(tableRowObject);
 
-        mockVerify();
-
-        ProcessedTableRow expected = getExpected();
-        expected.getPayLoad().getEvents().get(0).getDataValues().put("zJBTDNgXNu7", "2018-10-25T13:46:23");
-        assertEquals(expected, actual);
-        assertEquals(enrollmentDate, EnrollmentUtil.date);
-        assertEquals(eventDate, EventUtil.date);
-    }
-
-    private void mockVerify() {
-        verifyStatic(times(1));
-        getDateFromString(eventDateCreated, DATEFORMAT_WITH_24HR_TIME);
-        verifyStatic(times(1));
-        getDateFromString(enrollmentDateCreated, DATEFORMAT_WITH_24HR_TIME);
         verifyStatic(times(1));
         getFormattedDateString(eventDateValue, DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME);
         verifyStatic(times(2));
         getFormattedDateString(enrDate, DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME);
+
+        assertEquals(getExpected(), actual);
     }
 
-    private Date getDate(String date) throws ParseException {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATEFORMAT_WITH_24HR_TIME);
-        return simpleDateFormat.parse(date);
+    @Test
+    public void shouldReturnEnrollmentApiRequestBodyWithEmptyEventList() throws ParseException {
+        JsonObject tableRowObject = getTableRowObjectWithoutEvent();
+        JsonObject mappingJsonObj = getMappingJsonObj();
+
+        doNothing().when(EventUtil.class);
+        EventUtil.updateLatestEventDateCreated("");
+        doNothing().when(EnrollmentUtil.class);
+        EnrollmentUtil.updateLatestEnrollmentDateCreated(enrollmentDateCreated);
+        when(EventUtil.getDataValues(tableRowObject, mappingJsonObj)).thenReturn(dataValues);
+
+        processor.setMappingObj(mappingJsonObj);
+
+        EnrollmentAPIPayLoad enrollmentAPIPayLoad = new EnrollmentAPIPayLoad(
+                "",
+                instanceId,
+                program,
+                orgUnitId,
+                enrDate,
+                enrDate,
+                status,
+                "1",
+                Collections.emptyList()
+        );
+        ProcessedTableRow expected = new ProcessedTableRow(patientIdentifier, enrollmentAPIPayLoad);
+
+        ProcessedTableRow actual = processor.process(tableRowObject);
+
+        verifyStatic(times(2));
+        getFormattedDateString(enrDate, DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME);
+
+        assertEquals(expected, actual);
     }
 
-    private JsonObject getTableRowObject() {
+    private JsonObject getTableRowObjectWithEvent() {
         JsonObject tableRowObject = new JsonObject();
         tableRowObject.addProperty("incident_date", enrDate);
         tableRowObject.addProperty("enrollment_date_created", enrollmentDateCreated);
         tableRowObject.addProperty("program_unique_id", "1");
         tableRowObject.addProperty("enrollment_status", status);
+        tableRowObject.addProperty("enr_date", enrDate);
+        tableRowObject.addProperty("enrolled_program", program);
+        tableRowObject.addProperty("enrolled_patient_identifier", patientIdentifier);
         tableRowObject.addProperty("Patient_Identifier", patientIdentifier);
         tableRowObject.addProperty("program", program);
         tableRowObject.addProperty("program_stage", programStage);
@@ -205,6 +135,31 @@ public class NewCompletedEnrollmentWithEventsProcessorTest {
         tableRowObject.addProperty("enrollment_date", enrDate);
         tableRowObject.addProperty("date_created", eventDateCreated);
         tableRowObject.addProperty("crptc", "no");
+        tableRowObject.addProperty("orgunit_id", orgUnitId);
+        tableRowObject.addProperty("instance_id", instanceId);
+
+        return tableRowObject;
+    }
+
+    private JsonObject getTableRowObjectWithoutEvent() {
+        JsonObject tableRowObject = new JsonObject();
+        tableRowObject.addProperty("incident_date", enrDate);
+        tableRowObject.addProperty("enrollment_date_created", enrollmentDateCreated);
+        tableRowObject.addProperty("program_unique_id", "1");
+        tableRowObject.addProperty("enrollment_status", status);
+        tableRowObject.addProperty("enr_date", enrDate);
+        tableRowObject.addProperty("enrolled_program", program);
+        tableRowObject.addProperty("enrolled_patient_identifier", patientIdentifier);
+        tableRowObject.addProperty("Patient_Identifier", "");
+        tableRowObject.addProperty("program", "");
+        tableRowObject.addProperty("program_stage", "");
+        tableRowObject.addProperty("\"OrgUnit\"", "");
+        tableRowObject.addProperty("event_date", "");
+        tableRowObject.addProperty("status", "");
+        tableRowObject.addProperty("event_unique_id", "");
+        tableRowObject.addProperty("enrollment_date", "");
+        tableRowObject.addProperty("date_created", "");
+        tableRowObject.addProperty("crptc", "");
         tableRowObject.addProperty("orgunit_id", orgUnitId);
         tableRowObject.addProperty("instance_id", instanceId);
 
@@ -224,8 +179,6 @@ public class NewCompletedEnrollmentWithEventsProcessorTest {
     }
 
     private EnrollmentAPIPayLoad getEnrollmentPayLoad() {
-        Map<String, String> dataValues = new HashMap<>();
-        dataValues.put("gXNu7zJBTDN", "no");
 
         Event event = new Event(
                 "",
