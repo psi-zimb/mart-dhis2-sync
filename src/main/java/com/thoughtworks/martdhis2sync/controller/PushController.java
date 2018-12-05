@@ -10,6 +10,7 @@ import com.thoughtworks.martdhis2sync.service.DHISMetaDataService;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
 import com.thoughtworks.martdhis2sync.service.MappingService;
 import com.thoughtworks.martdhis2sync.service.TEIService;
+import com.thoughtworks.martdhis2sync.trackerHandler.TrackersHandler;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
@@ -74,8 +75,10 @@ public class PushController {
         try {
             teiService.triggerJob(requestBody.getService(), requestBody.getUser(),
                     lookupTable.getInstance(), mappingJson.getInstance());
+            TrackersHandler.clearTrackerLists();
             completedEnrollmentService.triggerJobForNewCompletedEnrollments(requestBody.getService(), requestBody.getUser(),
                     lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent());
+            TrackersHandler.clearTrackerLists();
             completedEnrollmentService.triggerJobForUpdatedCompletedEnrollments(requestBody.getService(), requestBody.getUser(),
                     lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent());
             if (!IS_DELTA_EXISTS) {

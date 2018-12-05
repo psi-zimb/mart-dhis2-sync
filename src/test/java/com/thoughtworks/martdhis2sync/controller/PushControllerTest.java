@@ -6,11 +6,13 @@ import com.thoughtworks.martdhis2sync.service.DHISMetaDataService;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
 import com.thoughtworks.martdhis2sync.service.MappingService;
 import com.thoughtworks.martdhis2sync.service.TEIService;
+import com.thoughtworks.martdhis2sync.trackerHandler.TrackersHandler;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.SyncFailedException;
@@ -27,8 +29,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doThrow;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 @RunWith(PowerMockRunner.class)
+@PrepareForTest(TrackersHandler.class)
 public class PushControllerTest {
     @Mock
     private MappingService mappingService;
@@ -64,7 +69,9 @@ public class PushControllerTest {
         setValuesForMemberFields(pushController, "completedEnrollmentService", completedEnrollmentService);
         setValuesForMemberFields(pushController, "markerUtil", markerUtil);
 
-
+        mockStatic(TrackersHandler.class);
+        doNothing().when(TrackersHandler.class);
+        TrackersHandler.clearTrackerLists();
         when(markerUtil.getLastSyncedDate(service, "enrollment")).thenReturn(lastSyncedDate);
         when(markerUtil.getLastSyncedDate(service, "event")).thenReturn(lastSyncedDate);
     }
@@ -93,6 +100,8 @@ public class PushControllerTest {
         verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any());
         verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
         verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
+        verifyStatic(times(0));
+        TrackersHandler.clearTrackerLists();
     }
 
     @Test
@@ -120,6 +129,8 @@ public class PushControllerTest {
         verify(completedEnrollmentService, times(0)).triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any());
         verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
         verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
+        verifyStatic(times(1));
+        TrackersHandler.clearTrackerLists();
     }
 
     @Test
@@ -150,6 +161,8 @@ public class PushControllerTest {
             verify(completedEnrollmentService, times(1)).triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any());
             verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
+            verifyStatic(times(2));
+            TrackersHandler.clearTrackerLists();
 
             assertEquals("NO DATA TO SYNC", e.getMessage());
         }

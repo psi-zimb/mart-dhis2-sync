@@ -15,6 +15,8 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.GetUTCDateTimeAsString;
+import static com.thoughtworks.martdhis2sync.util.EnrollmentUtil.enrollmentsToSaveInTracker;
+import static com.thoughtworks.martdhis2sync.util.EventUtil.eventsToSaveInTracker;
 
 @Component
 public class TrackersHandler {
@@ -86,5 +88,10 @@ public class TrackersHandler {
             }
         }
         return updateCount;
+    }
+
+    public static void clearTrackerLists() {
+        eventsToSaveInTracker.clear();
+        enrollmentsToSaveInTracker.clear();
     }
 }
