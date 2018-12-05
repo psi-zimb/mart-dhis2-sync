@@ -5,7 +5,11 @@ import com.thoughtworks.martdhis2sync.model.Config;
 import com.thoughtworks.martdhis2sync.model.DHISSyncRequestBody;
 import com.thoughtworks.martdhis2sync.model.LookupTable;
 import com.thoughtworks.martdhis2sync.model.MappingJson;
-import com.thoughtworks.martdhis2sync.service.*;
+import com.thoughtworks.martdhis2sync.service.CompletedEnrollmentService;
+import com.thoughtworks.martdhis2sync.service.DHISMetaDataService;
+import com.thoughtworks.martdhis2sync.service.LoggerService;
+import com.thoughtworks.martdhis2sync.service.MappingService;
+import com.thoughtworks.martdhis2sync.service.TEIService;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
@@ -17,7 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.SyncFailedException;
 import java.util.Map;
 
-import static com.thoughtworks.martdhis2sync.service.LoggerService.*;
+import static com.thoughtworks.martdhis2sync.service.LoggerService.FAILED;
+import static com.thoughtworks.martdhis2sync.service.LoggerService.NO_DELTA_DATA;
+import static com.thoughtworks.martdhis2sync.service.LoggerService.SUCCESS;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getStringFromDate;
 import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_ENROLLMENT;
 import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_EVENT;
 
@@ -74,6 +82,11 @@ public class PushController {
                 loggerService.collateLogMessage(NO_DELTA_DATA);
                 loggerService.updateLog(requestBody.getService(), SUCCESS);
                 throw new Exception("NO DATA TO SYNC");
+            } else {
+                markerUtil.updateMarkerEntry(requestBody.getService(), CATEGORY_ENROLLMENT,
+                        getStringFromDate(EnrollmentUtil.date, DATEFORMAT_WITH_24HR_TIME));
+                markerUtil.updateMarkerEntry(requestBody.getService(), CATEGORY_EVENT,
+                        getStringFromDate(EventUtil.date, DATEFORMAT_WITH_24HR_TIME));
             }
             loggerService.updateLog(requestBody.getService(), SUCCESS);
         } catch (SyncFailedException e) {
