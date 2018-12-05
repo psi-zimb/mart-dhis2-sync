@@ -1,6 +1,7 @@
 package com.thoughtworks.martdhis2sync.service;
 
 import com.thoughtworks.martdhis2sync.listener.JobCompletionNotificationListener;
+import lombok.Setter;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -37,10 +38,13 @@ public class JobService {
     @Autowired
     private LoggerService loggerService;
 
+    @Setter
+    public static boolean IS_JOB_FAILED = false;
+
     public void triggerJob(String programName, String user, String jobName, List<Step> steps)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
             JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
-
+        IS_JOB_FAILED = false;
         JobExecution jobExecution = jobLauncher.run(getJob(jobName, steps),
                 new JobParametersBuilder()
                         .addDate("date", new Date())
@@ -48,7 +52,7 @@ public class JobService {
                         .addString("user", user)
                         .toJobParameters());
 
-        if (jobExecution.getStatus() == BatchStatus.FAILED) {
+        if (jobExecution.getStatus() == BatchStatus.FAILED || IS_JOB_FAILED) {
             jobExecution.getAllFailureExceptions().forEach(exp -> {
                 String message = exp.getMessage();
                 if(message != null) {

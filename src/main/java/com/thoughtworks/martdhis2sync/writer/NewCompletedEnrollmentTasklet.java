@@ -5,6 +5,7 @@ import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.model.EnrollmentImportSummary;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.responseHandler.EnrollmentResponseHandler;
+import com.thoughtworks.martdhis2sync.service.JobService;
 import com.thoughtworks.martdhis2sync.trackerHandler.TrackersHandler;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import org.slf4j.Logger;
@@ -64,6 +65,7 @@ public class NewCompletedEnrollmentTasklet implements Tasklet {
         Iterator<EnrollmentAPIPayLoad> iterator = EnrollmentUtil.enrollmentsToSaveInTracker.iterator();
         List<EnrollmentImportSummary> enrollmentImportSummaries = responseEntity.getBody().getResponse().getImportSummaries();
         if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+            JobService.setIS_JOB_FAILED(true);
             enrollmentResponseHandler.processCompletedSecondStepResponse(enrollmentImportSummaries, iterator, logger, LOG_PREFIX);
         }
     }

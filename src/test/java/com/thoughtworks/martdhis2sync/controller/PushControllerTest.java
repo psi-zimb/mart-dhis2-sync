@@ -96,6 +96,33 @@ public class PushControllerTest {
     }
 
     @Test
+    public void shouldNotCallUpdatedCompletedEnrollmentServiceWhenNewCompletedEnrollmentIsFailed() throws Exception {
+        Map<String, Object> mapping = getMapping();
+        DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
+
+        doNothing().when(dhisMetaDataService).filterByTypeDateTime();
+        doNothing().when(loggerService).addLog(service, user, comment);
+        doNothing().when(loggerService).updateLog(service, "failed");
+        when(mappingService.getMapping(service)).thenReturn(mapping);
+        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any());
+        doThrow(new SyncFailedException("instance sync failed")).when(completedEnrollmentService)
+                .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any());
+
+        pushController.pushData(dhisSyncRequestBody);
+
+        verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
+        verify(loggerService, times(1)).addLog(service, user, comment);
+        verify(loggerService, times(1)).updateLog(service, "failed");
+        verify(mappingService, times(1)).getMapping(service);
+        verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any());
+        verify(completedEnrollmentService, times(1))
+                .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any());
+        verify(completedEnrollmentService, times(0)).triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any());
+        verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
+        verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
+    }
+
+    @Test
     public void shouldThrowExceptionWithNoDataToSync() throws Exception {
         Map<String, Object> mapping = getMapping();
         DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
