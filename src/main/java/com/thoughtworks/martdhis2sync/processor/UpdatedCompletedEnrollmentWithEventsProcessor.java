@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.processor;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.model.Event;
@@ -49,8 +50,9 @@ public class UpdatedCompletedEnrollmentWithEventsProcessor extends EnrollmentWit
         String eventDate = tableRow.get("event_date").getAsString();
         String dateString = getFormattedDateString(eventDate, DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME);
 
+        JsonElement eventId = tableRow.get("event_id");
         return new Event(
-                tableRow.get("event_id").getAsString(),
+                StringUtils.isEmpty(eventId) ? "": eventId.getAsString(),
                 tableRow.get("instance_id").getAsString(),
                 tableRow.get("enrollment_id").getAsString(),
                 tableRow.get("program").getAsString(),
