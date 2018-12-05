@@ -6,6 +6,7 @@ import com.thoughtworks.martdhis2sync.model.Event;
 import com.thoughtworks.martdhis2sync.model.EventTracker;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -106,5 +107,22 @@ public class EventUtil {
                         DHIS_ACCEPTABLE_DATEFORMAT
                 )
                 : value;
+    }
+
+    public static List<Event> placeNewEventsFirst(List<Event> events) {
+        List<Event> newEvents = new LinkedList<>();
+        List<Event> updateEvents = new LinkedList<>();
+
+        events.forEach(event -> {
+            if (StringUtils.isEmpty(event.getEvent())) {
+                newEvents.add(event);
+            } else {
+                updateEvents.add(event);
+            }
+        });
+
+        return Stream.of(newEvents, updateEvents)
+                .flatMap(List:: stream)
+                .collect(Collectors.toList());
     }
 }

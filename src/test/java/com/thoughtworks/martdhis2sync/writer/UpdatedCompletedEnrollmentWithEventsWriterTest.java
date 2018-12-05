@@ -5,6 +5,7 @@ import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.model.EnrollmentImportSummary;
 import com.thoughtworks.martdhis2sync.model.EnrollmentResponse;
 import com.thoughtworks.martdhis2sync.model.Event;
+import com.thoughtworks.martdhis2sync.model.EventTracker;
 import com.thoughtworks.martdhis2sync.model.ImportCount;
 import com.thoughtworks.martdhis2sync.model.ImportSummary;
 import com.thoughtworks.martdhis2sync.model.ProcessedTableRow;
@@ -40,7 +41,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.management.*")
-public class NewCompletedEnrollmentWithEventsWriterTest {
+public class UpdatedCompletedEnrollmentWithEventsWriterTest {
     @Mock
     private SyncRepository syncRepository;
 
@@ -62,7 +63,7 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
     @Mock
     private EventResponseHandler eventResponseHandler;
 
-    private NewCompletedEnrollmentWithEventsWriter writer;
+    private UpdatedCompletedEnrollmentWithEventsWriter writer;
 
     private String uri = "/api/enrollments?strategy=CREATE_AND_UPDATE";
 
@@ -117,7 +118,7 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
         enrollmentAPIPayLoads.add(payLoad2);
         enrollmentAPIPayLoads.add(payLoad3);
         processedTableRows = Arrays.asList(processedTableRow1, processedTableRow2, processedTableRow3);
-        writer = new NewCompletedEnrollmentWithEventsWriter();
+        writer = new UpdatedCompletedEnrollmentWithEventsWriter();
 
         setValuesForMemberFields(writer, "syncRepository", syncRepository);
         setValuesForMemberFields(writer, "logger", logger);
@@ -145,15 +146,15 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
         List<ProcessedTableRow> processedTableRows = Collections.singletonList(processedTableRow);
         String requestBody = "{" +
                 "\"enrollments\":[" +
-                    "{" +
-                        getEnrollment(payLoad) +
-                        ", " +
-                        "\"events\":[" +
-                            getEvent(event) +
-                        "]" +
-                    "}" +
+                "{" +
+                getEnrollment(payLoad) +
+                ", " +
+                "\"events\":[" +
+                getEvent(event) +
                 "]" +
-            "}";
+                "}" +
+                "]" +
+                "}";
         when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
         when(response.getImportSummaries()).thenReturn(new ArrayList<>());
 
@@ -193,17 +194,17 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
         List<ProcessedTableRow> processedTableRows = Arrays.asList(processedTableRow1, processedTableRow2);
         String requestBody = "{" +
                 "\"enrollments\":[" +
-                    "{" +
-                        getEnrollment(payLoad1) +
-                        ", " +
-                        "\"events\":[" +
-                            getEvent(event1) +
-                            "," +
-                            getEvent(event2) +
-                        "]" +
-                    "}" +
+                "{" +
+                getEnrollment(payLoad1) +
+                ", " +
+                "\"events\":[" +
+                getEvent(event1) +
+                "," +
+                getEvent(event2) +
                 "]" +
-            "}";
+                "}" +
+                "]" +
+                "}";
         when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
         when(response.getImportSummaries()).thenReturn(new ArrayList<>());
 
@@ -252,30 +253,30 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
         List<EnrollmentImportSummary> importSummaries = Arrays.asList(
                 new EnrollmentImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(1, 0, 0, 0),
                         null, new ArrayList<>(), enrReference1, new Response("ImportSummaries",
-                                IMPORT_SUMMARY_RESPONSE_SUCCESS, 2, 0, 0, 0,
-                                Collections.singletonList(
-                                        new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(2, 0, 0, 0),
-                                                null, new ArrayList<>(), envReference1)),
+                        IMPORT_SUMMARY_RESPONSE_SUCCESS, 2, 0, 0, 0,
+                        Collections.singletonList(
+                                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(2, 0, 0, 0),
+                                        null, new ArrayList<>(), envReference1)),
                         1
-                        )
+                )
                 ),
                 new EnrollmentImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(1, 0, 0, 0),
                         null, new ArrayList<>(), enrReference2, new Response("ImportSummaries",
-                                IMPORT_SUMMARY_RESPONSE_SUCCESS, 2, 0, 0, 0,
-                                Collections.singletonList(
-                                        new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(2, 0, 0, 0),
+                        IMPORT_SUMMARY_RESPONSE_SUCCESS, 2, 0, 0, 0,
+                        Collections.singletonList(
+                                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(2, 0, 0, 0),
                                         null, new ArrayList<>(), envReference2)),
                         1
-                        )
+                )
                 ),
                 new EnrollmentImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(1, 0, 0, 0),
                         null, new ArrayList<>(), enrReference3, new Response("ImportSummaries",
-                                IMPORT_SUMMARY_RESPONSE_SUCCESS, 2, 0, 0, 0,
-                                Collections.singletonList(
-                                        new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(2, 0, 0, 0),
+                        IMPORT_SUMMARY_RESPONSE_SUCCESS, 2, 0, 0, 0,
+                        Collections.singletonList(
+                                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(2, 0, 0, 0),
                                         null, new ArrayList<>(), envReference3)),
                         1
-                        )
+                )
                 )
         );
 
@@ -298,30 +299,30 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
     public void shouldCallErrorResponseProcessorsOnSyncFail() throws Exception {
         event2.setProgramStage("wrong program stage");
         String requestBody = "{" +
-                "\"enrollments\":[" +
-                    "{" +
-                        getEnrollment(payLoad1) +
-                        ", " +
-                        "\"events\":[" +
-                            getEvent(event1) +
-                        "]" +
-                    "}," +
-                    "{" +
-                        getEnrollment(payLoad2) +
-                        ", " +
-                        "\"events\":[" +
-                            getEvent(event2) +
-                        "]" +
-                    "}," +
-                    "{" +
-                        getEnrollment(payLoad3) +
-                        ", " +
-                        "\"events\":[" +
-                            getEvent(event3) +
-                        "]" +
-                    "}" +
-                "]" +
-            "}";
+                    "\"enrollments\":[" +
+                        "{" +
+                            getEnrollment(payLoad1) +
+                            ", " +
+                            "\"events\":[" +
+                                getEvent(event1) +
+                            "]" +
+                        "}," +
+                        "{" +
+                            getEnrollment(payLoad2) +
+                            ", " +
+                            "\"events\":[" +
+                                getEvent(event2) +
+                            "]" +
+                        "}," +
+                        "{" +
+                            getEnrollment(payLoad3) +
+                            ", " +
+                            "\"events\":[" +
+                                getEvent(event3) +
+                            "]" +
+                        "}" +
+                    "]" +
+                "}";
         String enrReference1 = "enrReference1";
         String enrReference2 = "enrReference2";
         String enrReference3 = "enrReference3";
@@ -333,30 +334,30 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
         List<EnrollmentImportSummary> importSummaries = Arrays.asList(
                 new EnrollmentImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(1, 0, 0, 0),
                         null, new ArrayList<>(), enrReference1, new Response("ImportSummaries",
-                                IMPORT_SUMMARY_RESPONSE_SUCCESS, 2, 0, 0, 0,
-                                Collections.singletonList(
-                                        new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(2, 0, 0, 0),
+                        IMPORT_SUMMARY_RESPONSE_SUCCESS, 2, 0, 0, 0,
+                        Collections.singletonList(
+                                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(2, 0, 0, 0),
                                         null, new ArrayList<>(), envReference1)),
                         1
-                        )
+                )
                 ),
                 new EnrollmentImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(1, 0, 0, 0),
                         null, new ArrayList<>(), enrReference2, new Response("ImportSummaries",
-                                IMPORT_SUMMARY_RESPONSE_ERROR, 0, 0, 0, 1,
-                                Collections.singletonList(
-                                        new ImportSummary("", IMPORT_SUMMARY_RESPONSE_ERROR, new ImportCount(0, 0, 1, 0),
-                                                description, new ArrayList<>(), null)),
+                        IMPORT_SUMMARY_RESPONSE_ERROR, 0, 0, 0, 1,
+                        Collections.singletonList(
+                                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_ERROR, new ImportCount(0, 0, 1, 0),
+                                        description, new ArrayList<>(), null)),
                         1
-                        )
+                )
                 ),
                 new EnrollmentImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(1, 0, 0, 0),
                         null, new ArrayList<>(), enrReference3, new Response("ImportSummaries",
-                                IMPORT_SUMMARY_RESPONSE_SUCCESS, 2, 0, 0, 0,
-                                Collections.singletonList(
-                                        new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(2, 0, 0, 0),
+                        IMPORT_SUMMARY_RESPONSE_SUCCESS, 2, 0, 0, 0,
+                        Collections.singletonList(
+                                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(2, 0, 0, 0),
                                         null, new ArrayList<>(), envReference3)),
                         1
-                        )
+                )
                 )
         );
 
@@ -420,14 +421,14 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
                         "\"eventDate\":\"%s\", " +
                         "\"status\":\"COMPLETED\", " +
                         "\"dataValues\":[" +
-                            "{" +
-                                "\"dataElement\":\"gXNu7zJBTDN\", " +
-                                "\"value\":\"%s\"" +
-                            "}," +
-                            "{" +
-                                "\"dataElement\":\"jkEjtKqlJtN\", " +
-                                "\"value\":\"%s\"" +
-                            "}" +
+                        "{" +
+                        "\"dataElement\":\"gXNu7zJBTDN\", " +
+                        "\"value\":\"%s\"" +
+                        "}," +
+                        "{" +
+                        "\"dataElement\":\"jkEjtKqlJtN\", " +
+                        "\"value\":\"%s\"" +
+                        "}" +
                         "]" +
                         "}",
                 event.getTrackedEntityInstance(),
@@ -453,6 +454,16 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
                 payLoad.getProgram(),
                 payLoad.getProgramStartDate(),
                 payLoad.getIncidentDate()
+        );
+    }
+
+    private EventTracker getEventTracker(String eventId, String instanceId, String eventUniqueId) {
+        return new EventTracker(
+                eventId,
+                instanceId,
+                "xhjKKwoq",
+                eventUniqueId,
+                "FJTkwmaP"
         );
     }
 }
