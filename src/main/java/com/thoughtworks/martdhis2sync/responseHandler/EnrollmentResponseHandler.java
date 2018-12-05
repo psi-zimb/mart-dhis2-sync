@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.responseHandler;
 
+import com.thoughtworks.martdhis2sync.model.Enrollment;
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.model.EnrollmentImportSummary;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
@@ -43,6 +44,26 @@ public class EnrollmentResponseHandler {
                 });
             } else {
                 processImportSummaries(Collections.singletonList(importSummary), payLoadIterator);
+            }
+        }
+    }
+
+    public void processCompletedSecondStepResponse(List<EnrollmentImportSummary> importSummaries, Iterator<EnrollmentAPIPayLoad> payLoadIterator, Logger logger, String logPrefix) {
+        for (EnrollmentImportSummary importSummary : importSummaries) {
+            if (isIgnored(importSummary)) {
+                EnrollmentAPIPayLoad payLoad = payLoadIterator.next();
+                payLoad.setStatus(Enrollment.STATUS_ACTIVE);
+                logger.error(logPrefix + importSummary.getDescription());
+                loggerService.collateLogMessage(String.format("%s", importSummary.getDescription()));
+            } else if (isConflicted(importSummary)) {
+                EnrollmentAPIPayLoad payLoad = payLoadIterator.next();
+                payLoad.setStatus(Enrollment.STATUS_ACTIVE);
+                importSummary.getConflicts().forEach(conflict -> {
+                    logger.error(logPrefix + conflict.getObject() + ": " + conflict.getValue());
+                    loggerService.collateLogMessage(String.format("%s: %s", conflict.getObject(), conflict.getValue()));
+                });
+            } else {
+                payLoadIterator.next();
             }
         }
     }

@@ -155,6 +155,39 @@ public class EnrollmentResponseHandlerTest {
         EnrollmentUtil.enrollmentsToSaveInTracker.clear();
     }
 
+    @Test
+    public void shouldChangeToStatusActiveForFailedEnrollments() {
+        EnrollmentUtil.enrollmentsToSaveInTracker.clear();
+        String logPrefix = "New Completed Enrollments:: ";
+        String enrReference1 = "enrReference1";
+
+        String conflictMessage = "Enrollment Date can't be future date :Mon Oct 20 00:00:00 IST 2020";
+        List<EnrollmentImportSummary> importSummaries = Arrays.asList(
+                new EnrollmentImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(1, 0, 0, 0),
+                        null, new ArrayList<>(), enrReference1, null
+                ),
+                new EnrollmentImportSummary("", IMPORT_SUMMARY_RESPONSE_ERROR, new ImportCount(0, 0, 1, 0),
+                        null, Collections.singletonList(new Conflict(CONFLICT_OBJ_ENROLLMENT_DATE, conflictMessage)),
+                        null, null
+                )
+        );
+        payLoad1.setEnrollmentId(enrReference1);
+        List<EnrollmentAPIPayLoad> payLoads = Arrays.asList(payLoad1, payLoad2);
+        Iterator<EnrollmentAPIPayLoad> iterator = payLoads.iterator();
+        List<EnrollmentAPIPayLoad> expected = new ArrayList<>();
+        expected.add(payLoad1);
+
+        responseHandler.processErrorResponse(importSummaries, iterator, logger, logPrefix);
+
+        verify(logger, times(1)).error(logPrefix + CONFLICT_OBJ_ENROLLMENT_DATE + ": " +
+                conflictMessage);
+        verify(loggerService, times(1)).collateLogMessage(CONFLICT_OBJ_ENROLLMENT_DATE + ": " +
+                conflictMessage);
+        assertEquals(expected, EnrollmentUtil.enrollmentsToSaveInTracker);
+
+        EnrollmentUtil.enrollmentsToSaveInTracker.clear();
+    }
+
     private EnrollmentAPIPayLoad getEnrollmentPayLoad(String instanceId, String enrDate, String programUniqueId) {
         return new EnrollmentAPIPayLoad(
                 "",

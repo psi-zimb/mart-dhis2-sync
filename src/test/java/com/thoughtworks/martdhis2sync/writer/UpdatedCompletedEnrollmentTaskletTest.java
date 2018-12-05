@@ -44,8 +44,8 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.management.*")
-@PrepareForTest({BatchUtil.class})
-public class NewCompletedEnrollmentTaskletTest {
+@PrepareForTest(BatchUtil.class)
+public class UpdatedCompletedEnrollmentTaskletTest {
     @Mock
     private SyncRepository syncRepository;
 
@@ -76,7 +76,7 @@ public class NewCompletedEnrollmentTaskletTest {
     @Mock
     private EnrollmentResponseHandler enrollmentResponseHandler;
 
-    private NewCompletedEnrollmentTasklet tasklet;
+    private UpdatedCompletedEnrollmentTasklet tasklet;
 
     private String uri = "/api/enrollments?strategy=CREATE_AND_UPDATE";
 
@@ -96,7 +96,7 @@ public class NewCompletedEnrollmentTaskletTest {
         Map<String, Object> jobParams = new HashMap<>();
         jobParams.put("user", "superman");
 
-        tasklet = new NewCompletedEnrollmentTasklet();
+        tasklet = new UpdatedCompletedEnrollmentTasklet();
 
         setValuesForMemberFields(tasklet, "syncRepository", syncRepository);
         setValuesForMemberFields(tasklet, "logger", logger);
@@ -116,9 +116,9 @@ public class NewCompletedEnrollmentTaskletTest {
     @Test
     public void shouldUpdateTrackersAfterSync() throws Exception {
         String requestBody = "{" +
-                    "\"enrollments\":[" +
-                        getEnrollment(payLoad1) +
-                    "]" +
+                "\"enrollments\":[" +
+                getEnrollment(payLoad1) +
+                "]" +
                 "}";
 
         List<EnrollmentImportSummary> importSummaries = Collections.singletonList(
@@ -130,7 +130,7 @@ public class NewCompletedEnrollmentTaskletTest {
         when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(response.getImportSummaries()).thenReturn(importSummaries);
-        when(trackersHandler.insertInEnrollmentTracker("superman")).thenReturn(1);
+        when(trackersHandler.updateInEnrollmentTracker("superman")).thenReturn(1);
         when(trackersHandler.insertInEventTracker("superman")).thenReturn(1);
 
         tasklet.execute(stepContribution, chunkContext);
@@ -139,16 +139,16 @@ public class NewCompletedEnrollmentTaskletTest {
         verify(responseEntity, times(1)).getBody();
         verify(syncResponse, times(1)).getResponse();
         verify(response, times(1)).getImportSummaries();
-        verify(trackersHandler, times(1)).insertInEnrollmentTracker("superman");
+        verify(trackersHandler, times(1)).updateInEnrollmentTracker("superman");
         verify(trackersHandler, times(1)).insertInEventTracker("superman");
     }
 
     @Test
     public void shouldCallResponseHandlerOnFail() throws Exception {
         String requestBody = "{" +
-                    "\"enrollments\":[" +
-                        getEnrollment(payLoad1) +
-                    "]" +
+                "\"enrollments\":[" +
+                getEnrollment(payLoad1) +
+                "]" +
                 "}";
 
         List<EnrollmentImportSummary> importSummaries = Collections.singletonList(
@@ -159,7 +159,7 @@ public class NewCompletedEnrollmentTaskletTest {
 
         when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
         when(response.getImportSummaries()).thenReturn(importSummaries);
-        when(trackersHandler.insertInEnrollmentTracker("superman")).thenReturn(1);
+        when(trackersHandler.updateInEnrollmentTracker("superman")).thenReturn(1);
         when(trackersHandler.insertInEventTracker("superman")).thenReturn(1);
 
         tasklet.execute(stepContribution, chunkContext);
@@ -169,16 +169,16 @@ public class NewCompletedEnrollmentTaskletTest {
         verify(syncResponse, times(1)).getResponse();
         verify(response, times(1)).getImportSummaries();
         verify(enrollmentResponseHandler, times(1)).processCompletedSecondStepResponse(any(), any(), any(), any());
-        verify(trackersHandler, times(1)).insertInEnrollmentTracker("superman");
+        verify(trackersHandler, times(1)).updateInEnrollmentTracker("superman");
         verify(trackersHandler, times(1)).insertInEventTracker("superman");
     }
 
     @Test
     public void shouldLogMessageWhenFailedToInsertIntoTrackers() throws Exception {
         String requestBody = "{" +
-                    "\"enrollments\":[" +
-                        getEnrollment(payLoad1) +
-                    "]" +
+                "\"enrollments\":[" +
+                getEnrollment(payLoad1) +
+                "]" +
                 "}";
 
         List<EnrollmentImportSummary> importSummaries = Collections.singletonList(
@@ -189,7 +189,7 @@ public class NewCompletedEnrollmentTaskletTest {
 
         when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
         when(response.getImportSummaries()).thenReturn(importSummaries);
-        when(trackersHandler.insertInEnrollmentTracker("superman")).thenReturn(1);
+        when(trackersHandler.updateInEnrollmentTracker("superman")).thenReturn(1);
         when(trackersHandler.insertInEventTracker("superman")).thenThrow(new SQLException("can't get database connection"));
 
         tasklet.execute(stepContribution, chunkContext);
