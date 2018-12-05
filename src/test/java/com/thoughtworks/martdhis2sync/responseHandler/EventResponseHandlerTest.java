@@ -514,6 +514,66 @@ public class EventResponseHandlerTest {
         EventUtil.eventsToSaveInTracker.clear();
     }
 
+    @Test
+    public void shouldAddReferenceToTheCorrectEventWhenSecondImportSummaryDoesNotHaveAnyEventImportSummaryResponse() {
+        EventUtil.eventsToSaveInTracker.clear();
+        event1 = getEvents(instanceId1, eventDate, dataValues1, "1", "");
+        List<Event> events1 = new LinkedList<>();
+        events1.add(event1);
+        payLoad1 = getEnrollmentPayLoad(instanceId1, enrDate, events1, "1", enrReference1);
+
+        payLoad2 = getEnrollmentPayLoad(instanceId2, enrDate, new LinkedList<>(), "2", enrReference2);
+
+        event3 = getEvents(instanceId3, eventDate, dataValues3, "3", "");
+        List<Event> events3 = new LinkedList<>();
+        events3.add(event3);
+        payLoad3 = getEnrollmentPayLoad(instanceId3, enrDate, events3, "3", enrReference3);
+        List<EnrollmentAPIPayLoad> enrollmentAPIPayLoads = Arrays.asList(payLoad1, payLoad2, payLoad3);
+
+        EventTracker eventTracker1 = getEventTracker("", instanceId1, "1");
+        EventTracker eventTracker3 = getEventTracker("", instanceId3, "3");
+
+        List<EventTracker> eventTrackers = Arrays.asList(eventTracker1, eventTracker3);
+
+        List<EnrollmentImportSummary> importSummaries = Arrays.asList(
+                new EnrollmentImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(1, 0, 0, 0),
+                        null, new ArrayList<>(), enrReference1, new Response("ImportSummaries",
+                        IMPORT_SUMMARY_RESPONSE_SUCCESS, 2, 0, 0, 0,
+                        Collections.singletonList(
+                                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(2, 0, 0, 0),
+                                        null, new ArrayList<>(), envReference1)),
+                        1
+                )
+                ),
+                new EnrollmentImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(1, 0, 0, 0),
+                        null, new ArrayList<>(), enrReference2, new Response("ImportSummaries",
+                        IMPORT_SUMMARY_RESPONSE_SUCCESS, 0, 0, 0, 0,
+                        null, 1
+                )
+                ),
+                new EnrollmentImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(1, 0, 0, 0),
+                        null, new ArrayList<>(), enrReference3, new Response("ImportSummaries",
+                        IMPORT_SUMMARY_RESPONSE_SUCCESS, 2, 0, 0, 0,
+                        Collections.singletonList(
+                                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(2, 0, 0, 0),
+                                        null, new ArrayList<>(), envReference3)),
+                        1
+                )
+                )
+        );
+
+        EventTracker expectedET1 = getEventTracker(envReference1, instanceId1, "1");
+        EventTracker expectedET3 = getEventTracker(envReference3, instanceId3, "3");
+
+        List<EventTracker> expectedEventTracker = Arrays.asList(expectedET1, expectedET3);
+
+        responseHandler.process(enrollmentAPIPayLoads, importSummaries, eventTrackers, logger, prefix);
+
+        assertEquals(expectedEventTracker, EventUtil.eventsToSaveInTracker);
+
+        EventUtil.eventsToSaveInTracker.clear();
+    }
+
     private EnrollmentAPIPayLoad getEnrollmentPayLoad(String instanceId, String enrDate, List<Event> events, String programUniqueId, String  enrollmentId) {
         return new EnrollmentAPIPayLoad(
                 enrollmentId,

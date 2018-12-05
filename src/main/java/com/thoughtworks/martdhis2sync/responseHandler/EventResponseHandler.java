@@ -29,7 +29,7 @@ public class EventResponseHandler {
         importSummaries.forEach(summary -> {
             EnrollmentAPIPayLoad payLoad = finalIterator.next();
             Response eventsResponse = summary.getEvents();
-            if (eventsResponse == null) {
+            if (eventsResponse == null || eventsResponse.getImportSummaries() == null) {
                 List<Event> events = payLoad.getEvents();
                 events.forEach(i -> eventTrackerIterator.next());
             } else if (IMPORT_SUMMARY_RESPONSE_SUCCESS.equals(eventsResponse.getStatus())) {

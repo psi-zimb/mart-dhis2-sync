@@ -7,11 +7,13 @@ import com.thoughtworks.martdhis2sync.model.ProcessedTableRow;
 import lombok.Setter;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITHOUT_TIME;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getFormattedDateString;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.hasValue;
 import static com.thoughtworks.martdhis2sync.util.EventUtil.getDataValues;
 
 @Component
@@ -42,7 +44,7 @@ public class NewCompletedEnrollmentWithEventsProcessor extends EnrollmentWithEve
     }
 
     Event getEvent(JsonObject tableRow, JsonObject mapping) {
-        if (StringUtils.isEmpty(tableRow.get("event_unique_id").getAsString())) {
+        if (!hasValue(tableRow.get("event_unique_id"))) {
             return null;
         }
 

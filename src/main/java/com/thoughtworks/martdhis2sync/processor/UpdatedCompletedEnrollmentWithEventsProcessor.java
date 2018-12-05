@@ -43,7 +43,7 @@ public class UpdatedCompletedEnrollmentWithEventsProcessor extends EnrollmentWit
     }
 
     Event getEvent(JsonObject tableRow, JsonObject mapping) {
-        if (StringUtils.isEmpty(tableRow.get("event_unique_id").getAsString())) {
+        if (!hasValue(tableRow.get("event_unique_id"))) {
             return null;
         }
 
