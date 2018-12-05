@@ -23,8 +23,8 @@ FROM (SELECT enrTable.*
                           AND category = 'event' AND program_name = '%s') AS eventsTable
     ON enrollmentsTable."Patient_Identifier" = eventsTable."Patient_Identifier"
        AND eventsTable.enrollment_date = enrollmentsTable.enrollment_date
-  INNER JOIN orgunit_tracker orgTracker ON eventsTable."OrgUnit" = orgTracker.orgunit
-  INNER JOIN instance_tracker insTracker ON eventsTable."Patient_Identifier" = insTracker.patient_id
+  INNER JOIN orgunit_tracker orgTracker ON COALESCE(eventsTable."OrgUnit", enrollmentsTable."OrgUnit") = orgTracker.orgunit
+  INNER JOIN instance_tracker insTracker ON COALESCE(eventsTable."Patient_Identifier", enrollmentsTable."Patient_Identifier") = insTracker.patient_id
   LEFT JOIN enrollment_tracker enrolTracker ON enrollmentsTable.program = enrolTracker.program
                                                AND enrolTracker.instance_id = insTracker.instance_id
                                                AND enrolTracker.program_unique_id = enrollmentsTable.program_unique_id :: TEXT
