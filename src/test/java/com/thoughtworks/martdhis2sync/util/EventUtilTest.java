@@ -1,6 +1,7 @@
 package com.thoughtworks.martdhis2sync.util;
 
 import com.google.gson.JsonObject;
+import com.thoughtworks.martdhis2sync.model.Event;
 import com.thoughtworks.martdhis2sync.model.EventTracker;
 import org.junit.Assert;
 import org.junit.Before;
@@ -12,6 +13,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -135,6 +138,28 @@ public class EventUtilTest {
 
         Assert.assertEquals(dhisTimeStamp, dataValues.get("gXNu7zJBTDN"));
 
+    }
+
+    @Test
+    public void shouldGetNewEventsFirstFollowedByUpdates() {
+        Event event1 = new Event("", "instance1", "ertAdfd", "JKrtlAL", "olkjAlkfs",
+                "lfdsHterljL","2019-10-12", "COMPLETED", "1", new HashMap<>()
+        );
+        Event event2 = new Event("eventId", "instance1", "ertAdfd", "JKrtlAL", "olkjAlkfs",
+                "lfdsHterljL","2019-10-12", "COMPLETED", "1", new HashMap<>()
+        );
+        Event event3 = new Event("", "instance1", "ertAdfd", "JKrtlAL", "olkjAlkfs",
+                "lfdsHterljL","2019-10-12", "COMPLETED", "1", new HashMap<>()
+        );
+        List<Event> givenList = new LinkedList<>();
+        givenList.add(event1);
+        givenList.add(event2);
+        givenList.add(event3);
+
+        List<Event> events = EventUtil.placeNewEventsFirst(givenList);
+        Assert.assertEquals(event1, events.get(0));
+        Assert.assertEquals(event3, events.get(1));
+        Assert.assertEquals(event2, events.get(2));
     }
 
     private JsonObject getTableRow(String eventId) {
