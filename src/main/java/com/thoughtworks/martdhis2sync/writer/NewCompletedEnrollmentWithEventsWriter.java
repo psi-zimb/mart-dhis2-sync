@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.writer;
 
+import com.thoughtworks.martdhis2sync.controller.PushController;
 import com.thoughtworks.martdhis2sync.model.DHISEnrollmentSyncResponse;
 import com.thoughtworks.martdhis2sync.model.Enrollment;
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
@@ -10,6 +11,7 @@ import com.thoughtworks.martdhis2sync.model.ProcessedTableRow;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.responseHandler.EnrollmentResponseHandler;
 import com.thoughtworks.martdhis2sync.responseHandler.EventResponseHandler;
+import com.thoughtworks.martdhis2sync.service.JobService;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +75,7 @@ public class NewCompletedEnrollmentWithEventsWriter implements ItemWriter<Proces
 
     @Override
     public void write(List<? extends ProcessedTableRow> tableRows) throws Exception {
+        PushController.IS_DELTA_EXISTS = true;
         clearTrackerLists();
         Map<String, EnrollmentAPIPayLoad> groupedEnrollmentPayLoad = getGroupedEnrollmentPayLoad(tableRows);
         Collection<EnrollmentAPIPayLoad> payLoads = groupedEnrollmentPayLoad.values();
@@ -88,6 +91,7 @@ public class NewCompletedEnrollmentWithEventsWriter implements ItemWriter<Proces
             enrollmentResponseHandler.processImportSummaries(enrollmentImportSummaries, iterator);
             eventResponseHandler.process(payLoads, enrollmentImportSummaries, eventTrackers, logger, LOG_PREFIX);
         } else {
+            JobService.setIS_JOB_FAILED(true);
             enrollmentResponseHandler.processErrorResponse(enrollmentImportSummaries, iterator, logger, LOG_PREFIX);
             eventResponseHandler.process(payLoads, enrollmentImportSummaries, eventTrackers, logger, LOG_PREFIX);
         }
