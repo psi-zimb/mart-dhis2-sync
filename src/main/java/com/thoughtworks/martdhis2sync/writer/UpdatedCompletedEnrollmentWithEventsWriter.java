@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeLastChar;
-import static com.thoughtworks.martdhis2sync.util.EnrollmentUtil.enrollmentsToSaveInTracker;
-import static com.thoughtworks.martdhis2sync.util.EventUtil.eventsToSaveInTracker;
 import static com.thoughtworks.martdhis2sync.util.EventUtil.getEventTrackers;
 import static com.thoughtworks.martdhis2sync.util.EventUtil.placeNewEventsFirst;
 
@@ -78,7 +76,7 @@ public class UpdatedCompletedEnrollmentWithEventsWriter implements ItemWriter<Pr
     @Override
     public void write(List<? extends ProcessedTableRow> tableRows) throws Exception {
         PushController.IS_DELTA_EXISTS = true;
-        clearTrackerLists();
+        eventTrackers.clear();
         Map<String, EnrollmentAPIPayLoad> groupedEnrollmentPayLoad = getGroupedEnrollmentPayLoad(tableRows);
         Collection<EnrollmentAPIPayLoad> payLoads = groupedEnrollmentPayLoad.values();
         String apiBody = getAPIBody(groupedEnrollmentPayLoad);
@@ -170,11 +168,5 @@ public class UpdatedCompletedEnrollmentWithEventsWriter implements ItemWriter<Pr
         });
 
         return removeLastChar(dataValuesApiBuilder);
-    }
-
-    private void clearTrackerLists() {
-        eventTrackers.clear();
-        eventsToSaveInTracker.clear();
-        enrollmentsToSaveInTracker.clear();
     }
 }
