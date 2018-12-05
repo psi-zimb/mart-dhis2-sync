@@ -15,14 +15,19 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.text.ParseException;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITHOUT_TIME;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getFormattedDateString;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.hasValue;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.times;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.powermock.api.mockito.PowerMockito.doNothing;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({EnrollmentUtil.class, BatchUtil.class, EventUtil.class})
@@ -55,8 +60,12 @@ public class NewCompletedEnrollmentWithEventsProcessorTest {
         when(getFormattedDateString(eventDateValue, DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME))
                 .thenReturn(eventDateValue);
         when(getFormattedDateString(enrDate, DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME)).thenReturn(enrDate);
-        when(BatchUtil.hasValue(getMappingJsonObj().get("crptc"))).thenReturn(true);
-        when(BatchUtil.hasValue(getMappingJsonObj().get("date_created_of_event"))).thenReturn(true);
+        when(hasValue(getMappingJsonObj().get("crptc"))).thenReturn(true);
+        when(hasValue(getMappingJsonObj().get("date_created_of_event"))).thenReturn(true);
+        when(hasValue(getTableRowObjectWithEvent().get("date_created"))).thenReturn(true);
+        when(hasValue(getTableRowObjectWithEvent().get("enrollment_date_created"))).thenReturn(true);
+        when(hasValue(getTableRowObjectWithEvent().get("event_unique_id"))).thenReturn(true);
+        when(hasValue(getTableRowObjectWithEvent().get("enrolled_patient_identifier"))).thenReturn(true);
     }
 
     @Test
@@ -150,16 +159,16 @@ public class NewCompletedEnrollmentWithEventsProcessorTest {
         tableRowObject.addProperty("enr_date", enrDate);
         tableRowObject.addProperty("enrolled_program", program);
         tableRowObject.addProperty("enrolled_patient_identifier", patientIdentifier);
-        tableRowObject.addProperty("Patient_Identifier", "");
-        tableRowObject.addProperty("program", "");
-        tableRowObject.addProperty("program_stage", "");
-        tableRowObject.addProperty("\"OrgUnit\"", "");
-        tableRowObject.addProperty("event_date", "");
-        tableRowObject.addProperty("status", "");
-        tableRowObject.addProperty("event_unique_id", "");
-        tableRowObject.addProperty("enrollment_date", "");
-        tableRowObject.addProperty("date_created", "");
-        tableRowObject.addProperty("crptc", "");
+        tableRowObject.addProperty("Patient_Identifier", (String) null);
+        tableRowObject.addProperty("program", (String) null);
+        tableRowObject.addProperty("program_stage", (String) null);
+        tableRowObject.addProperty("\"OrgUnit\"", (String) null);
+        tableRowObject.addProperty("event_date", (String) null);
+        tableRowObject.addProperty("status", (String) null);
+        tableRowObject.addProperty("event_unique_id", (String) null);
+        tableRowObject.addProperty("enrollment_date", (String) null);
+        tableRowObject.addProperty("date_created", (String) null);
+        tableRowObject.addProperty("crptc", (String) null);
         tableRowObject.addProperty("orgunit_id", orgUnitId);
         tableRowObject.addProperty("instance_id", instanceId);
 

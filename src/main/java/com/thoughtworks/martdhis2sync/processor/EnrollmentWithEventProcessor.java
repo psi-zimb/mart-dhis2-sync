@@ -13,6 +13,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.hasValue;
 import static com.thoughtworks.martdhis2sync.util.EnrollmentUtil.updateLatestEnrollmentDateCreated;
 import static com.thoughtworks.martdhis2sync.util.EventUtil.updateLatestEventDateCreated;
 
@@ -27,8 +28,10 @@ public abstract class EnrollmentWithEventProcessor {
         JsonObject tableRowJsonObject = tableRowJsonElement.getAsJsonObject();
         JsonObject mappingJsonObject = mappingObjJsonElement.getAsJsonObject();
 
-        updateLatestEventDateCreated(tableRowJsonObject.get("date_created").getAsString());
-        updateLatestEnrollmentDateCreated(tableRowJsonObject.get("enrollment_date_created").getAsString());
+        JsonElement eventDateCreated = tableRowJsonObject.get("date_created");
+        JsonElement enrollmentDateCreated = tableRowJsonObject.get("enrollment_date_created");
+        updateLatestEventDateCreated(hasValue(eventDateCreated) ? eventDateCreated.getAsString() : "");
+        updateLatestEnrollmentDateCreated(hasValue(enrollmentDateCreated) ? enrollmentDateCreated.getAsString() : "");
 
         Event event = getEvent(tableRowJsonObject, mappingJsonObject);
         List<Event> events = new LinkedList<>();
@@ -37,8 +40,11 @@ public abstract class EnrollmentWithEventProcessor {
         }
         EnrollmentAPIPayLoad enrollmentAPIPayLoad = getEnrollmentAPIPayLoad(tableRowJsonObject, events);
 
+        JsonElement enrolledPatientIdentifier = tableRowJsonObject.get("enrolled_patient_identifier");
+        JsonElement eventPatientIdentifier = tableRowJsonObject.get("Patient_Identifier");
         return new ProcessedTableRow(
-                tableRowJsonObject.get("enrolled_patient_identifier").getAsString(),
+                hasValue(enrolledPatientIdentifier) ? enrolledPatientIdentifier.getAsString()
+                        : eventPatientIdentifier.getAsString(),
                 enrollmentAPIPayLoad
         );
     }
