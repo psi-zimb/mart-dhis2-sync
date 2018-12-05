@@ -188,4 +188,17 @@
             ALTER COLUMN program_unique_id type text;
         </sql>
     </changeSet>
+    <changeSet id="143005122018" author="Pavan">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.key_column_usage WHERE table_schema='public' and
+                table_name='mapping';
+            </sqlCheck>
+        </preConditions>
+        <comment>Changing primary key to (instance_id, Patient_id) from instance_id in instance_tracker</comment>
+        <sql>
+            ALTER TABLE instance_tracker DROP CONSTRAINT instance_tracker_pkey;
+            ALTER TABLE instance_tracker ADD PRIMARY KEY (instance_id, patient_id);
+        </sql>
+    </changeSet>
 </databaseChangeLog>
