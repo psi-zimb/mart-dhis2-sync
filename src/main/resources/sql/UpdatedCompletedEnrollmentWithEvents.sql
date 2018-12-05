@@ -32,5 +32,5 @@ FROM (SELECT enrTable.*
                                          AND eventsTable.event_unique_id :: TEXT = evntTracker.event_unique_id
                                          AND eventsTable.program = evntTracker.program
                                          AND eventsTable.program_stage = evntTracker.program_stage
-WHERE enrollmentsTable.status = 'COMPLETED' OR enrollmentsTable.status = 'CANCELLED'
+WHERE (enrollmentsTable.status = 'COMPLETED' OR enrollmentsTable.status = 'CANCELLED')
                                             AND enrolTracker.instance_id IS NOT NULL %s;

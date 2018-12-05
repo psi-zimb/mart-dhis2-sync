@@ -19,5 +19,5 @@ FROM %s enrTable
 WHERE enrTable.date_created :: TIMESTAMP > COALESCE((SELECT last_synced_date FROM marker WHERE category = 'enrollment'
                                                                                            AND program_name = '%s'),
                                                     '-infinity')
-  AND enrTable.status = 'COMPLETED' OR enrTable.status = 'CANCELLED'
-  AND enrTracker.instance_id IS NULL;
+  AND enrTracker.instance_id IS NULL
+  AND (enrTable.status = 'COMPLETED' OR enrTable.status = 'CANCELLED');
