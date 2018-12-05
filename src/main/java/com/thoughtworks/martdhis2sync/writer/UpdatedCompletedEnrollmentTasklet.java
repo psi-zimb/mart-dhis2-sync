@@ -25,7 +25,7 @@ import java.util.List;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeLastChar;
 
 @Component
-public class NewCompletedEnrollmentTasklet implements Tasklet {
+public class UpdatedCompletedEnrollmentTasklet implements Tasklet {
     private static final String URI = "/api/enrollments?strategy=CREATE_AND_UPDATE";
 
     @Autowired
@@ -41,13 +41,13 @@ public class NewCompletedEnrollmentTasklet implements Tasklet {
     private static final String LOG_PREFIX = "NEW COMPLETED ENROLLMENT SYNC: ";
 
     private static final String ENROLLMENT_API_FORMAT = "{" +
-                "\"enrollment\":\"%s\", " +
-                "\"trackedEntityInstance\":\"%s\", " +
-                "\"orgUnit\":\"%s\", " +
-                "\"program\":\"%s\", " +
-                "\"enrollmentDate\":\"%s\", " +
-                "\"incidentDate\":\"%s\", " +
-                "\"status\":\"%s\"" +
+            "\"enrollment\":\"%s\", " +
+            "\"trackedEntityInstance\":\"%s\", " +
+            "\"orgUnit\":\"%s\", " +
+            "\"program\":\"%s\", " +
+            "\"enrollmentDate\":\"%s\", " +
+            "\"incidentDate\":\"%s\", " +
+            "\"status\":\"%s\"" +
             "}";
 
     @Override
@@ -91,8 +91,8 @@ public class NewCompletedEnrollmentTasklet implements Tasklet {
     private void updateTrackers(String user) {
         int recordsCreated;
         try {
-            recordsCreated = trackersHandler.insertInEnrollmentTracker(user);
-            logger.info(LOG_PREFIX + "Successfully inserted " + recordsCreated + " Enrollment UIDs.");
+            recordsCreated = trackersHandler.updateInEnrollmentTracker(user);
+            logger.info(LOG_PREFIX + "Successfully updated " + recordsCreated + " Enrollment UIDs.");
         } catch (SQLException e) {
             logger.error(LOG_PREFIX + "Exception occurred while inserting Program Enrollment UIDs:" + e.getMessage());
             e.printStackTrace();
