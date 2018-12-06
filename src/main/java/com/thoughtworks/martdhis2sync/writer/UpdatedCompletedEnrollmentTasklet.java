@@ -39,7 +39,7 @@ public class UpdatedCompletedEnrollmentTasklet implements Tasklet {
     private EnrollmentResponseHandler enrollmentResponseHandler;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
-    private static final String LOG_PREFIX = "NEW COMPLETED ENROLLMENT SYNC: ";
+    private static final String LOG_PREFIX = "UPDATE COMPLETED ENROLLMENT SYNC: ";
 
     private static final String ENROLLMENT_API_FORMAT = "{" +
             "\"enrollment\":\"%s\", " +
