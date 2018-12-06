@@ -127,7 +127,7 @@ public class UpdatedCompletedEnrollmentWithEventsWriter implements ItemWriter<Pr
                             value.getProgram(),
                             value.getProgramStartDate(),
                             value.getIncidentDate(),
-                            Enrollment.STATUS_ACTIVE,
+                            EnrollmentAPIPayLoad.STATUS_ACTIVE,
                             getEventBody(events)
                     ))
                     .append(",");

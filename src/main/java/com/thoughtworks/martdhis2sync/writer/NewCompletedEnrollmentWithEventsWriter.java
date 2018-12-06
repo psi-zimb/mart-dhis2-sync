@@ -1,13 +1,7 @@
 package com.thoughtworks.martdhis2sync.writer;
 
 import com.thoughtworks.martdhis2sync.controller.PushController;
-import com.thoughtworks.martdhis2sync.model.DHISEnrollmentSyncResponse;
-import com.thoughtworks.martdhis2sync.model.Enrollment;
-import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
-import com.thoughtworks.martdhis2sync.model.EnrollmentImportSummary;
-import com.thoughtworks.martdhis2sync.model.Event;
-import com.thoughtworks.martdhis2sync.model.EventTracker;
-import com.thoughtworks.martdhis2sync.model.ProcessedTableRow;
+import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.responseHandler.EnrollmentResponseHandler;
 import com.thoughtworks.martdhis2sync.responseHandler.EventResponseHandler;
@@ -21,12 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeLastChar;
 
@@ -124,7 +113,7 @@ public class NewCompletedEnrollmentWithEventsWriter implements ItemWriter<Proces
                         value.getProgram(),
                         value.getProgramStartDate(),
                         value.getIncidentDate(),
-                        Enrollment.STATUS_ACTIVE,
+                        EnrollmentAPIPayLoad.STATUS_ACTIVE,
                         getEventBody(events)
                 ))
                 .append(",");

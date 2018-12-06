@@ -30,14 +30,10 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.thoughtworks.martdhis2sync.model.Enrollment.STATUS_ACTIVE;
-import static com.thoughtworks.martdhis2sync.model.Enrollment.STATUS_CANCELLED;
-import static com.thoughtworks.martdhis2sync.model.Enrollment.STATUS_COMPLETED;
+import static com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad.*;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_ERROR;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_SUCCESS;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getStringFromDate;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
 import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_ENROLLMENT;
 
 @Component

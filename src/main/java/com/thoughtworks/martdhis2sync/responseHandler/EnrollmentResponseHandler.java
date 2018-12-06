@@ -52,12 +52,12 @@ public class EnrollmentResponseHandler {
         for (EnrollmentImportSummary importSummary : importSummaries) {
             if (isIgnored(importSummary)) {
                 EnrollmentAPIPayLoad payLoad = payLoadIterator.next();
-                payLoad.setStatus(Enrollment.STATUS_ACTIVE);
+                payLoad.setStatus(EnrollmentAPIPayLoad.STATUS_ACTIVE);
                 logger.error(logPrefix + importSummary.getDescription());
                 loggerService.collateLogMessage(String.format("%s", importSummary.getDescription()));
             } else if (isConflicted(importSummary)) {
                 EnrollmentAPIPayLoad payLoad = payLoadIterator.next();
-                payLoad.setStatus(Enrollment.STATUS_ACTIVE);
+                payLoad.setStatus(EnrollmentAPIPayLoad.STATUS_ACTIVE);
                 importSummary.getConflicts().forEach(conflict -> {
                     logger.error(logPrefix + conflict.getObject() + ": " + conflict.getValue());
                     loggerService.collateLogMessage(String.format("%s: %s", conflict.getObject(), conflict.getValue()));
