@@ -192,14 +192,16 @@ public class UpdatedCompletedEnrollmentTaskletTest {
         when(trackersHandler.updateInEnrollmentTracker("superman")).thenReturn(1);
         when(trackersHandler.insertInEventTracker("superman")).thenThrow(new SQLException("can't get database connection"));
 
-        tasklet.execute(stepContribution, chunkContext);
-
-        verify(syncRepository, times(1)).sendEnrollmentData(uri, requestBody);
-        verify(responseEntity, times(1)).getBody();
-        verify(syncResponse, times(1)).getResponse();
-        verify(response, times(1)).getImportSummaries();
-        verify(logger, times(1)).error("NEW COMPLETED ENROLLMENT SYNC: Exception occurred " +
-                "while inserting Event UIDs:can't get database connection");
+        try {
+            tasklet.execute(stepContribution, chunkContext);
+        } catch (SQLException e) {
+            verify(syncRepository, times(1)).sendEnrollmentData(uri, requestBody);
+            verify(responseEntity, times(1)).getBody();
+            verify(syncResponse, times(1)).getResponse();
+            verify(response, times(1)).getImportSummaries();
+            verify(logger, times(1)).error("NEW COMPLETED ENROLLMENT SYNC: Exception occurred " +
+                    "while inserting Event UIDs:can't get database connection");
+        }
     }
 
     @After
