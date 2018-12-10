@@ -57,7 +57,6 @@ public class TrackedEntityInstanceStepTest {
     private StepFactory stepFactory;
 
     private TrackedEntityInstanceStep teiStep;
-    private List<String> searchableAttributes = Arrays.asList("UIC", "date_created");
 
     @Before
     public void setUp() throws Exception {
@@ -67,23 +66,22 @@ public class TrackedEntityInstanceStepTest {
         setValuesForMemberFields(teiStep, "writer", writer);
         setValuesForMemberFields(teiStep, "markerUtil", markerUtil);
         setValuesForMemberFields(teiStep, "stepFactory", stepFactory);
-
-        teiStep.setSearchableAttributes(searchableAttributes);
     }
 
     @Test
-    public void shouldReturnStep() throws Exception {
+    public void shouldReturnStep() {
         String lookupTable = "patient_identifier";
         Object mappingObj = "";
         String programName = "TB Service";
         String stepName = "Tracked Entity Step";
+        List<String> searchableAttributes = Arrays.asList("UIC", "date_created");
 
         when(markerUtil.getLastSyncedDate(programName, CATEGORY_INSTANCE)).thenReturn(new Date(Long.MIN_VALUE));
         when(mappingReader.getInstanceReader(anyString(), anyString())).thenReturn(jdbcCursorItemReader);
         when(processorObjectFactory.getObject()).thenReturn(processor);
         when(stepFactory.build(stepName, jdbcCursorItemReader, processor, writer)).thenReturn(step);
 
-        teiStep.get(lookupTable, programName, mappingObj);
+        teiStep.get(lookupTable, programName, mappingObj, searchableAttributes);
 
         verify(mappingReader, times(1)).getInstanceReader(anyString(), anyString());
         verify(processorObjectFactory, times(1)).getObject();
