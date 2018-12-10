@@ -20,6 +20,7 @@ import java.util.Map;
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.when;
@@ -86,11 +87,11 @@ public class PushControllerTest {
         DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
 
         doNothing().when(dhisMetaDataService).filterByTypeDateTime();
-        doNothing().when(dhisMetaDataService).getTrackedEntityInstances(getDhisSyncRequestBody().getService());
+        doNothing().when(dhisMetaDataService).getTrackedEntityInstances(dhisSyncRequestBody.getService());
         doNothing().when(loggerService).addLog(service, user, comment);
         doNothing().when(loggerService).updateLog(service, "failed");
         when(mappingService.getMapping(service)).thenReturn(mapping);
-        doThrow(new SyncFailedException("instance sync failed")).when(teiService).triggerJob(anyString(), anyString(), anyString(), any());
+        doThrow(new SyncFailedException("instance sync failed")).when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList());
 
         pushController.pushData(dhisSyncRequestBody);
 
@@ -101,7 +102,7 @@ public class PushControllerTest {
         verify(loggerService, times(1)).addLog(service, user, comment);
         verify(loggerService, times(1)).updateLog(service, "failed");
         verify(mappingService, times(1)).getMapping(service);
-        verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any());
+        verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList());
         verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
         verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
         verifyStatic(times(0));
@@ -116,7 +117,7 @@ public class PushControllerTest {
         doNothing().when(loggerService).addLog(service, user, comment);
         doNothing().when(loggerService).updateLog(service, "failed");
         when(mappingService.getMapping(service)).thenReturn(mapping);
-        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any());
+        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList());
         doThrow(new SyncFailedException("instance sync failed")).when(completedEnrollmentService)
                 .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
         doNothing().when(teiService).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service);
@@ -127,7 +128,7 @@ public class PushControllerTest {
         verify(loggerService, times(1)).addLog(service, user, comment);
         verify(loggerService, times(1)).updateLog(service, "failed");
         verify(mappingService, times(1)).getMapping(service);
-        verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any());
+        verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList());
         verify(completedEnrollmentService, times(1))
                 .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
         verify(completedEnrollmentService, times(0)).triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString());
@@ -148,7 +149,7 @@ public class PushControllerTest {
         doNothing().when(loggerService).updateLog(service, "success");
         doNothing().when(loggerService).collateLogMessage("No delta data to sync.");
         when(mappingService.getMapping(service)).thenReturn(mapping);
-        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any());
+        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList());
         doNothing().when(teiService).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service);
         doNothing().when(completedEnrollmentService).triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(),anyString(),  any(), anyString());
         doNothing().when(completedEnrollmentService).triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(),anyString(),  any(), any(), anyString());
@@ -163,7 +164,7 @@ public class PushControllerTest {
             verify(loggerService, times(1)).updateLog(service, "success");
             verify(loggerService, times(1)).collateLogMessage("No delta data to sync.");
             verify(mappingService, times(1)).getMapping(service);
-            verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any());
+            verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList());
             verify(completedEnrollmentService, times(1)).triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
             verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
@@ -184,7 +185,7 @@ public class PushControllerTest {
         doNothing().when(loggerService).addLog(service, user, comment);
         doNothing().when(loggerService).updateLog(service, "failed");
         when(mappingService.getMapping(service)).thenReturn(mapping);
-        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any());
+        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList());
         doNothing().when(completedEnrollmentService)
                 .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
         doNothing().when(completedEnrollmentService)
@@ -216,7 +217,7 @@ public class PushControllerTest {
         doNothing().when(loggerService).addLog(service, user, comment);
         doNothing().when(loggerService).updateLog(service, "failed");
         when(mappingService.getMapping(service)).thenReturn(mapping);
-        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any());
+        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList());
         doNothing().when(completedEnrollmentService)
                 .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
         doNothing().when(completedEnrollmentService)

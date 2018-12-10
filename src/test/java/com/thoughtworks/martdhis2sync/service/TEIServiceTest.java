@@ -18,21 +18,11 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 import org.springframework.http.ResponseEntity;
 
 import java.io.SyncFailedException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.management.*")
@@ -60,7 +50,6 @@ public class TEIServiceTest {
     private TrackedEntityInstanceResponse response;
 
     private TEIService teiService;
-    private List<String> searchableAttributes = Arrays.asList("UIC", "date_created");
     private LinkedList<Step> steps = new LinkedList<>();
 
     @Before
@@ -71,7 +60,6 @@ public class TEIServiceTest {
         setValuesForMemberFields(teiService, "patientDAO", patientDAO);
         setValuesForMemberFields(teiService, "syncRepository", syncRepository);
 
-        teiService.setSearchableAttributes(searchableAttributes);
         steps.add(step);
 
         TEIUtil.setInstancesWithEnrollments(new HashMap<>());
@@ -84,13 +72,13 @@ public class TEIServiceTest {
         String service = "serviceName";
         String user = "Admin";
         String jobName = "Sync Tracked Entity Instance";
+        List<String> searchableAttributes = Arrays.asList("UIC", "date_created");
 
         doNothing().when(jobService).triggerJob(service, user, jobName, steps, "");
-        when(instanceStep.get(lookUpTable, service, mappingObj)).thenReturn(step);
+        when(instanceStep.get(lookUpTable, service, mappingObj, searchableAttributes)).thenReturn(step);
 
-        teiService.triggerJob(service, user, lookUpTable, mappingObj);
+        teiService.triggerJob(service, user, lookUpTable, mappingObj, searchableAttributes);
 
-        verify(instanceStep, times(1)).setSearchableAttributes(searchableAttributes);
         verify(jobService, times(1)).triggerJob(service, user, jobName, steps, "");
     }
 
@@ -101,15 +89,15 @@ public class TEIServiceTest {
         String service = "serviceName";
         String user = "Admin";
         String jobName = "Sync Tracked Entity Instance";
+        List<String> searchableAttributes = Arrays.asList("UIC", "date_created");
 
+        when(instanceStep.get(lookUpTable, service, mappingObj, searchableAttributes)).thenReturn(step);
         doThrow(JobExecutionAlreadyRunningException.class).when(jobService)
                 .triggerJob(service, user, jobName, steps, "");
-        when(instanceStep.get(lookUpTable, service, mappingObj)).thenReturn(step);
 
         try {
-            teiService.triggerJob(service, user, lookUpTable, mappingObj);
+            teiService.triggerJob(service, user, lookUpTable, mappingObj, searchableAttributes);
         }catch (Exception e){
-            verify(instanceStep, times(1)).setSearchableAttributes(searchableAttributes);
             throw e;
         }
     }
@@ -121,15 +109,15 @@ public class TEIServiceTest {
         String service = "serviceName";
         String user = "Admin";
         String jobName = "Sync Tracked Entity Instance";
+        List<String> searchableAttributes = Arrays.asList("UIC", "date_created");
 
+        when(instanceStep.get(lookUpTable, service, mappingObj, searchableAttributes)).thenReturn(step);
         doThrow(SyncFailedException.class).when(jobService)
                 .triggerJob(service, user, jobName, steps, "");
-        when(instanceStep.get(lookUpTable, service, mappingObj)).thenReturn(step);
 
         try{
-            teiService.triggerJob(service, user, lookUpTable, mappingObj);
+            teiService.triggerJob(service, user, lookUpTable, mappingObj, searchableAttributes);
         }catch (Exception e){
-            verify(instanceStep, times(1)).setSearchableAttributes(searchableAttributes);
             throw e;
         }
     }
