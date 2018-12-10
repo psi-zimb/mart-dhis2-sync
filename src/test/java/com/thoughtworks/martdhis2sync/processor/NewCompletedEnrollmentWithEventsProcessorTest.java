@@ -115,7 +115,7 @@ public class NewCompletedEnrollmentWithEventsProcessorTest {
                 "1",
                 Collections.emptyList()
         );
-        ProcessedTableRow expected = new ProcessedTableRow(patientIdentifier, enrollmentAPIPayLoad);
+        ProcessedTableRow expected = new ProcessedTableRow("1", enrollmentAPIPayLoad);
 
         ProcessedTableRow actual = processor.process(tableRowObject);
 
@@ -184,7 +184,7 @@ public class NewCompletedEnrollmentWithEventsProcessorTest {
     }
 
     private ProcessedTableRow getExpected() {
-        return new ProcessedTableRow(patientIdentifier, getEnrollmentPayLoad());
+        return new ProcessedTableRow("1", getEnrollmentPayLoad());
     }
 
     private EnrollmentAPIPayLoad getEnrollmentPayLoad() {

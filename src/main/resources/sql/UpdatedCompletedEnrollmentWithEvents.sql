@@ -16,21 +16,26 @@ FROM (SELECT enrTable.*
         INNER JOIN marker enrollment_marker
           ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')
              AND category = 'enrollment' AND program_name = '%s') AS enrollmentsTable
-  FULL OUTER JOIN (SELECT evnTable.*
+  FULL OUTER JOIN (SELECT evnTable.*,
+                   enrollments.program_unique_id AS event_program_unique_id,
+                   enrollments.status            AS event_program_status,
+                   enrollments.incident_date     AS event_program_incident_date
                    FROM %s evnTable
+                     INNER JOIN %s enrollments ON evnTable."Patient_Identifier" = enrollments."Patient_Identifier"
+                              AND evnTable.enrollment_date = COALESCE(enrollments.enrollment_date, evnTable.enrollment_date)
                      INNER JOIN marker event_marker
                        ON evnTable.date_created :: TIMESTAMP > COALESCE(event_marker.last_synced_date, '-infinity')
                           AND category = 'event' AND program_name = '%s') AS eventsTable
     ON enrollmentsTable."Patient_Identifier" = eventsTable."Patient_Identifier"
-       AND eventsTable.enrollment_date = enrollmentsTable.enrollment_date
+       AND eventsTable.enrollment_date = COALESCE(enrollmentsTable.enrollment_date, eventsTable.enrollment_date)
   INNER JOIN orgunit_tracker orgTracker ON COALESCE(eventsTable."OrgUnit", enrollmentsTable."OrgUnit") = orgTracker.orgunit
   INNER JOIN instance_tracker insTracker ON COALESCE(eventsTable."Patient_Identifier", enrollmentsTable."Patient_Identifier") = insTracker.patient_id
-  LEFT JOIN enrollment_tracker enrolTracker ON enrollmentsTable.program = enrolTracker.program
+  LEFT JOIN enrollment_tracker enrolTracker ON COALESCE(enrollmentsTable.program, eventsTable.program) = enrolTracker.program
                                                AND enrolTracker.instance_id = insTracker.instance_id
-                                               AND enrolTracker.program_unique_id = enrollmentsTable.program_unique_id :: TEXT
+                                               AND enrolTracker.program_unique_id = COALESCE(enrollmentsTable.program_unique_id, eventsTable.event_program_unique_id) :: TEXT
   LEFT JOIN event_tracker evntTracker ON insTracker.instance_id = evntTracker.instance_id
                                          AND eventsTable.event_unique_id :: TEXT = evntTracker.event_unique_id
                                          AND eventsTable.program = evntTracker.program
                                          AND eventsTable.program_stage = evntTracker.program_stage
-WHERE (enrollmentsTable.status = 'COMPLETED' OR enrollmentsTable.status = 'CANCELLED')
+WHERE (enrollmentsTable.status = 'COMPLETED' OR enrollmentsTable.status = 'CANCELLED' OR eventsTable.event_program_status = 'COMPLETED' OR eventsTable.event_program_status = 'CANCELLED')
                                             AND enrolTracker.instance_id IS NOT NULL %s;

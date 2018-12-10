@@ -27,17 +27,27 @@ public class UpdatedCompletedEnrollmentWithEventsProcessor extends EnrollmentWit
     }
 
     EnrollmentAPIPayLoad getEnrollmentAPIPayLoad(JsonObject tableRowJsonObject, List<Event> events) {
+        JsonElement enrolledProgram = tableRowJsonObject.get("enrolled_program");
+        JsonElement program = tableRowJsonObject.get("program");
+        JsonElement enrDate = tableRowJsonObject.get("enr_date");
+        JsonElement enrollmentDate = tableRowJsonObject.get("enrollment_date");
+        JsonElement incidentDate = tableRowJsonObject.get("incident_date");
+        JsonElement eventProgramIncidentDate = tableRowJsonObject.get("event_program_incident_date");
+        JsonElement enrollmentStatus = tableRowJsonObject.get("enrollment_status");
+        JsonElement eventEnrollmentStatus = tableRowJsonObject.get("event_program_status");
+        JsonElement programUniqueId = tableRowJsonObject.get("program_unique_id");
+        JsonElement eventProgramUniqueId = tableRowJsonObject.get("event_program_unique_id");
         return new EnrollmentAPIPayLoad(
                tableRowJsonObject.get("enrollment_id").getAsString(),
                tableRowJsonObject.get("instance_id").getAsString(),
-               tableRowJsonObject.get("enrolled_program").getAsString(),
+               hasValue(enrolledProgram) ? enrolledProgram.getAsString() : program.getAsString(),
                tableRowJsonObject.get("orgunit_id").getAsString(),
-               getFormattedDateString(tableRowJsonObject.get("enr_date").getAsString(),
+               getFormattedDateString(hasValue(enrDate) ? enrDate.getAsString() : enrollmentDate.getAsString(),
                        DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME),
-               getFormattedDateString(tableRowJsonObject.get("incident_date").getAsString(),
+               getFormattedDateString(hasValue(incidentDate) ? incidentDate.getAsString() : eventProgramIncidentDate.getAsString(),
                        DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME),
-               tableRowJsonObject.get("enrollment_status").getAsString(),
-               tableRowJsonObject.get("program_unique_id").getAsString(),
+               hasValue(enrollmentStatus) ? enrollmentStatus.getAsString() : eventEnrollmentStatus.getAsString(),
+               hasValue(programUniqueId) ? programUniqueId.getAsString() : eventProgramUniqueId.getAsString(),
                events
         );
     }

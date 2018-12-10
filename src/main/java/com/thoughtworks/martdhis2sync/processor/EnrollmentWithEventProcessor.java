@@ -40,11 +40,11 @@ public abstract class EnrollmentWithEventProcessor {
         }
         EnrollmentAPIPayLoad enrollmentAPIPayLoad = getEnrollmentAPIPayLoad(tableRowJsonObject, events);
 
-        JsonElement enrolledPatientIdentifier = tableRowJsonObject.get("enrolled_patient_identifier");
-        JsonElement eventPatientIdentifier = tableRowJsonObject.get("Patient_Identifier");
+        JsonElement programUniqueId = tableRowJsonObject.get("program_unique_id");
+        JsonElement eventProgramUniqueId = tableRowJsonObject.get("event_program_unique_id");
         return new ProcessedTableRow(
-                hasValue(enrolledPatientIdentifier) ? enrolledPatientIdentifier.getAsString()
-                        : eventPatientIdentifier.getAsString(),
+                hasValue(programUniqueId) ? programUniqueId.getAsString()
+                        : eventProgramUniqueId.getAsString(),
                 enrollmentAPIPayLoad
         );
     }
