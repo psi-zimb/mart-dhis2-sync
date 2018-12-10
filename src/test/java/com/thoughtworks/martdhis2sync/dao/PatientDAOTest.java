@@ -41,7 +41,7 @@ public class PatientDAOTest {
     public void setUp() throws Exception {
         patientDAO = new PatientDAO();
 
-        setValuesForMemberFields(patientDAO, "deltaInstances", resource);
+        setValuesForMemberFields(patientDAO, "deltaEnrollmentInstances", resource);
         setValuesForMemberFields(patientDAO, "jdbcTemplate", jdbcTemplate);
         mockStatic(BatchUtil.class);
     }
@@ -52,7 +52,7 @@ public class PatientDAOTest {
                 .thenThrow(new IOException("Could not convert sql file to string"));
 
         try {
-            patientDAO.getDeltaInstanceIds(enrollmentTable, programName);
+            patientDAO.getDeltaEnrollmentInstanceIds(enrollmentTable, programName);
         } catch (Exception e) {
             verifyStatic(times(1));
             BatchUtil.convertResourceOutputToString(resource);
@@ -74,7 +74,7 @@ public class PatientDAOTest {
         when(BatchUtil.convertResourceOutputToString(resource)).thenReturn(sql);
         when(jdbcTemplate.queryForList(formattedSql)).thenReturn(expected);
 
-        List<Map<String, Object>> actual = patientDAO.getDeltaInstanceIds(enrollmentTable, programName);
+        List<Map<String, Object>> actual = patientDAO.getDeltaEnrollmentInstanceIds(enrollmentTable, programName);
 
         verifyStatic(times(1));
         BatchUtil.convertResourceOutputToString(resource);
