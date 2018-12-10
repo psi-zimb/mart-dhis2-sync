@@ -14,17 +14,17 @@ import java.util.Map;
 
 @Component
 public class PatientDAO {
-    @Value("classpath:sql/DeltaInstances.sql")
-    private Resource deltaInstances;
+    @Value("classpath:sql/DeltaEnrollmentInstances.sql")
+    private Resource deltaEnrollmentInstances;
 
     @Autowired
     @Qualifier("jdbcTemplate")
     private JdbcTemplate jdbcTemplate;
 
-    public List<Map<String, Object>> getDeltaInstanceIds(String enrollmentTable, String programName) throws Exception {
+    public List<Map<String, Object>> getDeltaEnrollmentInstanceIds(String enrollmentTable, String programName) throws Exception {
         String sql;
         try {
-            sql = BatchUtil.convertResourceOutputToString(deltaInstances);
+            sql = BatchUtil.convertResourceOutputToString(deltaEnrollmentInstances);
         } catch (IOException e) {
             throw new Exception("Error in converting sql to string:: " + e.getMessage());
         }
