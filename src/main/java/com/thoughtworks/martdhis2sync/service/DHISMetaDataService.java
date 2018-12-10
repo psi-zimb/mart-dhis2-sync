@@ -85,13 +85,12 @@ public class DHISMetaDataService {
     }
 
     public void getTrackedEntityInstances(String mappingName) throws IOException {
-        StringBuilder url = new StringBuilder();
+        StringBuilder uri = new StringBuilder();
 
-        url.append(dhis2Url);
-        url.append(TEI_URI);
-        url.append("&ou=");
-        url.append(orgUnitID);
-        url.append("&ouMode=DESCENDANTS");
+        uri.append(TEI_URI);
+        uri.append("&ou=");
+        uri.append(orgUnitID);
+        uri.append("&ouMode=DESCENDANTS");
 
         Map<String, Object> mapping = mappingDAO.getMapping(mappingName);
 
@@ -101,18 +100,18 @@ public class DHISMetaDataService {
         List<Map<String, Object>> searchableFields = mappingDAO.getSearchableFields(mappingName);
 
         searchableFields.get(0).keySet().forEach(filter -> {
-            url.append("&filter=");
-            url.append(instanceMapping.get(filter));
-            url.append(":IN:");
+            uri.append("&filter=");
+            uri.append(instanceMapping.get(filter));
+            uri.append(":IN:");
 
             searchableFields.forEach(searchableField -> {
-                url.append(searchableField.get(filter));
-                url.append(";");
+                uri.append(searchableField.get(filter));
+                uri.append(";");
             });
         });
 
         TEIUtil.setTrackedEntityInstances(
-                syncRepository.getTrackedEntityInstances(url.toString()).getBody().getTrackedEntityInstances()
+                syncRepository.getTrackedEntityInstances(uri.toString()).getBody().getTrackedEntityInstances()
         );
     }
 }
