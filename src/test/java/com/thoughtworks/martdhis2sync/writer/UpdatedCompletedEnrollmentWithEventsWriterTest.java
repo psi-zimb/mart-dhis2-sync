@@ -13,6 +13,7 @@ import com.thoughtworks.martdhis2sync.model.Response;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.responseHandler.EnrollmentResponseHandler;
 import com.thoughtworks.martdhis2sync.responseHandler.EventResponseHandler;
+import com.thoughtworks.martdhis2sync.service.LoggerService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,6 +64,9 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
     @Mock
     private EventResponseHandler eventResponseHandler;
 
+    @Mock
+    private LoggerService loggerService;
+
     private UpdatedCompletedEnrollmentWithEventsWriter writer;
 
     private String uri = "/api/enrollments?strategy=CREATE_AND_UPDATE";
@@ -84,6 +88,9 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
         String instanceId1 = "instance1";
         String instanceId2 = "instance2";
         String instanceId3 = "instance3";
+        String enrollmentId1 = "enrollment1";
+        String enrollmentId2 = "enrollment2";
+        String enrollmentId3 = "enrollment3";
         String enrDate = "2018-10-13";
         String eventDate = "2018-10-14";
         Map<String, String> dataValues1 = new HashMap<>();
@@ -99,19 +106,19 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
         event1 = getEvents(instanceId1, eventDate, dataValues1, "1");
         List<Event> events1 = new LinkedList<>();
         events1.add(event1);
-        payLoad1 = getEnrollmentPayLoad(instanceId1, enrDate, events1, "1");
+        payLoad1 = getEnrollmentPayLoad(instanceId1, enrDate, events1, "1", enrollmentId1);
         ProcessedTableRow processedTableRow1 = getProcessedTableRow(patientIdentifier1, payLoad1);
 
         event2 = getEvents(instanceId2, eventDate, dataValues2, "2");
         List<Event> events2 = new LinkedList<>();
         events2.add(event2);
-        payLoad2 = getEnrollmentPayLoad(instanceId2, enrDate, events2, "2");
+        payLoad2 = getEnrollmentPayLoad(instanceId2, enrDate, events2, "2", enrollmentId2);
         ProcessedTableRow processedTableRow2 = getProcessedTableRow(patientIdentifier2, payLoad2);
 
         event3 = getEvents(instanceId3, eventDate, dataValues3, "3");
         List<Event> events3 = new LinkedList<>();
         events3.add(event3);
-        payLoad3 = getEnrollmentPayLoad(instanceId3, enrDate, events3, "3");
+        payLoad3 = getEnrollmentPayLoad(instanceId3, enrDate, events3, "3", enrollmentId3);
         ProcessedTableRow processedTableRow3 = getProcessedTableRow(patientIdentifier3, payLoad3);
 
         enrollmentAPIPayLoads.add(payLoad1);
@@ -124,6 +131,7 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
         setValuesForMemberFields(writer, "logger", logger);
         setValuesForMemberFields(writer, "enrollmentResponseHandler", enrollmentResponseHandler);
         setValuesForMemberFields(writer, "eventResponseHandler", eventResponseHandler);
+        setValuesForMemberFields(writer, "loggerService", loggerService);
 
         when(responseEntity.getBody()).thenReturn(syncResponse);
         when(syncResponse.getResponse()).thenReturn(response);
@@ -140,7 +148,7 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
         dataValues.put("jkEjtKqlJtN", "text value");
 
         Event event = getEvents(instanceId, eventDate, dataValues, "1");
-        EnrollmentAPIPayLoad payLoad = getEnrollmentPayLoad(instanceId, enrDate, Collections.singletonList(event), "1");
+        EnrollmentAPIPayLoad payLoad = getEnrollmentPayLoad(instanceId, enrDate, Collections.singletonList(event), "3", "1");
         ProcessedTableRow processedTableRow = getProcessedTableRow(patientIdentifier, payLoad);
 
         List<ProcessedTableRow> processedTableRows = Collections.singletonList(processedTableRow);
@@ -156,6 +164,7 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
                 "]" +
                 "}";
         when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(response.getImportSummaries()).thenReturn(new ArrayList<>());
 
         writer.write(processedTableRows);
@@ -182,13 +191,13 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
         Event event1 = getEvents(instanceId, eventDate, dataValues1, "1");
         List<Event> events1 = new LinkedList<>();
         events1.add(event1);
-        EnrollmentAPIPayLoad payLoad1 = getEnrollmentPayLoad(instanceId, enrDate, events1, "1");
+        EnrollmentAPIPayLoad payLoad1 = getEnrollmentPayLoad(instanceId, enrDate, events1, "3", "1");
         ProcessedTableRow processedTableRow1 = getProcessedTableRow(patientIdentifier, payLoad1);
 
         Event event2 = getEvents(instanceId, eventDate, dataValues2, "2");
         List<Event> events2 = new LinkedList<>();
         events2.add(event2);
-        EnrollmentAPIPayLoad payLoad2 = getEnrollmentPayLoad(instanceId, enrDate, events2, "1");
+        EnrollmentAPIPayLoad payLoad2 = getEnrollmentPayLoad(instanceId, enrDate, events2, "3", "1");
         ProcessedTableRow processedTableRow2 = getProcessedTableRow(patientIdentifier, payLoad2);
 
         List<ProcessedTableRow> processedTableRows = Arrays.asList(processedTableRow1, processedTableRow2);
@@ -206,6 +215,7 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
                 "]" +
                 "}";
         when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(response.getImportSummaries()).thenReturn(new ArrayList<>());
 
         writer.write(processedTableRows);
@@ -367,11 +377,54 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
         writer.write(processedTableRows);
 
         verify(syncRepository, times(1)).sendEnrollmentData(uri, requestBody);
-        verify(responseEntity, times(1)).getBody();
+        verify(responseEntity, times(2)).getBody();
         verify(syncResponse, times(1)).getResponse();
         verify(response, times(1)).getImportSummaries();
         verify(enrollmentResponseHandler, times(1)).processErrorResponse(any(), any(), any(), any());
         verify(eventResponseHandler, times(1)).process(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void shouldHandleErrorWhenSamePatientHasUpdatesForMoreThanOneEnrollment() throws Exception {
+        payLoad2.setInstanceId("instance1");
+        String requestBody = "{" +
+                    "\"enrollments\":[" +
+                        "{" +
+                            getEnrollment(payLoad1) +
+                            ", " +
+                            "\"events\":[" +
+                                getEvent(event1) +
+                            "]" +
+                        "}," +
+                        "{" +
+                            getEnrollment(payLoad2) +
+                            ", " +
+                            "\"events\":[" +
+                                getEvent(event2) +
+                            "]" +
+                        "}," +
+                        "{" +
+                            getEnrollment(payLoad3) +
+                            ", " +
+                            "\"events\":[" +
+                                getEvent(event3) +
+                            "]" +
+                        "}" +
+                    "]" +
+                "}";
+
+        String message = "Program has another active enrollment going on. Not possible to incomplete";
+
+        when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
+        when(syncResponse.getMessage()).thenReturn(message);
+
+        writer.write(processedTableRows);
+
+        verify(syncRepository, times(1)).sendEnrollmentData(uri, requestBody);
+        verify(responseEntity, times(2)).getBody();
+        verify(syncResponse, times(1)).getMessage();
+        verify(logger, times(1)).error("UPDATE COMPLETED ENROLLMENT WITH EVENTS SYNC: " + message);
+        verify(loggerService, times(1)).collateLogMessage(message);
     }
 
     private ProcessedTableRow getProcessedTableRow(String patientIdentifier, EnrollmentAPIPayLoad payLoad) {
@@ -381,9 +434,9 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
         );
     }
 
-    private EnrollmentAPIPayLoad getEnrollmentPayLoad(String instanceId, String enrDate, List<Event> events, String programUniqueId) {
+    private EnrollmentAPIPayLoad getEnrollmentPayLoad(String instanceId, String enrDate, List<Event> events, String programUniqueId, String enrollmentId) {
         return new EnrollmentAPIPayLoad(
-                "",
+                enrollmentId,
                 instanceId,
                 "xhjKKwoq",
                 "jSsoNjesL",
@@ -442,13 +495,14 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
     }
 
     private String getEnrollment(EnrollmentAPIPayLoad payLoad) {
-        return String.format("\"enrollment\":\"\", " +
+        return String.format("\"enrollment\":\"%s\", " +
                         "\"trackedEntityInstance\":\"%s\", " +
                         "\"orgUnit\":\"%s\", " +
                         "\"program\":\"%s\", " +
                         "\"enrollmentDate\":\"%s\", " +
                         "\"incidentDate\":\"%s\", " +
                         "\"status\":\"ACTIVE\"",
+                payLoad.getEnrollmentId(),
                 payLoad.getInstanceId(),
                 payLoad.getOrgUnit(),
                 payLoad.getProgram(),
