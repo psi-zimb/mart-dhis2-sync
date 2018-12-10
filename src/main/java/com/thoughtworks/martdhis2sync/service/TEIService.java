@@ -1,5 +1,9 @@
 package com.thoughtworks.martdhis2sync.service;
 
+import com.thoughtworks.martdhis2sync.dao.PatientDAO;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityInstance;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceResponse;
+import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.step.TrackedEntityInstanceStep;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -10,20 +14,33 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.io.SyncFailedException;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class TEIService {
+    private final String TEI_ENROLLMENTS_URI = "/api/trackedEntityInstances?" +
+            "fields=enrollments[program,trackedEntityInstance,enrollment,enrollmentDate,completedDate,status]&" +
+            "program=%s&trackedEntityInstance=%s";
 
     @Autowired
     private TrackedEntityInstanceStep trackedEntityInstanceStep;
 
     @Autowired
     private JobService jobService;
+
+    @Autowired
+    private PatientDAO patientDAO;
+
+    @Autowired
+    private SyncRepository syncRepository;
 
     @Setter
     private List<String> searchableAttributes;
@@ -47,5 +64,26 @@ public class TEIService {
             logger.error(LOG_PREFIX + e.getMessage());
             throw e;
         }
+    }
+
+    public List<TrackedEntityInstance> getEnrollmentsForInstances(String enrollmentTable, String programName) throws Exception {
+        List<Map<String, Object>> deltaInstanceIds = patientDAO.getDeltaEnrollmentInstanceIds(enrollmentTable, programName);
+        if (deltaInstanceIds.size() > 0) {
+            List<String> instanceIdsList = getInstanceIds(deltaInstanceIds);
+            String program = deltaInstanceIds.get(0).get("program").toString();
+            String instanceIds = String.join(";", instanceIdsList);
+            String url = String.format(TEI_ENROLLMENTS_URI, program, instanceIds);
+
+            ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstances = syncRepository.getTrackedEntityInstances(url);
+            return trackedEntityInstances.getBody().getTrackedEntityInstances();
+        }
+        return new ArrayList<>();
+    }
+
+    private List<String> getInstanceIds(List<Map<String, Object>> newEnrollmentInstances) {
+        return newEnrollmentInstances
+                .stream()
+                .map(instanceObj -> instanceObj.get("instance_id").toString())
+                .collect(Collectors.toList());
     }
 }
