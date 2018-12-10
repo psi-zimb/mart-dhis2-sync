@@ -132,11 +132,11 @@ public class SyncRepository {
         return responseEntity;
     }
 
-    public ResponseEntity<TrackedEntityInstanceResponse> getTrackedEntityInstances(String url) {
+    public ResponseEntity<TrackedEntityInstanceResponse> getTrackedEntityInstances(String uri) {
         ResponseEntity<TrackedEntityInstanceResponse> responseEntity = null;
         try {
             responseEntity = restTemplate
-                    .exchange(url, HttpMethod.GET,
+                    .exchange(dhis2Url + uri, HttpMethod.GET,
                             new HttpEntity<>(getHttpHeaders()), TrackedEntityInstanceResponse.class);
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
 
