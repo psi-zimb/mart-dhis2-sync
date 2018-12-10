@@ -4,6 +4,7 @@ import com.thoughtworks.martdhis2sync.controller.PushController;
 import com.thoughtworks.martdhis2sync.model.DHISEnrollmentSyncResponse;
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.model.EnrollmentImportSummary;
+import com.thoughtworks.martdhis2sync.model.EnrollmentResponse;
 import com.thoughtworks.martdhis2sync.model.Event;
 import com.thoughtworks.martdhis2sync.model.EventTracker;
 import com.thoughtworks.martdhis2sync.model.ProcessedTableRow;
@@ -11,6 +12,7 @@ import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.responseHandler.EnrollmentResponseHandler;
 import com.thoughtworks.martdhis2sync.responseHandler.EventResponseHandler;
 import com.thoughtworks.martdhis2sync.service.JobService;
+import com.thoughtworks.martdhis2sync.service.LoggerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemWriter;
@@ -18,9 +20,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -43,6 +47,9 @@ public class UpdatedCompletedEnrollmentWithEventsWriter implements ItemWriter<Pr
 
     @Autowired
     private EventResponseHandler eventResponseHandler;
+
+    @Autowired
+    private LoggerService loggerService;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private static final String LOG_PREFIX = "UPDATE COMPLETED ENROLLMENT WITH EVENTS SYNC: ";
@@ -85,14 +92,23 @@ public class UpdatedCompletedEnrollmentWithEventsWriter implements ItemWriter<Pr
 
     private void processResponseEntity(ResponseEntity<DHISEnrollmentSyncResponse> responseEntity, Collection<EnrollmentAPIPayLoad> payLoads) throws Exception {
         Iterator<EnrollmentAPIPayLoad> iterator = payLoads.iterator();
-        List<EnrollmentImportSummary> enrollmentImportSummaries = responseEntity.getBody().getResponse().getImportSummaries();
+        EnrollmentResponse response = responseEntity.getBody().getResponse();
+        List<EnrollmentImportSummary> enrollmentImportSummaries = response == null ?
+                Collections.emptyList()
+                : response.getImportSummaries();
         if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
             enrollmentResponseHandler.processImportSummaries(enrollmentImportSummaries, iterator);
             eventResponseHandler.process(payLoads, enrollmentImportSummaries, eventTrackers, logger, LOG_PREFIX);
         } else {
             JobService.setIS_JOB_FAILED(true);
-            enrollmentResponseHandler.processErrorResponse(enrollmentImportSummaries, iterator, logger, LOG_PREFIX);
-            eventResponseHandler.process(payLoads, enrollmentImportSummaries, eventTrackers, logger, LOG_PREFIX);
+            String message = responseEntity.getBody().getMessage();
+            if (!StringUtils.isEmpty(message)) {
+                logger.error(LOG_PREFIX + message);
+                loggerService.collateLogMessage(String.format("%s", message));
+            } else {
+                enrollmentResponseHandler.processErrorResponse(enrollmentImportSummaries, iterator, logger, LOG_PREFIX);
+                eventResponseHandler.process(payLoads, enrollmentImportSummaries, eventTrackers, logger, LOG_PREFIX);
+            }
         }
     }
 
