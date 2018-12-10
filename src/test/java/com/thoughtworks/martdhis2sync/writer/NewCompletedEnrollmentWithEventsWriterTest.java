@@ -191,8 +191,12 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
         EnrollmentAPIPayLoad payLoad3 = getEnrollmentPayLoad(instanceId, enrDate, Collections.emptyList(), "2");
         ProcessedTableRow processedTableRow3 = getProcessedTableRow("2", payLoad3);
 
+        EnrollmentAPIPayLoad payLoad4 = getEnrollmentPayLoad(instanceId, enrDate, new LinkedList<>(), "1");
+        ProcessedTableRow processedTableRow4 = getProcessedTableRow("1", payLoad4);
 
-        List<ProcessedTableRow> processedTableRows = Arrays.asList(processedTableRow1, processedTableRow2, processedTableRow3);
+
+        List<ProcessedTableRow> processedTableRows = Arrays.asList(processedTableRow1, processedTableRow2,
+                processedTableRow3, processedTableRow4);
         String requestBody = "{" +
                 "\"enrollments\":[" +
                     "{" +
