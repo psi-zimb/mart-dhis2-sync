@@ -2,7 +2,6 @@ package com.thoughtworks.martdhis2sync.writer;
 
 import com.thoughtworks.martdhis2sync.controller.PushController;
 import com.thoughtworks.martdhis2sync.model.DHISEnrollmentSyncResponse;
-import com.thoughtworks.martdhis2sync.model.Enrollment;
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.model.EnrollmentImportSummary;
 import com.thoughtworks.martdhis2sync.model.Event;
@@ -101,12 +100,12 @@ public class UpdatedCompletedEnrollmentWithEventsWriter implements ItemWriter<Pr
     private Map<String, EnrollmentAPIPayLoad> getGroupedEnrollmentPayLoad(List<? extends ProcessedTableRow> tableRows) {
         Map<String, EnrollmentAPIPayLoad> groupedEnrollments = new HashMap<>();
         tableRows.forEach(row -> {
-            if (groupedEnrollments.containsKey(row.getPatientIdentifier())) {
-                EnrollmentAPIPayLoad enrollmentAPIPayLoad = groupedEnrollments.get(row.getPatientIdentifier());
+            if (groupedEnrollments.containsKey(row.getProgramUniqueId())) {
+                EnrollmentAPIPayLoad enrollmentAPIPayLoad = groupedEnrollments.get(row.getProgramUniqueId());
                 Event incomingEvent = row.getPayLoad().getEvents().get(0);
                 enrollmentAPIPayLoad.getEvents().add(incomingEvent);
             } else {
-                groupedEnrollments.put(row.getPatientIdentifier(), row.getPayLoad());
+                groupedEnrollments.put(row.getProgramUniqueId(), row.getPayLoad());
             }
         });
 

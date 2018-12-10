@@ -130,7 +130,6 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
 
     @Test
     public void shouldCallSyncRepoToSendData() throws Exception {
-        String patientIdentifier = "NAH00010";
         String instanceId = "instance1";
         String enrDate = "2018-10-13";
         String eventDate = "2018-10-14";
@@ -140,7 +139,7 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
 
         Event event = getEvents(instanceId, eventDate, dataValues, "1");
         EnrollmentAPIPayLoad payLoad = getEnrollmentPayLoad(instanceId, enrDate, Collections.singletonList(event), "1");
-        ProcessedTableRow processedTableRow = getProcessedTableRow(patientIdentifier, payLoad);
+        ProcessedTableRow processedTableRow = getProcessedTableRow("1", payLoad);
 
         List<ProcessedTableRow> processedTableRows = Collections.singletonList(processedTableRow);
         String requestBody = "{" +
@@ -167,7 +166,6 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
 
     @Test
     public void shouldCollateTheRecordsWhenMultipleRecordsExistsForAPatient() throws Exception {
-        String patientIdentifier = "NAH00010";
         String instanceId = "instance1";
         String enrDate = "2018-10-13";
         String eventDate = "2018-10-14";
@@ -182,15 +180,19 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
         List<Event> events1 = new LinkedList<>();
         events1.add(event1);
         EnrollmentAPIPayLoad payLoad1 = getEnrollmentPayLoad(instanceId, enrDate, events1, "1");
-        ProcessedTableRow processedTableRow1 = getProcessedTableRow(patientIdentifier, payLoad1);
+        ProcessedTableRow processedTableRow1 = getProcessedTableRow("1", payLoad1);
 
         Event event2 = getEvents(instanceId, eventDate, dataValues2, "2");
         List<Event> events2 = new LinkedList<>();
         events2.add(event2);
         EnrollmentAPIPayLoad payLoad2 = getEnrollmentPayLoad(instanceId, enrDate, events2, "1");
-        ProcessedTableRow processedTableRow2 = getProcessedTableRow(patientIdentifier, payLoad2);
+        ProcessedTableRow processedTableRow2 = getProcessedTableRow("1", payLoad2);
 
-        List<ProcessedTableRow> processedTableRows = Arrays.asList(processedTableRow1, processedTableRow2);
+        EnrollmentAPIPayLoad payLoad3 = getEnrollmentPayLoad(instanceId, enrDate, Collections.emptyList(), "2");
+        ProcessedTableRow processedTableRow3 = getProcessedTableRow("2", payLoad3);
+
+
+        List<ProcessedTableRow> processedTableRows = Arrays.asList(processedTableRow1, processedTableRow2, processedTableRow3);
         String requestBody = "{" +
                 "\"enrollments\":[" +
                     "{" +
@@ -201,9 +203,15 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
                             "," +
                             getEvent(event2) +
                         "]" +
+                    "}," +
+                    "{" +
+                        getEnrollment(payLoad1) +
+                        ", " +
+                        "\"events\":[]" +
                     "}" +
                 "]" +
             "}";
+
         when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
         when(response.getImportSummaries()).thenReturn(new ArrayList<>());
 
@@ -373,9 +381,9 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
         verify(eventResponseHandler, times(1)).process(any(), any(), any(), any(), any());
     }
 
-    private ProcessedTableRow getProcessedTableRow(String patientIdentifier, EnrollmentAPIPayLoad payLoad) {
+    private ProcessedTableRow getProcessedTableRow(String programUniqueId, EnrollmentAPIPayLoad payLoad) {
         return new ProcessedTableRow(
-                patientIdentifier,
+                programUniqueId,
                 payLoad
         );
     }

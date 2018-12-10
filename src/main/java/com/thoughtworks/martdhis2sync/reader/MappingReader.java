@@ -88,7 +88,7 @@ public class MappingReader {
         String andClause = StringUtils.isEmpty(syncedCompletedEnrollmentIds) ? ""
                 : String.format("AND enrolTracker.enrollment_id NOT IN (%s)", syncedCompletedEnrollmentIds);
         String sql = String.format(getSql(updatedCompletedEnrWithEventsResource), enrollmentLookupTable, programName,
-                                    eventLookupTable, programName, andClause);
+                                    eventLookupTable, enrollmentLookupTable, programName, andClause);
         return get(sql);
     }
 

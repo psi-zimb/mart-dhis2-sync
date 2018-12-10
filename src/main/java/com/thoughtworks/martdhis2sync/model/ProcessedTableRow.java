@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class ProcessedTableRow {
-    private String patientIdentifier;
+    private String programUniqueId;
     private EnrollmentAPIPayLoad payLoad;
 }

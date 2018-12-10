@@ -64,6 +64,9 @@ public class UpdatedCompletedEnrollmentWithEventsProcessorTest {
         when(hasValue(getTableRowObjectWithEvent().get("event_unique_id"))).thenReturn(true);
         when(hasValue(getTableRowObjectWithEvent().get("date_created"))).thenReturn(true);
         when(hasValue(getTableRowObjectWithEvent().get("enrollment_date_created"))).thenReturn(true);
+        when(hasValue(getTableRowObjectWithEvent().get("incident_date"))).thenReturn(true);
+        when(hasValue(getTableRowObjectWithEvent().get("enrollment_status"))).thenReturn(true);
+        when(hasValue(getTableRowObjectWithEvent().get("program_unique_id"))).thenReturn(true);
     }
 
     @Test
@@ -126,6 +129,7 @@ public class UpdatedCompletedEnrollmentWithEventsProcessorTest {
         doNothing().when(EnrollmentUtil.class);
         EnrollmentUtil.updateLatestEnrollmentDateCreated(enrollmentDateCreated);
         when(EventUtil.getDataValues(tableRowObject, mappingJsonObj)).thenReturn(dataValues);
+        when(hasValue(getTableRowObjectWithEvent().get("enrolled_program"))).thenReturn(true);
 
         processor.setMappingObj(mappingJsonObj);
 
@@ -136,6 +140,47 @@ public class UpdatedCompletedEnrollmentWithEventsProcessorTest {
 
         ProcessedTableRow expected = getExpected(getEvent(""));
         expected.getPayLoad().setEvents(new LinkedList<>());
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldReturnEnrollmentApiRequestBodyWhenOnlyEventAreThere() throws ParseException {
+        JsonObject tableRowObject = new JsonObject();
+        tableRowObject.addProperty("event_program_incident_date", enrDate);
+        tableRowObject.addProperty("event_program_unique_id", "1");
+        tableRowObject.addProperty("event_program_status", status);
+        tableRowObject.addProperty("Patient_Identifier", patientIdentifier);
+        tableRowObject.addProperty("program", program);
+        tableRowObject.addProperty("program_stage", programStage);
+        tableRowObject.addProperty("\"OrgUnit\"", orgUnit);
+        tableRowObject.addProperty("event_date", eventDateValue);
+        tableRowObject.addProperty("status", status);
+        tableRowObject.addProperty("event_unique_id", "1");
+        tableRowObject.addProperty("enrollment_date", enrDate);
+        tableRowObject.addProperty("date_created", eventDateCreated);
+        tableRowObject.addProperty("crptc", "no");
+        tableRowObject.addProperty("orgunit_id", orgUnitId);
+        tableRowObject.addProperty("instance_id", instanceId);
+        tableRowObject.addProperty("enrollment_id", enrollmentId);
+
+        JsonObject mappingJsonObj = getMappingJsonObj();
+
+        doNothing().when(EventUtil.class);
+        EventUtil.updateLatestEventDateCreated(eventDateCreated);
+        doNothing().when(EnrollmentUtil.class);
+        EnrollmentUtil.updateLatestEnrollmentDateCreated(enrollmentDateCreated);
+        when(EventUtil.getDataValues(tableRowObject, mappingJsonObj)).thenReturn(dataValues);
+        when(hasValue(getTableRowObjectWithEvent().get("enrolled_program"))).thenReturn(true);
+        when(hasValue(getTableRowObjectWithEvent().get("enrollment_status"))).thenReturn(false);
+
+        processor.setMappingObj(mappingJsonObj);
+
+        ProcessedTableRow actual = processor.process(tableRowObject);
+
+        verifyStatic(times(2));
+        getFormattedDateString(enrDate, DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME);
+
+        ProcessedTableRow expected = getExpected(getEvent(""));
         assertEquals(expected, actual);
     }
 
@@ -200,7 +245,7 @@ public class UpdatedCompletedEnrollmentWithEventsProcessorTest {
     }
 
     private ProcessedTableRow getExpected(Event event) {
-        return new ProcessedTableRow(patientIdentifier, getEnrollmentPayLoad(event));
+        return new ProcessedTableRow("1", getEnrollmentPayLoad(event));
     }
 
     private EnrollmentAPIPayLoad getEnrollmentPayLoad(Event event) {
