@@ -43,6 +43,7 @@ public class TrackedEntityInstanceProcessorTest {
         TEIUtil.setPatientIds(getTableRowObject());
         TEIUtil.setTrackedEntityInstances(getTrackedEntityInstances());
         processor.setSearchableAttributes(Collections.singletonList("UIC"));
+        processor.setComparableAttributes(Arrays.asList("patient_id", "prepID"));
         TEIUtil.date = teiDate;
 
         mockStatic(BatchUtil.class);
@@ -97,13 +98,13 @@ public class TrackedEntityInstanceProcessorTest {
     }
 
     @Test
-    public void shouldAddTheTrackedEntityInstanceOfThatPatientWhichCameFromDHISIfPatientDidNotHaveAny() {
+    public void shouldAddTheTrackedEntityInstanceIdToRequestBodyIfPatientAlreadyCreatedInDHISAndBahmniDidNotHaveAnyTEI() {
         when(TEIUtil.getTrackedEntityInstances()).thenReturn(getTrackedEntityInstances());
 
         JsonObject tableRowObject = getTableRowObject();
         tableRowObject.addProperty("instance_id", "");
-        tableRowObject.addProperty("Patient_Identifier", "UIC00015");
         tableRowObject.addProperty("UIC", "UIC00015");
+        tableRowObject.addProperty("prepID", "0097");
 
         processor.setMappingObj(getMappingJsonObj());
 
@@ -117,7 +118,7 @@ public class TrackedEntityInstanceProcessorTest {
         getUnquotedString("\"" + dateCreated + "\"");
         verifyStatic();
         getDateFromString(dateCreated, DATEFORMAT_WITH_24HR_TIME);
-        verifyStatic(times(2));
+        verifyStatic(times(4));
         TEIUtil.getAttributeOfTypeDateTime();
         verifyStatic(times(1));
         BatchUtil.getQuotedString(dhisAcceptableDate);
@@ -128,18 +129,87 @@ public class TrackedEntityInstanceProcessorTest {
         verifyStatic(times(2));
         BatchUtil.getUnquotedString("\"" + dateCreated + "\"");
 
-        assertEquals(getExpectedBodyInCaseDHISHaveValidUID(), actual);
+        assertEquals(getExpectedBodyInCaseDHISAlreadyHaveCurrentPatient(), actual);
     }
 
-    private void mockVerify() {
-        verifyStatic();
+    @Test
+    public void shouldNotAddAnyTrackedEntityInstanceToTheRequestBodyIfPatientIsNotCreatedInDHIS() {
+        List<TrackedEntityInstance> trackedEntityInstances = getTrackedEntityInstances();
+        trackedEntityInstances.get(0).getAttributes().get(0).setValue("UIC00014");
+        when(TEIUtil.getTrackedEntityInstances()).thenReturn(trackedEntityInstances);
+
         JsonObject tableRowObject = getTableRowObject();
+        tableRowObject.addProperty("instance_id", "");
+        tableRowObject.addProperty("prep_ID", "0097");
+        tableRowObject.addProperty("UIC", "UIC00015");
+        tableRowObject.addProperty("patient_id", "NAH0000321");
+
+        processor.setMappingObj(getMappingJsonObj());
+
+        String actual = processor.process(tableRowObject);
+
+        verifyStatic();
         TEIUtil.setPatientIds(tableRowObject);
         verifyStatic(times(2));
         getUnquotedString("\"" + dateCreated + "\"");
         verifyStatic();
         getDateFromString(dateCreated, DATEFORMAT_WITH_24HR_TIME);
+        verifyStatic(times(4));
+        TEIUtil.getAttributeOfTypeDateTime();
+        verifyStatic(times(1));
+        BatchUtil.getQuotedString(dhisAcceptableDate);
+        verifyStatic(times(1));
+        BatchUtil.getUnquotedString("\"rOb34aQLSyC\"");
+        verifyStatic(times(1));
+        BatchUtil.getUnquotedString("\"aQLSyCrOb34\"");
         verifyStatic(times(2));
+        BatchUtil.getUnquotedString("\"" + dateCreated + "\"");
+
+        assertEquals(getExpectedBodyInCaseDHISDoesNotHaveCurrentPatient(), actual);
+    }
+
+    @Test
+    public void shouldNotAddAnyTrackedEntityInstanceToRequestBodyIfPatientSearchableAttributeIsMatchingButComparableAttributesAreNot() {
+        when(TEIUtil.getTrackedEntityInstances()).thenReturn(getTrackedEntityInstances());
+
+        JsonObject tableRowObject = getTableRowObject();
+        tableRowObject.addProperty("instance_id", "");
+        tableRowObject.addProperty("patient_id", "NAH0000321");
+        tableRowObject.addProperty("UIC", "UIC00015");
+        tableRowObject.addProperty("prepId", "123");
+
+        processor.setMappingObj(getMappingJsonObj());
+
+        String actual = processor.process(tableRowObject);
+
+        verifyStatic();
+        TEIUtil.setPatientIds(tableRowObject);
+        verifyStatic(times(2));
+        getUnquotedString("\"" + dateCreated + "\"");
+        verifyStatic();
+        getDateFromString(dateCreated, DATEFORMAT_WITH_24HR_TIME);
+        verifyStatic(times(4));
+        TEIUtil.getAttributeOfTypeDateTime();
+        verifyStatic(times(1));
+        BatchUtil.getQuotedString(dhisAcceptableDate);
+        verifyStatic(times(1));
+        BatchUtil.getUnquotedString("\"rOb34aQLSyC\"");
+        verifyStatic(times(1));
+        BatchUtil.getUnquotedString("\"aQLSyCrOb34\"");
+        verifyStatic(times(2));
+        BatchUtil.getUnquotedString("\"" + dateCreated + "\"");
+
+        assertEquals(getExpectedBodyInCaseDHISDoesNotHaveCurrentPatient(), actual);
+    }
+
+    private void mockVerify() {
+        verifyStatic();
+        TEIUtil.setPatientIds(getTableRowObject());
+        verifyStatic(times(2));
+        getUnquotedString("\"" + dateCreated + "\"");
+        verifyStatic();
+        getDateFromString(dateCreated, DATEFORMAT_WITH_24HR_TIME);
+        verifyStatic(times(4));
         TEIUtil.getAttributeOfTypeDateTime();
         verifyStatic(times(1));
         BatchUtil.getQuotedString(dhisAcceptableDate);
@@ -154,6 +224,8 @@ public class TrackedEntityInstanceProcessorTest {
     private JsonObject getMappingJsonObj() {
         JsonObject mappingJsonObj = new JsonObject();
         mappingJsonObj.addProperty("UIC", "rOb34aQLSyC");
+        mappingJsonObj.addProperty("patient_id", "4aQLSyCrOb3");
+        mappingJsonObj.addProperty("prepID", "SyCrOb34aQL");
         mappingJsonObj.addProperty("date_created", "aQLSyCrOb34");
 
         return mappingJsonObj;
@@ -185,6 +257,28 @@ public class TrackedEntityInstanceProcessorTest {
                 "Jackson"
         ));
 
+        attributesOfPatient1.add(new Attribute(
+                "2018-11-26T09:24:57.158",
+                "admin",
+                "MMD_PER_NAM",
+                "prepID",
+                "2018-11-26T09:24:57.158",
+                "TEXT",
+                "SyCrOb34aQL",
+                "0097"
+        ));
+
+        attributesOfPatient1.add(new Attribute(
+                "2018-11-26T09:24:57.153",
+                "admin",
+                "",
+                "patient_id",
+                "2018-11-26T09:24:57.152",
+                "TEXT",
+                "4aQLSyCrOb3",
+                "NAH0000123"
+        ));
+
         trackedEntityInstances.add(new TrackedEntityInstance(
                 "2018-09-21T17:54:00.294",
                 "SxgCPPeiq3c",
@@ -210,6 +304,8 @@ public class TrackedEntityInstanceProcessorTest {
         tableRowObject.addProperty("Patient_Identifier", "UIC00014");
         tableRowObject.addProperty("OrgUnit", "PSI-ZIMB-NAH");
         tableRowObject.addProperty("UIC", "UIC00014");
+        tableRowObject.addProperty("prepID", "00970");
+        tableRowObject.addProperty("patient_id", "NAH0000123");
         tableRowObject.addProperty("date_created", dateCreated);
         tableRowObject.addProperty("instance_id", "EmACSYDCxhu");
         tableRowObject.addProperty("orgunit_id", "SxgCPPeiq3c");
@@ -229,6 +325,13 @@ public class TrackedEntityInstanceProcessorTest {
                 "\"value\": \"UIC00014\"" +
                 "}," +
                 "{" +
+                "\"attribute\": \"SyCrOb34aQL\", " +
+                "\"value\": \"00970\"" +
+                "},{" +
+                "\"attribute\": \"4aQLSyCrOb3\", " +
+                "\"value\": \"NAH0000123\"" +
+                "}," +
+                "{" +
                 "\"attribute\": \"aQLSyCrOb34\", " +
                 "\"value\": \"" + dhisAcceptableDate + "\"" +
                 "}" +
@@ -236,7 +339,7 @@ public class TrackedEntityInstanceProcessorTest {
                 "}";
     }
 
-    private String getExpectedBodyInCaseDHISHaveValidUID() {
+    private String getExpectedBodyInCaseDHISAlreadyHaveCurrentPatient() {
         return "{" +
                 "\"trackedEntityType\": \"o0kaqrZaY\", " +
                 "\"trackedEntityInstance\": \"w3MoRtzP4SO\", " +
@@ -246,6 +349,39 @@ public class TrackedEntityInstanceProcessorTest {
                 "{" +
                 "\"attribute\": \"rOb34aQLSyC\", " +
                 "\"value\": \"UIC00015\"" +
+                "}," +
+                "{" +
+                "\"attribute\": \"SyCrOb34aQL\", " +
+                "\"value\": \"0097\"" +
+                "},{" +
+                "\"attribute\": \"4aQLSyCrOb3\", " +
+                "\"value\": \"NAH0000123\"" +
+                "}," +
+                "{" +
+                "\"attribute\": \"aQLSyCrOb34\", " +
+                "\"value\": \"" + dhisAcceptableDate + "\"" +
+                "}" +
+                "]" +
+                "}";
+    }
+
+    private String getExpectedBodyInCaseDHISDoesNotHaveCurrentPatient() {
+        return "{" +
+                "\"trackedEntityType\": \"o0kaqrZaY\", " +
+                "\"trackedEntityInstance\": \"\", " +
+                "\"orgUnit\":\"SxgCPPeiq3c\", " +
+                "\"attributes\":" +
+                "[" +
+                "{" +
+                "\"attribute\": \"rOb34aQLSyC\", " +
+                "\"value\": \"UIC00015\"" +
+                "}," +
+                "{" +
+                "\"attribute\": \"SyCrOb34aQL\", " +
+                "\"value\": \"00970\"" +
+                "},{" +
+                "\"attribute\": \"4aQLSyCrOb3\", " +
+                "\"value\": \"NAH0000321\"" +
                 "}," +
                 "{" +
                 "\"attribute\": \"aQLSyCrOb34\", " +
