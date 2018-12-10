@@ -32,6 +32,9 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
     @Setter
     private List<String> searchableAttributes;
 
+    @Setter
+    private List<String> comparableAttributes;
+
     @Override
     public String process(Object tableRow) {
 
@@ -87,22 +90,42 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
     private void getInstanceId(JsonObject tableRowJsonObject, JsonObject mappingJsonObject) {
         String instanceId = tableRowJsonObject.get("instance_id").getAsString();
         Map<String, String> searchableMappings = new HashMap<>();
+        Map<String, String> comparableMappings = new HashMap<>();
         List<TrackedEntityInstance> matchedInstances;
         Set<String> searchableKeySet;
+        Set<String> comparableKeySet;
         String uid;
 
         if (instanceId.isEmpty()) {
-            searchableAttributes.forEach(s ->
-                    searchableMappings.put(mappingJsonObject.get(s).getAsString(), tableRowJsonObject.get(s).getAsString())
+            searchableAttributes.forEach(searchableAttribute ->
+                    searchableMappings.put(
+                            mappingJsonObject.get(searchableAttribute).getAsString(),
+                            tableRowJsonObject.get(searchableAttribute).getAsString()
+                    )
             );
 
+            comparableAttributes.forEach(comparableAttribute ->
+                    comparableMappings.put(
+                            mappingJsonObject.get(comparableAttribute).getAsString(),
+                            tableRowJsonObject.get(comparableAttribute).getAsString()
+                    )
+            );
+
+
             searchableKeySet = searchableMappings.keySet();
+            comparableKeySet = comparableMappings.keySet();
 
             matchedInstances = TEIUtil.getTrackedEntityInstances().stream().filter(trackedEntityInstance ->
                     trackedEntityInstance.getAttributes().stream().filter(attribute ->
                             searchableKeySet.contains(attribute.getAttribute())
                     ).allMatch(attribute ->
                             searchableMappings.get(attribute.getAttribute()).equals(attribute.getValue())
+                    )
+            ).filter(trackedEntityInstance ->
+                    trackedEntityInstance.getAttributes().stream().filter(attribute ->
+                            comparableKeySet.contains(attribute.getAttribute())
+                    ).allMatch(attribute ->
+                            comparableMappings.get(attribute.getAttribute()).equals(attribute.getValue())
                     )
             ).collect(Collectors.toList());
 
