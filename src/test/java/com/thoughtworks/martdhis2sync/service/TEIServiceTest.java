@@ -1,5 +1,10 @@
 package com.thoughtworks.martdhis2sync.service;
 
+import com.thoughtworks.martdhis2sync.dao.PatientDAO;
+import com.thoughtworks.martdhis2sync.model.EnrollmentDetails;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityInstance;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceResponse;
+import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.step.TrackedEntityInstanceStep;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,13 +14,18 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.http.ResponseEntity;
 
 import java.io.SyncFailedException;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -35,6 +45,18 @@ public class TEIServiceTest {
     @Mock
     private Step step;
 
+    @Mock
+    private PatientDAO patientDAO;
+
+    @Mock
+    private SyncRepository syncRepository;
+
+    @Mock
+    private ResponseEntity<TrackedEntityInstanceResponse> responseEntity;
+
+    @Mock
+    private TrackedEntityInstanceResponse response;
+
     private TEIService teiService;
     private List<String> searchableAttributes = Arrays.asList("UIC", "date_created");
     private LinkedList<Step> steps = new LinkedList<>();
@@ -44,6 +66,8 @@ public class TEIServiceTest {
         teiService = new TEIService();
         setValuesForMemberFields(teiService, "trackedEntityInstanceStep", instanceStep);
         setValuesForMemberFields(teiService, "jobService", jobService);
+        setValuesForMemberFields(teiService, "patientDAO", patientDAO);
+        setValuesForMemberFields(teiService, "syncRepository", syncRepository);
 
         teiService.setSearchableAttributes(searchableAttributes);
         steps.add(step);
@@ -104,5 +128,49 @@ public class TEIServiceTest {
             verify(instanceStep, times(1)).setSearchableAttributes(searchableAttributes);
             throw e;
         }
+    }
+
+    @Test
+    public void shouldReturnEmptyListWhenThereNoDeltaEnrollments() throws Exception {
+        String enrollment = "enrollmentTable";
+        String programName = "HTS";
+        when(patientDAO.getDeltaEnrollmentInstanceIds(enrollment, programName)).thenReturn(new ArrayList<>());
+
+        List<TrackedEntityInstance> enrollmentsForInstances = teiService.getEnrollmentsForInstances(enrollment, programName);
+
+        assertEquals(0, enrollmentsForInstances.size());
+    }
+
+    @Test
+    public void shouldReturnEnrollmentsForTheGivenProgramAndGivenInstances() throws Exception {
+        String enrollment = "enrollmentTable";
+        String programName = "HTS";
+        Map<String, Object> map1 = new HashMap<>();
+        map1.put("instance_id", "instance1");
+        map1.put("program", "program");
+
+        Map<String, Object> map2 = new HashMap<>();
+        map2.put("instance_id", "instance2");
+        map2.put("program", "program");
+
+        String url = "/api/trackedEntityInstances?" +
+                "fields=enrollments[program,trackedEntityInstance,enrollment,enrollmentDate,completedDate,status]&" +
+                "program=program&trackedEntityInstance=instance1;instance2";
+
+        EnrollmentDetails enrollment1 = new EnrollmentDetails("program", "instance1", "enrollment1", "2018-10-22", "2018-12-10", "COMPLETED");
+        EnrollmentDetails enrollment2 = new EnrollmentDetails("program", "instance1", "enrollment2", "2018-10-22", null, "ACTIVE");
+
+        TrackedEntityInstance trackedEntityInstance1 = new TrackedEntityInstance();
+        trackedEntityInstance1.setEnrollments(Arrays.asList(enrollment1, enrollment2));
+        TrackedEntityInstance trackedEntityInstance2 = new TrackedEntityInstance();
+
+        when(patientDAO.getDeltaEnrollmentInstanceIds(enrollment, programName)).thenReturn(Arrays.asList(map1, map2));
+        when(syncRepository.getTrackedEntityInstances(url)).thenReturn(responseEntity);
+        when(responseEntity.getBody()).thenReturn(response);
+        when(response.getTrackedEntityInstances()).thenReturn(Arrays.asList(trackedEntityInstance1, trackedEntityInstance2));
+
+        List<TrackedEntityInstance> enrollmentsForInstances = teiService.getEnrollmentsForInstances(enrollment, programName);
+
+        assertEquals(Arrays.asList(trackedEntityInstance1, trackedEntityInstance2), enrollmentsForInstances);
     }
 }
