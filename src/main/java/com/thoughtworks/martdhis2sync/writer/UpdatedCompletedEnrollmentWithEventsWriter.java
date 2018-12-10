@@ -118,8 +118,10 @@ public class UpdatedCompletedEnrollmentWithEventsWriter implements ItemWriter<Pr
         tableRows.forEach(row -> {
             if (groupedEnrollments.containsKey(row.getProgramUniqueId())) {
                 EnrollmentAPIPayLoad enrollmentAPIPayLoad = groupedEnrollments.get(row.getProgramUniqueId());
-                Event incomingEvent = row.getPayLoad().getEvents().get(0);
-                enrollmentAPIPayLoad.getEvents().add(incomingEvent);
+                List<Event> events = row.getPayLoad().getEvents();
+                if (events.size() > 0) {
+                    enrollmentAPIPayLoad.getEvents().add(events.get(0));
+                }
             } else {
                 groupedEnrollments.put(row.getProgramUniqueId(), row.getPayLoad());
             }
