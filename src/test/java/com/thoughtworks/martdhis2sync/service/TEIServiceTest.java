@@ -73,11 +73,12 @@ public class TEIServiceTest {
         String user = "Admin";
         String jobName = "Sync Tracked Entity Instance";
         List<String> searchableAttributes = Arrays.asList("UIC", "date_created");
+        List<String> comparableAttributes = Arrays.asList("patient_id", "prepID");
 
         doNothing().when(jobService).triggerJob(service, user, jobName, steps, "");
-        when(instanceStep.get(lookUpTable, service, mappingObj, searchableAttributes)).thenReturn(step);
+        when(instanceStep.get(lookUpTable, service, mappingObj, searchableAttributes, comparableAttributes)).thenReturn(step);
 
-        teiService.triggerJob(service, user, lookUpTable, mappingObj, searchableAttributes);
+        teiService.triggerJob(service, user, lookUpTable, mappingObj, searchableAttributes, comparableAttributes);
 
         verify(jobService, times(1)).triggerJob(service, user, jobName, steps, "");
     }
@@ -90,14 +91,15 @@ public class TEIServiceTest {
         String user = "Admin";
         String jobName = "Sync Tracked Entity Instance";
         List<String> searchableAttributes = Arrays.asList("UIC", "date_created");
+        List<String> comparableAttributes = Arrays.asList("patient_id", "prepID");
 
-        when(instanceStep.get(lookUpTable, service, mappingObj, searchableAttributes)).thenReturn(step);
+        when(instanceStep.get(lookUpTable, service, mappingObj, searchableAttributes, comparableAttributes)).thenReturn(step);
         doThrow(JobExecutionAlreadyRunningException.class).when(jobService)
                 .triggerJob(service, user, jobName, steps, "");
 
         try {
-            teiService.triggerJob(service, user, lookUpTable, mappingObj, searchableAttributes);
-        }catch (Exception e){
+            teiService.triggerJob(service, user, lookUpTable, mappingObj, searchableAttributes, comparableAttributes);
+        } catch (Exception e) {
             throw e;
         }
     }
@@ -110,14 +112,15 @@ public class TEIServiceTest {
         String user = "Admin";
         String jobName = "Sync Tracked Entity Instance";
         List<String> searchableAttributes = Arrays.asList("UIC", "date_created");
+        List<String> comparableAttributes = Arrays.asList("patient_id", "prepID");
 
-        when(instanceStep.get(lookUpTable, service, mappingObj, searchableAttributes)).thenReturn(step);
+        when(instanceStep.get(lookUpTable, service, mappingObj, searchableAttributes, comparableAttributes)).thenReturn(step);
         doThrow(SyncFailedException.class).when(jobService)
                 .triggerJob(service, user, jobName, steps, "");
 
-        try{
-            teiService.triggerJob(service, user, lookUpTable, mappingObj, searchableAttributes);
-        }catch (Exception e){
+        try {
+            teiService.triggerJob(service, user, lookUpTable, mappingObj, searchableAttributes, comparableAttributes);
+        } catch (Exception e) {
             throw e;
         }
     }

@@ -15,10 +15,7 @@ import org.springframework.batch.core.step.tasklet.TaskletStep;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.beans.factory.ObjectFactory;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_INSTANCE;
@@ -74,19 +71,21 @@ public class TrackedEntityInstanceStepTest {
         Object mappingObj = "";
         String programName = "TB Service";
         String stepName = "Tracked Entity Step";
-        List<String> searchableAttributes = Arrays.asList("UIC", "date_created");
+        List<String> searchableAttributes = Collections.singletonList("UIC");
+        List<String> comparableAttributes = Arrays.asList("patient_id", "prepID");
 
         when(markerUtil.getLastSyncedDate(programName, CATEGORY_INSTANCE)).thenReturn(new Date(Long.MIN_VALUE));
         when(mappingReader.getInstanceReader(anyString(), anyString())).thenReturn(jdbcCursorItemReader);
         when(processorObjectFactory.getObject()).thenReturn(processor);
         when(stepFactory.build(stepName, jdbcCursorItemReader, processor, writer)).thenReturn(step);
 
-        teiStep.get(lookupTable, programName, mappingObj, searchableAttributes);
+        teiStep.get(lookupTable, programName, mappingObj, searchableAttributes, comparableAttributes);
 
         verify(mappingReader, times(1)).getInstanceReader(anyString(), anyString());
         verify(processorObjectFactory, times(1)).getObject();
         verify(stepFactory, times(1)).build(stepName, jdbcCursorItemReader, processor, writer);
         verify(processor, times(1)).setSearchableAttributes(searchableAttributes);
+        verify(processor, times(1)).setComparableAttributes(comparableAttributes);
 
         assertEquals("Sun Dec 02 22:17:04 IST 292269055", TEIUtil.date.toString());
     }
