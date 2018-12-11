@@ -110,8 +110,8 @@ public class DHISMetaDataService {
             });
         });
 
-        TEIUtil.setTrackedEntityInstances(
-                syncRepository.getTrackedEntityInstances(uri.toString()).getBody().getTrackedEntityInstances()
+        TEIUtil.setTrackedEntityInstanceInfos(
+                syncRepository.getTrackedEntityInstances(url.toString()).getBody().getTrackedEntityInstances()
         );
     }
 }

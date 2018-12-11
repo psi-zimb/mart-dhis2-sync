@@ -10,5 +10,5 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrackedEntityInstanceResponse {
-    private List<TrackedEntityInstance> TrackedEntityInstances;
+    private List<TrackedEntityInstanceInfo> trackedEntityInstances;
 }
