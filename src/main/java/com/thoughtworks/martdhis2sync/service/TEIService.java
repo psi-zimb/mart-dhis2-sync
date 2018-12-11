@@ -115,7 +115,6 @@ public class TEIService {
     public void getTrackedEntityInstances(String mappingName) throws IOException {
         StringBuilder url = new StringBuilder();
 
-        url.append(dhis2Url);
         url.append(TEI_URI);
         url.append("&ou=");
         url.append(orgUnitID);
