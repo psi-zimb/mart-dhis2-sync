@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class EnrollmentDetails {
     private String program;
-    private String trackedEntityInstance;
     private String enrollment;
     private String enrollmentDate;
     private String completedDate;

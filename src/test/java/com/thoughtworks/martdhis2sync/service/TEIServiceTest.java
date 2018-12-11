@@ -6,6 +6,7 @@ import com.thoughtworks.martdhis2sync.model.TrackedEntityInstance;
 import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceResponse;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.step.TrackedEntityInstanceStep;
+import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import java.io.SyncFailedException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -71,6 +73,8 @@ public class TEIServiceTest {
 
         teiService.setSearchableAttributes(searchableAttributes);
         steps.add(step);
+
+        TEIUtil.setInstancesWithEnrollments(new HashMap<>());
     }
 
     @Test
@@ -131,14 +135,14 @@ public class TEIServiceTest {
     }
 
     @Test
-    public void shouldReturnEmptyListWhenThereNoDeltaEnrollments() throws Exception {
+    public void shouldHaveEmptyListForInstanceWithEnrollments() throws Exception {
         String enrollment = "enrollmentTable";
         String programName = "HTS";
         when(patientDAO.getDeltaEnrollmentInstanceIds(enrollment, programName)).thenReturn(new ArrayList<>());
 
-        List<TrackedEntityInstance> enrollmentsForInstances = teiService.getEnrollmentsForInstances(enrollment, programName);
+        teiService.getEnrollmentsForInstances(enrollment, programName);
 
-        assertEquals(0, enrollmentsForInstances.size());
+        assertEquals(0, TEIUtil.getInstancesWithEnrollments().size());
     }
 
     @Test
@@ -154,23 +158,29 @@ public class TEIServiceTest {
         map2.put("program", "program");
 
         String url = "/api/trackedEntityInstances?" +
-                "fields=enrollments[program,trackedEntityInstance,enrollment,enrollmentDate,completedDate,status]&" +
+                "fields=trackedEntityInstance,enrollments[program,enrollment,enrollmentDate,completedDate,status]&" +
                 "program=program&trackedEntityInstance=instance1;instance2";
 
-        EnrollmentDetails enrollment1 = new EnrollmentDetails("program", "instance1", "enrollment1", "2018-10-22", "2018-12-10", "COMPLETED");
-        EnrollmentDetails enrollment2 = new EnrollmentDetails("program", "instance1", "enrollment2", "2018-10-22", null, "ACTIVE");
+        EnrollmentDetails enrollment1 = new EnrollmentDetails("program", "enrollment1", "2018-10-22", "2018-12-10", "COMPLETED");
+        EnrollmentDetails enrollment2 = new EnrollmentDetails("program", "enrollment2", "2018-10-22", null, "ACTIVE");
 
         TrackedEntityInstance trackedEntityInstance1 = new TrackedEntityInstance();
         trackedEntityInstance1.setEnrollments(Arrays.asList(enrollment1, enrollment2));
+        trackedEntityInstance1.setTrackedEntityInstance("instance1");
         TrackedEntityInstance trackedEntityInstance2 = new TrackedEntityInstance();
+        trackedEntityInstance2.setTrackedEntityInstance("instance2");
+        trackedEntityInstance2.setEnrollments(Collections.emptyList());
 
         when(patientDAO.getDeltaEnrollmentInstanceIds(enrollment, programName)).thenReturn(Arrays.asList(map1, map2));
         when(syncRepository.getTrackedEntityInstances(url)).thenReturn(responseEntity);
         when(responseEntity.getBody()).thenReturn(response);
         when(response.getTrackedEntityInstances()).thenReturn(Arrays.asList(trackedEntityInstance1, trackedEntityInstance2));
 
-        List<TrackedEntityInstance> enrollmentsForInstances = teiService.getEnrollmentsForInstances(enrollment, programName);
+        teiService.getEnrollmentsForInstances(enrollment, programName);
 
-        assertEquals(Arrays.asList(trackedEntityInstance1, trackedEntityInstance2), enrollmentsForInstances);
+        Map<String, List<EnrollmentDetails>> expected = new HashMap<>();
+        expected.put("instance1", Arrays.asList(enrollment1, enrollment2));
+
+        assertEquals(expected, TEIUtil.getInstancesWithEnrollments());
     }
 }
