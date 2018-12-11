@@ -44,32 +44,32 @@ public class CompletedEnrollmentService {
     private static final String JOB_UPDATED_COMPLETED_ENROLLMENTS = "Updated Completed Enrollments";
 
     public void triggerJobForNewCompletedEnrollments(String service, String user, String enrLookupTable,
-                                                     String evnLookupTable, Object mappingObj)
+                                                     String evnLookupTable, Object mappingObj, String openLatestCompletedEnrollment)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
             JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
 
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(newEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, service, mappingObj));
         steps.add(enrollmentStep.get());
-        triggerJob(service, user, steps, JOB_NEW_COMPLETED_ENROLLMENTS);
+        triggerJob(service, user, steps, JOB_NEW_COMPLETED_ENROLLMENTS, openLatestCompletedEnrollment);
     }
 
     public void triggerJobForUpdatedCompletedEnrollments(String service, String user, String enrLookupTable,
-                                                         String evnLookupTable, Object mappingObj, List<EnrollmentAPIPayLoad> enrollmentsToIgnore)
+                                                         String evnLookupTable, Object mappingObj, List<EnrollmentAPIPayLoad> enrollmentsToIgnore, String openLatestCompletedEnrollment)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
             JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
 
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(updatedEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, service, mappingObj, enrollmentsToIgnore));
         steps.add(updatedCompletedEnrollmentStep.get());
-        triggerJob(service, user, steps, JOB_UPDATED_COMPLETED_ENROLLMENTS);
+        triggerJob(service, user, steps, JOB_UPDATED_COMPLETED_ENROLLMENTS, openLatestCompletedEnrollment);
     }
 
-    private void triggerJob(String service, String user, LinkedList<Step> steps, String jobName)
+    private void triggerJob(String service, String user, LinkedList<Step> steps, String jobName, String openLatestCompletedEnrollment)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException,
                     JobInstanceAlreadyCompleteException, SyncFailedException {
         try {
-            jobService.triggerJob(service, user, jobName, steps);
+            jobService.triggerJob(service, user, jobName, steps, openLatestCompletedEnrollment);
         } catch (Exception e) {
             logger.error(LOG_PREFIX + e.getMessage());
             throw e;

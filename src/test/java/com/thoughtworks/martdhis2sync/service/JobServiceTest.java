@@ -71,12 +71,11 @@ public class JobServiceTest {
 
     private JobService jobService;
 
-    private String lookUpTable = "patient_identifier";
-    private Object mappingObj = "";
     private String programName = "serviceName";
     private String user = "Admin";
     private String jobName = "syncTrackedEntityInstance";
     private LinkedList<Step> steps = new LinkedList<>();
+    private String openLatestCompletedEnrollment = "no";
 
     @Before
     public void setUp() throws Exception {
@@ -94,7 +93,7 @@ public class JobServiceTest {
         jobMocks();
         when(jobLauncher.run(any(Job.class), any(JobParameters.class))).thenReturn(execution);
 
-        jobService.triggerJob(programName, user, jobName, steps);
+        jobService.triggerJob(programName, user, jobName, steps, openLatestCompletedEnrollment);
 
         verify(jobBuilderFactory, times(1)).get("syncTrackedEntityInstance");
         verify(jobBuilder, times(1)).incrementer(any());
@@ -111,7 +110,7 @@ public class JobServiceTest {
         when(jobLauncher.run(any(Job.class), any(JobParameters.class)))
                 .thenThrow(new JobExecutionAlreadyRunningException("Job Execution Already Running"));
 
-        jobService.triggerJob(programName, user, jobName, steps);
+        jobService.triggerJob(programName, user, jobName, steps, openLatestCompletedEnrollment);
     }
 
     @Test(expected = SyncFailedException.class)
@@ -120,7 +119,7 @@ public class JobServiceTest {
         when(jobLauncher.run(any(Job.class), any(JobParameters.class))).thenReturn(execution);
         when(execution.getStatus()).thenReturn(BatchStatus.FAILED);
 
-        jobService.triggerJob(programName, user, jobName, steps);
+        jobService.triggerJob(programName, user, jobName, steps, openLatestCompletedEnrollment);
 
         verify(jobBuilderFactory, times(1)).get("syncTrackedEntityInstance");
         verify(jobBuilder, times(1)).incrementer(any());
@@ -141,7 +140,7 @@ public class JobServiceTest {
         when(throwable.getMessage()).thenReturn(expMessage);
 
         try {
-            jobService.triggerJob(programName, user, jobName, steps);
+            jobService.triggerJob(programName, user, jobName, steps, openLatestCompletedEnrollment);
         } catch (SyncFailedException e) {
             verify(jobBuilderFactory, times(1)).get("syncTrackedEntityInstance");
             verify(jobBuilder, times(1)).incrementer(any());
@@ -169,7 +168,7 @@ public class JobServiceTest {
         when(throwable.getMessage()).thenReturn(null);
 
         try {
-            jobService.triggerJob(programName, user, jobName, steps);
+            jobService.triggerJob(programName, user, jobName, steps, openLatestCompletedEnrollment);
         } catch (SyncFailedException e) {
             verify(jobBuilderFactory, times(1)).get("syncTrackedEntityInstance");
             verify(jobBuilder, times(1)).incrementer(any());
@@ -193,7 +192,7 @@ public class JobServiceTest {
         jobMocks();
         when(jobLauncher.run(any(Job.class), any(JobParameters.class))).thenReturn(execution);
 
-        jobService.triggerJob(programName, user, jobName, steps);
+        jobService.triggerJob(programName, user, jobName, steps, openLatestCompletedEnrollment);
 
         verify(jobBuilderFactory, times(1)).get("syncTrackedEntityInstance");
         verify(jobBuilder, times(1)).incrementer(any());

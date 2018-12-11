@@ -82,11 +82,11 @@ public class ActiveEnrollmentServiceTest {
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(step);
         steps.add(step);
-        doNothing().when(jobService).triggerJob(programName, user, jobName, steps);
+        doNothing().when(jobService).triggerJob(programName, user, jobName, steps, "");
 
         service.triggerJobForNewActiveEnrollments(programName, user, enrLookupTable, evnLookupTable, mappingObj);
 
-        verify(jobService, times(1)).triggerJob(programName, user, jobName, steps);
+        verify(jobService, times(1)).triggerJob(programName, user, jobName, steps, "");
         verify(newActiveEnrollmentWithEventsStep, times(1)).get(enrLookupTable, evnLookupTable, programName, mappingObj);
         verify(newActiveEnrollmentStep, times(1)).get();
     }
@@ -98,12 +98,12 @@ public class ActiveEnrollmentServiceTest {
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(step);
         steps.add(step);
-        doThrow(new JobParametersInvalidException("Invalid Params")).when(jobService).triggerJob(programName, user, jobName, steps);
+        doThrow(new JobParametersInvalidException("Invalid Params")).when(jobService).triggerJob(programName, user, jobName, steps, "");
 
         try {
             service.triggerJobForNewActiveEnrollments(programName, user, enrLookupTable, evnLookupTable, mappingObj);
         } catch (Exception e) {
-            verify(jobService, times(1)).triggerJob(programName, user, jobName, steps);
+            verify(jobService, times(1)).triggerJob(programName, user, jobName, steps, "");
             verify(newActiveEnrollmentWithEventsStep, times(1)).get(enrLookupTable, evnLookupTable, programName, mappingObj);
             verify(logger, times(1)).error("Active Enrollments: Invalid Params");
         }
@@ -116,11 +116,11 @@ public class ActiveEnrollmentServiceTest {
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(step);
         steps.add(step);
-        doNothing().when(jobService).triggerJob(programName, user, updateJobName, steps);
+        doNothing().when(jobService).triggerJob(programName, user, updateJobName, steps, "");
 
         service.triggerJobForUpdatedActiveEnrollments(programName, user, enrLookupTable, evnLookupTable, mappingObj, enrollmentsToIgnore);
 
-        verify(jobService, times(1)).triggerJob(programName, user, updateJobName, steps);
+        verify(jobService, times(1)).triggerJob(programName, user, updateJobName, steps, "");
         verify(updatedActiveEnrollmentWithEventsStep, times(1)).get(enrLookupTable, evnLookupTable, programName, mappingObj, enrollmentsToIgnore);
         verify(updatedActiveEnrollmentStep, times(1)).get();
     }
@@ -132,12 +132,12 @@ public class ActiveEnrollmentServiceTest {
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(step);
         steps.add(step);
-        doThrow(new JobParametersInvalidException("Invalid Params")).when(jobService).triggerJob(programName, user, updateJobName, steps);
+        doThrow(new JobParametersInvalidException("Invalid Params")).when(jobService).triggerJob(programName, user, updateJobName, steps, "");
 
         try {
             service.triggerJobForUpdatedActiveEnrollments(programName, user, enrLookupTable, evnLookupTable, mappingObj, enrollmentsToIgnore);
         } catch (Exception e) {
-            verify(jobService, times(1)).triggerJob(programName, user, updateJobName, steps);
+            verify(jobService, times(1)).triggerJob(programName, user, updateJobName, steps, "");
             verify(updatedActiveEnrollmentWithEventsStep, times(1)).get(enrLookupTable, evnLookupTable, programName, mappingObj, enrollmentsToIgnore);
             verify(logger, times(1)).error("Active Enrollments: Invalid Params");
         }

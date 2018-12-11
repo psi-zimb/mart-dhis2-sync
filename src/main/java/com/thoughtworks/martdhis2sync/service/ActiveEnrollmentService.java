@@ -69,7 +69,7 @@ public class ActiveEnrollmentService {
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException,
             JobInstanceAlreadyCompleteException, SyncFailedException {
         try {
-            jobService.triggerJob(service, user, jobName, steps);
+            jobService.triggerJob(service, user, jobName, steps, "");
         } catch (Exception e) {
             logger.error(LOG_PREFIX + e.getMessage());
             throw e;
