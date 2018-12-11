@@ -58,7 +58,7 @@ public class PushController {
         IS_DELTA_EXISTS = false;
         loggerService.addLog(requestBody.getService(), requestBody.getUser(), requestBody.getComment());
 
-        dhisMetaDataService.getTrackedEntityInstances(requestBody.getService());
+        teiService.getTrackedEntityInstances(requestBody.getService());
         dhisMetaDataService.filterByTypeDateTime();
 
         Map<String, Object> mapping = mappingService.getMapping(requestBody.getService());
