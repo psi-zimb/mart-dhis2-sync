@@ -48,13 +48,13 @@ public class TEIService {
     private static final String LOG_PREFIX = "TEI Service: ";
     private static final String TEI_JOB_NAME = "Sync Tracked Entity Instance";
 
-    public void triggerJob(String service, String user, String lookupTable, Object mappingObj, List<String> searchableAttributes)
+    public void triggerJob(String service, String user, String lookupTable, Object mappingObj, List<String> searchableAttributes, List<String> comparableAttributes)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
             JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
 
         try {
             LinkedList<Step> steps = new LinkedList<>();
-            steps.add(trackedEntityInstanceStep.get(lookupTable, service, mappingObj, searchableAttributes));
+            steps.add(trackedEntityInstanceStep.get(lookupTable, service, mappingObj, searchableAttributes, comparableAttributes));
             jobService.triggerJob(service, user, TEI_JOB_NAME, steps, "");
         } catch (Exception e) {
             logger.error(LOG_PREFIX + e.getMessage());
