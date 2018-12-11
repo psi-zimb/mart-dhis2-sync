@@ -73,8 +73,7 @@ public class PushController {
 
         try {
             teiService.triggerJob(requestBody.getService(), requestBody.getUser(),
-                    lookupTable.getInstance(), mappingJson.getInstance(), searchableAttributes);
-
+                    lookupTable.getInstance(), mappingJson.getInstance(), config.getSearchable(), config.getComparable());
             TrackersHandler.clearTrackerLists();
             teiService.getEnrollmentsForInstances(lookupTable.getEnrollments(), lookupTable.getEvent(), requestBody.getService());
             completedEnrollmentService.triggerJobForNewCompletedEnrollments(requestBody.getService(), requestBody.getUser(),

@@ -35,17 +35,23 @@ public class TrackedEntityInstanceStep {
 
     private static final String TEI_STEP_NAME = "Tracked Entity Step";
 
-    public Step get(String lookupTable, String programName, Object mappingObj, List<String> searchableAttributes) {
+    public Step get(String lookupTable, String programName, Object mappingObj, List<String> searchableAttributes, List<String> comparableAttributes) {
         TEIUtil.resetPatientTEIUidMap();
         TEIUtil.date = markerUtil.getLastSyncedDate(programName, CATEGORY_INSTANCE);
 
-        return stepFactory.build(TEI_STEP_NAME, mappingReader.getInstanceReader(lookupTable, programName), getProcessor(mappingObj, searchableAttributes), writer);
+        return stepFactory.build(
+                TEI_STEP_NAME,
+                mappingReader.getInstanceReader(lookupTable, programName),
+                getProcessor(mappingObj, searchableAttributes, comparableAttributes),
+                writer
+        );
     }
 
-    private TrackedEntityInstanceProcessor getProcessor(Object mappingObj, List<String> searchableAttributes) {
+    private TrackedEntityInstanceProcessor getProcessor(Object mappingObj, List<String> searchableAttributes, List<String> comparableAttributes) {
         TrackedEntityInstanceProcessor processor = processorObjectFactory.getObject();
         processor.setMappingObj(mappingObj);
         processor.setSearchableAttributes(searchableAttributes);
+        processor.setComparableAttributes(comparableAttributes);
 
         return processor;
     }
