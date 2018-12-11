@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.thoughtworks.martdhis2sync.model.TrackedEntityInstance;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceInfo;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import lombok.Setter;
@@ -91,7 +91,7 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
         String instanceId = tableRowJsonObject.get("instance_id").getAsString();
         Map<String, String> searchableMappings = new HashMap<>();
         Map<String, String> comparableMappings = new HashMap<>();
-        List<TrackedEntityInstance> matchedInstances;
+        List<TrackedEntityInstanceInfo> matchedInstances;
         Set<String> searchableKeySet;
         Set<String> comparableKeySet;
         String uid;
@@ -115,7 +115,7 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
             searchableKeySet = searchableMappings.keySet();
             comparableKeySet = comparableMappings.keySet();
 
-            matchedInstances = TEIUtil.getTrackedEntityInstances().stream().filter(trackedEntityInstance ->
+            matchedInstances = TEIUtil.getTrackedEntityInstanceInfos().stream().filter(trackedEntityInstance ->
                     trackedEntityInstance.getAttributes().stream().filter(attribute ->
                             searchableKeySet.contains(attribute.getAttribute())
                     ).allMatch(attribute ->

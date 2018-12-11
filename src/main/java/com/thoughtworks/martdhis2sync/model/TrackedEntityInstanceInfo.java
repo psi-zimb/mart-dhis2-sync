@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TrackedEntityInstance {
+public class TrackedEntityInstanceInfo {
     private String created;
     private String orgUnit;
     private String createdAtClient;

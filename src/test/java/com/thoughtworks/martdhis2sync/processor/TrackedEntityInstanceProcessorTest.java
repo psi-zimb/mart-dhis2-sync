@@ -2,7 +2,7 @@ package com.thoughtworks.martdhis2sync.processor;
 
 import com.google.gson.JsonObject;
 import com.thoughtworks.martdhis2sync.model.Attribute;
-import com.thoughtworks.martdhis2sync.model.TrackedEntityInstance;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceInfo;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.junit.Before;
@@ -41,7 +41,7 @@ public class TrackedEntityInstanceProcessorTest {
         mockStatic(TEIUtil.class);
         doNothing().when(TEIUtil.class);
         TEIUtil.setPatientIds(getTableRowObject());
-        TEIUtil.setTrackedEntityInstances(getTrackedEntityInstances());
+        TEIUtil.setTrackedEntityInstanceInfos(getTrackedEntityInstances());
         processor.setSearchableAttributes(Collections.singletonList("UIC"));
         processor.setComparableAttributes(Arrays.asList("patient_id", "prepID"));
         TEIUtil.date = teiDate;
@@ -99,7 +99,7 @@ public class TrackedEntityInstanceProcessorTest {
 
     @Test
     public void shouldAddTheTrackedEntityInstanceIdToRequestBodyIfPatientAlreadyCreatedInDHISAndBahmniDidNotHaveAnyTEI() {
-        when(TEIUtil.getTrackedEntityInstances()).thenReturn(getTrackedEntityInstances());
+        when(TEIUtil.getTrackedEntityInstanceInfos()).thenReturn(getTrackedEntityInstances());
 
         JsonObject tableRowObject = getTableRowObject();
         tableRowObject.addProperty("instance_id", "");
@@ -134,9 +134,9 @@ public class TrackedEntityInstanceProcessorTest {
 
     @Test
     public void shouldNotAddAnyTrackedEntityInstanceToTheRequestBodyIfPatientIsNotCreatedInDHIS() {
-        List<TrackedEntityInstance> trackedEntityInstances = getTrackedEntityInstances();
-        trackedEntityInstances.get(0).getAttributes().get(0).setValue("UIC00014");
-        when(TEIUtil.getTrackedEntityInstances()).thenReturn(trackedEntityInstances);
+        List<TrackedEntityInstanceInfo> trackedEntityInstanceInfos = getTrackedEntityInstances();
+        trackedEntityInstanceInfos.get(0).getAttributes().get(0).setValue("UIC00014");
+        when(TEIUtil.getTrackedEntityInstanceInfos()).thenReturn(trackedEntityInstanceInfos);
 
         JsonObject tableRowObject = getTableRowObject();
         tableRowObject.addProperty("instance_id", "");
@@ -170,7 +170,7 @@ public class TrackedEntityInstanceProcessorTest {
 
     @Test
     public void shouldNotAddAnyTrackedEntityInstanceToRequestBodyIfPatientSearchableAttributeIsMatchingButComparableAttributesAreNot() {
-        when(TEIUtil.getTrackedEntityInstances()).thenReturn(getTrackedEntityInstances());
+        when(TEIUtil.getTrackedEntityInstanceInfos()).thenReturn(getTrackedEntityInstances());
 
         JsonObject tableRowObject = getTableRowObject();
         tableRowObject.addProperty("instance_id", "");
@@ -231,8 +231,8 @@ public class TrackedEntityInstanceProcessorTest {
         return mappingJsonObj;
     }
 
-    private List<TrackedEntityInstance> getTrackedEntityInstances() {
-        LinkedList<TrackedEntityInstance> trackedEntityInstances = new LinkedList<>();
+    private List<TrackedEntityInstanceInfo> getTrackedEntityInstances() {
+        LinkedList<TrackedEntityInstanceInfo> trackedEntityInstanceInfos = new LinkedList<>();
         List<Attribute> attributesOfPatient1 = new LinkedList<>();
 
         attributesOfPatient1.add(new Attribute(
@@ -279,7 +279,7 @@ public class TrackedEntityInstanceProcessorTest {
                 "NAH0000123"
         ));
 
-        trackedEntityInstances.add(new TrackedEntityInstance(
+        trackedEntityInstanceInfos.add(new TrackedEntityInstanceInfo(
                 "2018-09-21T17:54:00.294",
                 "SxgCPPeiq3c",
                 "2018-09-21T17:54:01.337",
@@ -296,7 +296,7 @@ public class TrackedEntityInstanceProcessorTest {
                 attributesOfPatient1
         ));
 
-        return trackedEntityInstances;
+        return trackedEntityInstanceInfos;
     }
 
     private JsonObject getTableRowObject() {

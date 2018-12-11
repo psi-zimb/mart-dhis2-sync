@@ -3,15 +3,11 @@ package com.thoughtworks.martdhis2sync.util;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.thoughtworks.martdhis2sync.model.EnrollmentDetails;
-import com.thoughtworks.martdhis2sync.model.TrackedEntityInstance;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceInfo;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class TEIUtil {
 
@@ -24,7 +20,7 @@ public class TEIUtil {
 
     @Getter
     @Setter
-    private static List<TrackedEntityInstance> trackedEntityInstances;
+    private static List<TrackedEntityInstanceInfo> trackedEntityInstanceInfos;
 
     @Getter
     private static Map<String, String> trackedEntityInstanceIDs = new LinkedHashMap<>();
