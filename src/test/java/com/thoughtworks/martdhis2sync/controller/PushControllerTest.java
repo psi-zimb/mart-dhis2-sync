@@ -87,7 +87,7 @@ public class PushControllerTest {
         DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
 
         doNothing().when(dhisMetaDataService).filterByTypeDateTime();
-        doNothing().when(dhisMetaDataService).getTrackedEntityInstances(dhisSyncRequestBody.getService());
+        doNothing().when(teiService).getTrackedEntityInstances(dhisSyncRequestBody.getService());
         doNothing().when(loggerService).addLog(service, user, comment);
         doNothing().when(loggerService).updateLog(service, "failed");
         when(mappingService.getMapping(service)).thenReturn(mapping);
@@ -96,7 +96,7 @@ public class PushControllerTest {
         pushController.pushData(dhisSyncRequestBody);
 
         verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
-        verify(dhisMetaDataService, times(1)).getTrackedEntityInstances(
+        verify(teiService, times(1)).getTrackedEntityInstances(
                 getDhisSyncRequestBody().getService()
         );
         verify(loggerService, times(1)).addLog(service, user, comment);
@@ -144,7 +144,7 @@ public class PushControllerTest {
         Map<String, Object> mapping = getMapping();
         DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
 
-        doNothing().when(dhisMetaDataService).getTrackedEntityInstances(getDhisSyncRequestBody().getService());
+        doNothing().when(teiService).getTrackedEntityInstances(getDhisSyncRequestBody().getService());
         doNothing().when(loggerService).addLog(service, user, comment);
         doNothing().when(loggerService).updateLog(service, "success");
         doNothing().when(loggerService).collateLogMessage("No delta data to sync.");
@@ -157,7 +157,7 @@ public class PushControllerTest {
             pushController.pushData(dhisSyncRequestBody);
         } catch (Exception e) {
             verify(loggerService, times(1)).addLog(service, user, comment);
-            verify(dhisMetaDataService, times(1)).getTrackedEntityInstances(
+            verify(teiService, times(1)).getTrackedEntityInstances(
                     getDhisSyncRequestBody().getService()
             );
             verify(loggerService, times(1)).updateLog(service, "success");

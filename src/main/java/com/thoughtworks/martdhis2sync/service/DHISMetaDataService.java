@@ -1,10 +1,6 @@
 package com.thoughtworks.martdhis2sync.service;
 
-import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
-import com.thoughtworks.martdhis2sync.dao.MappingDAO;
 import com.thoughtworks.martdhis2sync.model.DataElementResponse;
-import com.thoughtworks.martdhis2sync.model.MappingJson;
 import com.thoughtworks.martdhis2sync.model.TrackedEntityAttributeResponse;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
@@ -16,10 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 @Component
 public class DHISMetaDataService {
@@ -29,12 +23,6 @@ public class DHISMetaDataService {
 
     @Value("${dhis2.url}")
     private String dhis2Url;
-
-    @Value("${country.org.unit.id}")
-    private String orgUnitID;
-
-    @Autowired
-    private MappingDAO mappingDAO;
 
     private static final String LOG_PREFIX = "Data Element Service: ";
     private static final String URI_DATE_TIME_DATA_ELEMENTS = "/api/dataElements?pageSize=1000&filter=valueType:eq:DATETIME";
@@ -82,36 +70,5 @@ public class DHISMetaDataService {
     public void filterByTypeDateTime() {
         EventUtil.setElementsOfTypeDateTime(getDataElements());
         TEIUtil.setAttributeOfTypeDateTime(getTEAttributes());
-    }
-
-    public void getTrackedEntityInstances(String mappingName) throws IOException {
-        StringBuilder uri = new StringBuilder();
-
-        uri.append(TEI_URI);
-        uri.append("&ou=");
-        uri.append(orgUnitID);
-        uri.append("&ouMode=DESCENDANTS");
-
-        Map<String, Object> mapping = mappingDAO.getMapping(mappingName);
-
-        Gson gson = new Gson();
-        LinkedTreeMap instanceMapping = (LinkedTreeMap) gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class).getInstance();
-
-        List<Map<String, Object>> searchableFields = mappingDAO.getSearchableFields(mappingName);
-
-        searchableFields.get(0).keySet().forEach(filter -> {
-            uri.append("&filter=");
-            uri.append(instanceMapping.get(filter));
-            uri.append(":IN:");
-
-            searchableFields.forEach(searchableField -> {
-                uri.append(searchableField.get(filter));
-                uri.append(";");
-            });
-        });
-
-        TEIUtil.setTrackedEntityInstanceInfos(
-                syncRepository.getTrackedEntityInstances(url.toString()).getBody().getTrackedEntityInstances()
-        );
     }
 }
