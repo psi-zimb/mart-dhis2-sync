@@ -85,13 +85,13 @@ public class TEIServiceTest {
         String user = "Admin";
         String jobName = "Sync Tracked Entity Instance";
 
-        doNothing().when(jobService).triggerJob(service, user, jobName, steps);
+        doNothing().when(jobService).triggerJob(service, user, jobName, steps, "");
         when(instanceStep.get(lookUpTable, service, mappingObj)).thenReturn(step);
 
         teiService.triggerJob(service, user, lookUpTable, mappingObj);
 
         verify(instanceStep, times(1)).setSearchableAttributes(searchableAttributes);
-        verify(jobService, times(1)).triggerJob(service, user, jobName, steps);
+        verify(jobService, times(1)).triggerJob(service, user, jobName, steps, "");
     }
 
     @Test(expected = JobExecutionAlreadyRunningException.class)
@@ -103,7 +103,7 @@ public class TEIServiceTest {
         String jobName = "Sync Tracked Entity Instance";
 
         doThrow(JobExecutionAlreadyRunningException.class).when(jobService)
-                .triggerJob(service, user, jobName, steps);
+                .triggerJob(service, user, jobName, steps, "");
         when(instanceStep.get(lookUpTable, service, mappingObj)).thenReturn(step);
 
         try {
@@ -123,7 +123,7 @@ public class TEIServiceTest {
         String jobName = "Sync Tracked Entity Instance";
 
         doThrow(SyncFailedException.class).when(jobService)
-                .triggerJob(service, user, jobName, steps);
+                .triggerJob(service, user, jobName, steps, "");
         when(instanceStep.get(lookUpTable, service, mappingObj)).thenReturn(step);
 
         try{

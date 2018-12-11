@@ -68,7 +68,8 @@ public class PushController {
         Gson gson = new Gson();
         LookupTable lookupTable = gson.fromJson(mapping.get("lookup_table").toString(), LookupTable.class);
         MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
-        teiService.setSearchableAttributes(gson.fromJson(mapping.get("config").toString(), Config.class).getSearchable());
+        Config config = gson.fromJson(mapping.get("config").toString(), Config.class);
+        teiService.setSearchableAttributes(config.getSearchable());
         EnrollmentUtil.date = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_ENROLLMENT);
         EventUtil.date = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_EVENT);
 
@@ -77,13 +78,14 @@ public class PushController {
                     lookupTable.getInstance(), mappingJson.getInstance());
 
             TrackersHandler.clearTrackerLists();
+            teiService.getEnrollmentsForInstances(lookupTable.getEnrollments(), requestBody.getService());
             completedEnrollmentService.triggerJobForNewCompletedEnrollments(requestBody.getService(), requestBody.getUser(),
-                    lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent());
+                    lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), config.getOpenLatestCompletedEnrollment());
 
             enrollmentsToIgnore = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
             TrackersHandler.clearTrackerLists();
             completedEnrollmentService.triggerJobForUpdatedCompletedEnrollments(requestBody.getService(), requestBody.getUser(),
-                    lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), enrollmentsToIgnore);
+                    lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), enrollmentsToIgnore, config.getOpenLatestCompletedEnrollment());
 
             TrackersHandler.clearTrackerLists();
             activeEnrollmentService.triggerJobForNewActiveEnrollments(requestBody.getService(), requestBody.getUser(),
