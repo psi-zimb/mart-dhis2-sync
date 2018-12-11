@@ -1,8 +1,10 @@
 package com.thoughtworks.martdhis2sync.service;
 
+import com.thoughtworks.martdhis2sync.dao.MappingDAO;
 import com.thoughtworks.martdhis2sync.dao.PatientDAO;
+import com.thoughtworks.martdhis2sync.model.Attribute;
 import com.thoughtworks.martdhis2sync.model.EnrollmentDetails;
-import com.thoughtworks.martdhis2sync.model.TrackedEntityInstance;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceInfo;
 import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceResponse;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.step.TrackedEntityInstanceStep;
@@ -17,12 +19,14 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
 import java.io.SyncFailedException;
 import java.util.*;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.management.*")
@@ -38,6 +42,9 @@ public class TEIServiceTest {
     private Step step;
 
     @Mock
+    private MappingDAO mappingDAO;
+
+    @Mock
     private PatientDAO patientDAO;
 
     @Mock
@@ -49,6 +56,11 @@ public class TEIServiceTest {
     @Mock
     private TrackedEntityInstanceResponse response;
 
+    private String dhis2Url = "http://play.dhis2.org";
+    public static final String TRACKED_ENTITY_INSTANCE_URI = "/api/trackedEntityInstances?pageSize=10000";
+    private String ORG_UNIT_ID = "DiszpKrYNg8";
+    private ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstanceResponse;
+    private HashMap<String, Object> expectedMapping;
     private TEIService teiService;
     private LinkedList<Step> steps = new LinkedList<>();
 
@@ -57,8 +69,11 @@ public class TEIServiceTest {
         teiService = new TEIService();
         setValuesForMemberFields(teiService, "trackedEntityInstanceStep", instanceStep);
         setValuesForMemberFields(teiService, "jobService", jobService);
+        setValuesForMemberFields(teiService, "mappingDAO", mappingDAO);
         setValuesForMemberFields(teiService, "patientDAO", patientDAO);
         setValuesForMemberFields(teiService, "syncRepository", syncRepository);
+        setValuesForMemberFields(teiService, "dhis2Url", dhis2Url);
+        setValuesForMemberFields(teiService, "orgUnitID", ORG_UNIT_ID);
 
         steps.add(step);
 
@@ -157,10 +172,10 @@ public class TEIServiceTest {
         EnrollmentDetails enrollment1 = new EnrollmentDetails("program", "enrollment1", "2018-10-22", "2018-12-10", "COMPLETED");
         EnrollmentDetails enrollment2 = new EnrollmentDetails("program", "enrollment2", "2018-10-22", null, "ACTIVE");
 
-        TrackedEntityInstance trackedEntityInstance1 = new TrackedEntityInstance();
+        TrackedEntityInstanceInfo trackedEntityInstance1 = new TrackedEntityInstanceInfo();
         trackedEntityInstance1.setEnrollments(Arrays.asList(enrollment1, enrollment2));
         trackedEntityInstance1.setTrackedEntityInstance("instance1");
-        TrackedEntityInstance trackedEntityInstance2 = new TrackedEntityInstance();
+        TrackedEntityInstanceInfo trackedEntityInstance2 = new TrackedEntityInstanceInfo();
         trackedEntityInstance2.setTrackedEntityInstance("instance2");
         trackedEntityInstance2.setEnrollments(Collections.emptyList());
 
@@ -175,5 +190,137 @@ public class TEIServiceTest {
         expected.put("instance1", Arrays.asList(enrollment1, enrollment2));
 
         assertEquals(expected, TEIUtil.getInstancesWithEnrollments());
+    }
+
+    @Test
+    public void shouldGetTrackedEntityInstanceFromDHIS() throws IOException {
+        String program = "HIV Testing Service";
+        String queryParams = "&filter=HF8Tu4tg:IN:NINETU190995MT;JKAPTA170994MT;";
+        String url = dhis2Url + TRACKED_ENTITY_INSTANCE_URI + "&ou=" + ORG_UNIT_ID + "&ouMode=DESCENDANTS" + queryParams;
+        Map<String, Object> searchableMapping = new HashMap<>();
+
+        trackedEntityInstanceResponse = ResponseEntity.ok(new TrackedEntityInstanceResponse(getTrackedEntityInstances()));
+
+        expectedMapping = new HashMap<>();
+        expectedMapping.put("lookup_table", "{\"instance\": \"patient_identifier\", \"enrollments\": \"patient_enrollments\"}");
+        expectedMapping.put("config", "{\"searchable\": [\"UIC\", \"date_created\"]}");
+        expectedMapping.put("mapping_json", "{\"instance\": " +
+                "{" +
+                "\"UIC\": \"HF8Tu4tg\"," +
+                "\"date_created\": \"ojmUIu4tg\"" +
+                "}" +
+                "}");
+        searchableMapping.put("UIC", "HF8Tu4tg");
+
+        when(mappingDAO.getSearchableFields(program)).thenReturn(getSearchableValues());
+        when(mappingDAO.getMapping(program)).thenReturn(expectedMapping);
+        when(syncRepository.getTrackedEntityInstances(url)).thenReturn(trackedEntityInstanceResponse);
+
+        teiService.getTrackedEntityInstances(program);
+
+        verify(mappingDAO, times(1)).getSearchableFields(program);
+        verify(syncRepository, times(1)).getTrackedEntityInstances(url);
+        verifyStatic(times(1));
+        TEIUtil.setTrackedEntityInstanceInfos(getTrackedEntityInstances());
+    }
+
+    private List<TrackedEntityInstanceInfo> getTrackedEntityInstances() {
+        List<TrackedEntityInstanceInfo> trackedEntityInstanceInfos = new LinkedList<>();
+        List<Attribute> attributesOfPatient1 = new ArrayList<>();
+        List<Attribute> attributesOfPatient2 = new ArrayList<>();
+
+        attributesOfPatient1.add(new Attribute(
+                "2018-11-26T09:24:57.158",
+                "admin",
+                "MMD_PER_NAM",
+                "First name",
+                "2018-11-26T09:24:57.158",
+                "TEXT",
+                "w75KJ2mc4zz",
+                "Michel"
+        ));
+
+        attributesOfPatient1.add(new Attribute(
+                "2018-11-26T09:24:57.153",
+                "admin",
+                "",
+                "Last name",
+                "2018-11-26T09:24:57.152",
+                "TEXT",
+                "zDhUuAYrxNC",
+                "Jackson"
+        ));
+
+        trackedEntityInstanceInfos.add(new TrackedEntityInstanceInfo(
+                "2018-09-21T17:54:00.294",
+                "SxgCPPeiq3c",
+                "2018-09-21T17:54:01.337",
+                "w3MoRtzP4SO",
+                "2018-09-21T17:54:01.337",
+                "o0kaqrZa79Y",
+                "2018-09-21T17:54:01.337",
+                false,
+                false,
+                "NONE",
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                attributesOfPatient1
+        ));
+
+        attributesOfPatient2.add(new Attribute(
+                "2018-11-26T09:24:57.158",
+                "admin",
+                "MMD_PER_NAM",
+                "First name",
+                "2018-11-26T09:24:57.158",
+                "TEXT",
+                "w75KJ2mc4zz",
+                "Jinny"
+        ));
+
+        attributesOfPatient2.add(new Attribute(
+                "2018-11-26T09:24:57.153",
+                "admin",
+                "",
+                "Last name",
+                "2018-11-26T09:24:57.152",
+                "TEXT",
+                "zDhUuAYrxNC",
+                "Jackson"
+        ));
+
+        trackedEntityInstanceInfos.add(new TrackedEntityInstanceInfo(
+                "2018-09-22T13:24:00.24",
+                "SxgCPPeiq3c",
+                "2018-09-21T17:54:01.337",
+                "tzP4SOw3MoR",
+                "2018-09-22T13:24:00.241",
+                "o0kaqrZa79Y",
+                "2018-09-21T17:54:01.337",
+                false,
+                false,
+                "NONE",
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                attributesOfPatient2
+        ));
+
+        return trackedEntityInstanceInfos;
+    }
+
+    private List<Map<String, Object>> getSearchableValues() {
+        List<Map<String, Object>> searchableValues = new LinkedList<>();
+
+        Map<String, Object> searchable1 = new HashMap<>();
+        searchable1.put("UIC", "NINETU190995MT");
+        searchableValues.add(searchable1);
+
+        Map<String, Object> searchable2 = new HashMap<>();
+        searchable2.put("UIC", "JKAPTA170994MT");
+        searchableValues.add(searchable2);
+
+        return searchableValues;
     }
 }

@@ -1,8 +1,12 @@
 package com.thoughtworks.martdhis2sync.service;
 
+import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
+import com.thoughtworks.martdhis2sync.dao.MappingDAO;
 import com.thoughtworks.martdhis2sync.dao.PatientDAO;
 import com.thoughtworks.martdhis2sync.model.EnrollmentDetails;
-import com.thoughtworks.martdhis2sync.model.TrackedEntityInstance;
+import com.thoughtworks.martdhis2sync.model.MappingJson;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceInfo;
 import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceResponse;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.step.TrackedEntityInstanceStep;
@@ -15,9 +19,11 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.io.SyncFailedException;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -30,6 +36,17 @@ public class TEIService {
     private final String TEI_ENROLLMENTS_URI = "/api/trackedEntityInstances?" +
             "fields=trackedEntityInstance,enrollments[program,enrollment,enrollmentDate,completedDate,status]&" +
             "program=%s&trackedEntityInstance=%s";
+
+    @Value("${dhis2.url}")
+    private String dhis2Url;
+
+    @Value("${country.org.unit.id}")
+    private String orgUnitID;
+
+    @Autowired
+    private MappingDAO mappingDAO;
+
+    private static final String TEI_URI = "/api/trackedEntityInstances?pageSize=10000";
 
     @Autowired
     private TrackedEntityInstanceStep trackedEntityInstanceStep;
@@ -62,6 +79,7 @@ public class TEIService {
         }
     }
 
+
     public void getEnrollmentsForInstances(String enrollmentTable, String eventTable, String programName) throws Exception {
         TEIUtil.setInstancesWithEnrollments(new HashMap<>());
         List<Map<String, Object>> deltaInstanceIds = patientDAO.getDeltaEnrollmentInstanceIds(enrollmentTable, eventTable, programName);
@@ -76,7 +94,7 @@ public class TEIService {
         }
     }
 
-    private Map<String, List<EnrollmentDetails>> getMap(List<TrackedEntityInstance> trackedEntityInstances) {
+    private Map<String, List<EnrollmentDetails>> getMap(List<TrackedEntityInstanceInfo> trackedEntityInstances) {
         Map<String, List<EnrollmentDetails>> instancesMap = new HashMap<>();
         trackedEntityInstances.forEach(trackedEntityInstance -> {
             if (!trackedEntityInstance.getEnrollments().isEmpty()) {
@@ -92,5 +110,37 @@ public class TEIService {
                 .stream()
                 .map(instanceObj -> instanceObj.get("instance_id").toString())
                 .collect(Collectors.toList());
+    }
+
+    public void getTrackedEntityInstances(String mappingName) throws IOException {
+        StringBuilder url = new StringBuilder();
+
+        url.append(dhis2Url);
+        url.append(TEI_URI);
+        url.append("&ou=");
+        url.append(orgUnitID);
+        url.append("&ouMode=DESCENDANTS");
+
+        Map<String, Object> mapping = mappingDAO.getMapping(mappingName);
+
+        Gson gson = new Gson();
+        LinkedTreeMap instanceMapping = (LinkedTreeMap) gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class).getInstance();
+
+        List<Map<String, Object>> searchableFields = mappingDAO.getSearchableFields(mappingName);
+
+        searchableFields.get(0).keySet().forEach(filter -> {
+            url.append("&filter=");
+            url.append(instanceMapping.get(filter));
+            url.append(":IN:");
+
+            searchableFields.forEach(searchableField -> {
+                url.append(searchableField.get(filter));
+                url.append(";");
+            });
+        });
+
+        TEIUtil.setTrackedEntityInstanceInfos(
+                syncRepository.getTrackedEntityInstances(url.toString()).getBody().getTrackedEntityInstances()
+        );
     }
 }
