@@ -61,7 +61,7 @@ public class TEIService {
         try {
             LinkedList<Step> steps = new LinkedList<>();
             steps.add(trackedEntityInstanceStep.get(lookupTable, service, mappingObj));
-            jobService.triggerJob(service, user, TEI_JOB_NAME, steps);
+            jobService.triggerJob(service, user, TEI_JOB_NAME, steps, "");
         } catch (Exception e) {
             logger.error(LOG_PREFIX + e.getMessage());
             throw e;

@@ -1,25 +1,42 @@
 package com.thoughtworks.martdhis2sync.writer;
 
 import com.thoughtworks.martdhis2sync.controller.PushController;
-import com.thoughtworks.martdhis2sync.model.*;
+import com.thoughtworks.martdhis2sync.model.DHISEnrollmentSyncResponse;
+import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
+import com.thoughtworks.martdhis2sync.model.EnrollmentDetails;
+import com.thoughtworks.martdhis2sync.model.EnrollmentImportSummary;
+import com.thoughtworks.martdhis2sync.model.Event;
+import com.thoughtworks.martdhis2sync.model.EventTracker;
+import com.thoughtworks.martdhis2sync.model.ProcessedTableRow;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.responseHandler.EnrollmentResponseHandler;
 import com.thoughtworks.martdhis2sync.responseHandler.EventResponseHandler;
 import com.thoughtworks.martdhis2sync.service.JobService;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
+import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeLastChar;
 
 @Component
+@StepScope
 public class NewCompletedEnrollmentWithEventsWriter implements ItemWriter<ProcessedTableRow> {
     private static final String URI = "/api/enrollments?strategy=CREATE_AND_UPDATE";
 
@@ -32,8 +49,12 @@ public class NewCompletedEnrollmentWithEventsWriter implements ItemWriter<Proces
     @Autowired
     private EventResponseHandler eventResponseHandler;
 
+    @Value("#{jobParameters['openLatestCompletedEnrollment']}")
+    private String openLatestCompletedEnrollment;
+
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private static final String LOG_PREFIX = "NEW COMPLETED ENROLLMENT WITH EVENTS SYNC: ";
+    private static final String YES = "yes";
 
     private List<EventTracker> eventTrackers = new ArrayList<>();
 
@@ -109,7 +130,7 @@ public class NewCompletedEnrollmentWithEventsWriter implements ItemWriter<Proces
             body
                 .append(String.format(
                         ENROLLMENT_API_FORMAT,
-                        "",
+                        getEnrollmentId(value),
                         value.getInstanceId(),
                         value.getOrgUnit(),
                         value.getProgram(),
@@ -156,5 +177,40 @@ public class NewCompletedEnrollmentWithEventsWriter implements ItemWriter<Proces
         });
 
         return removeLastChar(dataValuesApiBuilder);
+    }
+
+    private String getEnrollmentId(EnrollmentAPIPayLoad enrollment) {
+        List<EnrollmentDetails> enrollmentDetails = TEIUtil.getInstancesWithEnrollments().get(enrollment.getInstanceId());
+        if (enrollmentDetails.size() == 0) {
+            return "";
+        }
+        String activeEnrollmentId = getActiveEnrollmentId(enrollmentDetails);
+
+        return YES.equals(openLatestCompletedEnrollment) ?
+                (StringUtils.isEmpty(activeEnrollmentId)
+                        ? getLatestCompletedEnrollmentId(enrollmentDetails)
+                        : activeEnrollmentId)
+                : activeEnrollmentId;
+    }
+
+    private String getLatestCompletedEnrollmentId(List<EnrollmentDetails> enrollmentDetails) {
+        String latestCompletedEnrollmentId = "";
+        String maxCompletedDate = "";
+        for (EnrollmentDetails enrollment : enrollmentDetails) {
+            String completedDate = enrollment.getCompletedDate();
+            if (maxCompletedDate.compareTo(completedDate) < 1) {
+                latestCompletedEnrollmentId = enrollment.getEnrollment();
+                maxCompletedDate = completedDate;
+            }
+        }
+        return latestCompletedEnrollmentId;
+    }
+
+    private String getActiveEnrollmentId(List<EnrollmentDetails> enrollmentDetails) {
+        Optional<EnrollmentDetails> activeEnrollment = enrollmentDetails.stream()
+                .filter(enrollment -> EnrollmentAPIPayLoad.STATUS_ACTIVE.equals(enrollment.getStatus()))
+                .findFirst();
+
+        return activeEnrollment.isPresent() ? activeEnrollment.get().getEnrollment() : "";
     }
 }

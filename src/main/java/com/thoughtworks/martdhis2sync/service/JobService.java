@@ -41,7 +41,7 @@ public class JobService {
     @Setter
     public static boolean IS_JOB_FAILED = false;
 
-    public void triggerJob(String programName, String user, String jobName, List<Step> steps)
+    public void triggerJob(String programName, String user, String jobName, List<Step> steps, String openLatestCompletedEnrollment)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
             JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
         IS_JOB_FAILED = false;
@@ -50,6 +50,7 @@ public class JobService {
                         .addDate("date", new Date())
                         .addString("service", programName)
                         .addString("user", user)
+                        .addString("openLatestCompletedEnrollment", openLatestCompletedEnrollment)
                         .toJobParameters());
 
         if (jobExecution.getStatus() == BatchStatus.FAILED || IS_JOB_FAILED) {

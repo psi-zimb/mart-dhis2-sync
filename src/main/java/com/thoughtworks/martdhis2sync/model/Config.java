@@ -11,4 +11,5 @@ import java.util.List;
 @AllArgsConstructor
 public class Config {
     private List<String> searchable;
+    private String openLatestCompletedEnrollment;
 }
