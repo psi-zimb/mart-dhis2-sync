@@ -41,7 +41,7 @@ public class DHISMetaDataServiceTest {
     private List<DataElement> dataElements = new LinkedList<>();
     private ResponseEntity<TrackedEntityAttributeResponse> trackedEntityAttributeResponse;
     private ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstanceResponse;
-    private List<TrackedEntityInstance> trackedEntityInstances = new LinkedList<>();
+    private List<TrackedEntityInstanceInfo> trackedEntityInstanceInfos = new LinkedList<>();
     private List<TrackedEntityAttribute> trackedEntityAttributes = new LinkedList<>();
     private String dhis2Url = "http://play.dhis2.org";
     private List<Attribute> attributesOfPatient1 = new LinkedList<>();
@@ -96,7 +96,7 @@ public class DHISMetaDataServiceTest {
         String uri = TRACKED_ENTITY_INSTANCE_URI + "&ou=" + ORG_UNIT_ID + "&ouMode=DESCENDANTS" + queryParams;
         Map<String, Object> searchableMapping = new HashMap<>();
 
-        trackedEntityInstanceResponse = ResponseEntity.ok(new TrackedEntityInstanceResponse(trackedEntityInstances));
+        trackedEntityInstanceResponse = ResponseEntity.ok(new TrackedEntityInstanceResponse(trackedEntityInstanceInfos));
 
         expectedMapping = new HashMap<>();
         expectedMapping.put("lookup_table", "{\"instance\": \"patient_identifier\", \"enrollments\": \"patient_enrollments\"}");
@@ -118,7 +118,7 @@ public class DHISMetaDataServiceTest {
         verify(mappingDAO, times(1)).getSearchableFields(program);
         verify(syncRepository, times(1)).getTrackedEntityInstances(uri);
         verifyStatic(times(1));
-        TEIUtil.setTrackedEntityInstances(trackedEntityInstances);
+        TEIUtil.setTrackedEntityInstanceInfos(trackedEntityInstanceInfos);
     }
 
     private void setTrackedEntityInstances() {
@@ -144,7 +144,7 @@ public class DHISMetaDataServiceTest {
                 "Jackson"
         ));
 
-        trackedEntityInstances.add(new TrackedEntityInstance(
+        trackedEntityInstanceInfos.add(new TrackedEntityInstanceInfo(
                 "2018-09-21T17:54:00.294",
                 "SxgCPPeiq3c",
                 "2018-09-21T17:54:01.337",
@@ -183,7 +183,7 @@ public class DHISMetaDataServiceTest {
                 "Jackson"
         ));
 
-        trackedEntityInstances.add(new TrackedEntityInstance(
+        trackedEntityInstanceInfos.add(new TrackedEntityInstanceInfo(
                 "2018-09-22T13:24:00.24",
                 "SxgCPPeiq3c",
                 "2018-09-21T17:54:01.337",
