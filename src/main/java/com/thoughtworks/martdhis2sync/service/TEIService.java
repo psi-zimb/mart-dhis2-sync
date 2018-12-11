@@ -1,10 +1,12 @@
 package com.thoughtworks.martdhis2sync.service;
 
 import com.thoughtworks.martdhis2sync.dao.PatientDAO;
+import com.thoughtworks.martdhis2sync.model.EnrollmentDetails;
 import com.thoughtworks.martdhis2sync.model.TrackedEntityInstance;
 import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceResponse;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.step.TrackedEntityInstanceStep;
+import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.io.SyncFailedException;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +29,7 @@ import java.util.stream.Collectors;
 @Component
 public class TEIService {
     private final String TEI_ENROLLMENTS_URI = "/api/trackedEntityInstances?" +
-            "fields=enrollments[program,trackedEntityInstance,enrollment,enrollmentDate,completedDate,status]&" +
+            "fields=trackedEntityInstance,enrollments[program,enrollment,enrollmentDate,completedDate,status]&" +
             "program=%s&trackedEntityInstance=%s";
 
     @Autowired
@@ -66,7 +68,8 @@ public class TEIService {
         }
     }
 
-    public List<TrackedEntityInstance> getEnrollmentsForInstances(String enrollmentTable, String programName) throws Exception {
+    public void getEnrollmentsForInstances(String enrollmentTable, String programName) throws Exception {
+        TEIUtil.setInstancesWithEnrollments(new HashMap<>());
         List<Map<String, Object>> deltaInstanceIds = patientDAO.getDeltaEnrollmentInstanceIds(enrollmentTable, programName);
         if (deltaInstanceIds.size() > 0) {
             List<String> instanceIdsList = getInstanceIds(deltaInstanceIds);
@@ -75,9 +78,19 @@ public class TEIService {
             String url = String.format(TEI_ENROLLMENTS_URI, program, instanceIds);
 
             ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstances = syncRepository.getTrackedEntityInstances(url);
-            return trackedEntityInstances.getBody().getTrackedEntityInstances();
+            TEIUtil.setInstancesWithEnrollments(getMap(trackedEntityInstances.getBody().getTrackedEntityInstances()));
         }
-        return new ArrayList<>();
+    }
+
+    private Map<String, List<EnrollmentDetails>> getMap(List<TrackedEntityInstance> trackedEntityInstances) {
+        Map<String, List<EnrollmentDetails>> instancesMap = new HashMap<>();
+        trackedEntityInstances.forEach(trackedEntityInstance -> {
+            if (trackedEntityInstance.getEnrollments().size() > 0) {
+                instancesMap.put(trackedEntityInstance.getTrackedEntityInstance(), trackedEntityInstance.getEnrollments());
+            }
+        });
+
+        return instancesMap;
     }
 
     private List<String> getInstanceIds(List<Map<String, Object>> newEnrollmentInstances) {
