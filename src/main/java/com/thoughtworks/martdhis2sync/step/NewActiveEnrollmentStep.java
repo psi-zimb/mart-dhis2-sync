@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ActiveEnrollmentStep {
+public class NewActiveEnrollmentStep {
 
     @Autowired
     private StepFactory stepFactory;
@@ -14,9 +14,9 @@ public class ActiveEnrollmentStep {
     @Autowired
     private NewActiveEnrollmentTasklet tasklet;
 
-    private static final String NCE_STEP_NAME = "Active Enrollment Step:: ";
+    private static final String STEP_NAME = "New Active Enrollment Step:: ";
 
     public Step get() {
-        return stepFactory.build(NCE_STEP_NAME, tasklet);
+        return stepFactory.build(STEP_NAME, tasklet);
     }
 }

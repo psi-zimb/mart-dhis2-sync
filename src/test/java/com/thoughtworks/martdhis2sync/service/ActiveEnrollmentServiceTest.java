@@ -1,7 +1,7 @@
 package com.thoughtworks.martdhis2sync.service;
 
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
-import com.thoughtworks.martdhis2sync.step.ActiveEnrollmentStep;
+import com.thoughtworks.martdhis2sync.step.NewActiveEnrollmentStep;
 import com.thoughtworks.martdhis2sync.step.NewActiveEnrollmentWithEventsStep;
 import com.thoughtworks.martdhis2sync.step.UpdatedActiveEnrollmentWithEventsStep;
 import org.junit.Before;
@@ -37,7 +37,7 @@ public class ActiveEnrollmentServiceTest {
     private UpdatedActiveEnrollmentWithEventsStep updatedActiveEnrollmentWithEventsStep;
 
     @Mock
-    private ActiveEnrollmentStep activeEnrollmentStep;
+    private NewActiveEnrollmentStep newActiveEnrollmentStep;
     @Mock
     private JobService jobService;
 
@@ -66,13 +66,13 @@ public class ActiveEnrollmentServiceTest {
         setValuesForMemberFields(service, "jobService", jobService);
         setValuesForMemberFields(service, "logger", logger);
         setValuesForMemberFields(service, "updatedEnrollmentWithEventsStep", updatedActiveEnrollmentWithEventsStep);
-        setValuesForMemberFields(service, "activeEnrollmentStep", activeEnrollmentStep);
+        setValuesForMemberFields(service, "activeEnrollmentStep", newActiveEnrollmentStep);
     }
 
     @Test
     public void shouldTriggerTheJob() throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
         when(newActiveEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, programName, mappingObj)).thenReturn(step);
-        when(activeEnrollmentStep.get()).thenReturn(step);
+        when(newActiveEnrollmentStep.get()).thenReturn(step);
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(step);
         steps.add(step);
@@ -82,13 +82,13 @@ public class ActiveEnrollmentServiceTest {
 
         verify(jobService, times(1)).triggerJob(programName, user, jobName, steps);
         verify(newActiveEnrollmentWithEventsStep, times(1)).get(enrLookupTable, evnLookupTable, programName, mappingObj);
-        verify(activeEnrollmentStep, times(1)).get();
+        verify(newActiveEnrollmentStep, times(1)).get();
     }
 
     @Test
     public void shouldLogErrorOnJobFail() throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
         when(newActiveEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, programName, mappingObj)).thenReturn(step);
-        when(activeEnrollmentStep.get()).thenReturn(step);
+        when(newActiveEnrollmentStep.get()).thenReturn(step);
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(step);
         steps.add(step);
@@ -106,7 +106,7 @@ public class ActiveEnrollmentServiceTest {
     @Test
     public void shouldTriggerTheJobForUpdatedActiveEnrollments() throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
         when(updatedActiveEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, programName, mappingObj, enrollmentsToIgnore)).thenReturn(step);
-        when(activeEnrollmentStep.get()).thenReturn(step);
+        when(newActiveEnrollmentStep.get()).thenReturn(step);
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(step);
         steps.add(step);
@@ -116,13 +116,13 @@ public class ActiveEnrollmentServiceTest {
 
         verify(jobService, times(1)).triggerJob(programName, user, updateJobName, steps);
         verify(updatedActiveEnrollmentWithEventsStep, times(1)).get(enrLookupTable, evnLookupTable, programName, mappingObj, enrollmentsToIgnore);
-        verify(activeEnrollmentStep, times(1)).get();
+        verify(newActiveEnrollmentStep, times(1)).get();
     }
 
     @Test
     public void shouldLogErrorOnJobFailForUpdatedActiveEnrollments() throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
         when(updatedActiveEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, programName, mappingObj, enrollmentsToIgnore)).thenReturn(step);
-        when(activeEnrollmentStep.get()).thenReturn(step);
+        when(newActiveEnrollmentStep.get()).thenReturn(step);
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(step);
         steps.add(step);
