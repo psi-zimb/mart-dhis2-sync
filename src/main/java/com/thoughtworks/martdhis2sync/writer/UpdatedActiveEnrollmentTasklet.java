@@ -31,7 +31,7 @@ public class UpdatedActiveEnrollmentTasklet implements Tasklet {
         if (!EnrollmentUtil.enrollmentsToSaveInTracker.isEmpty()) {
             try {
                 recordsCreated = trackersHandler.updateInEnrollmentTracker(user);
-                logger.info(LOG_PREFIX + "Successfully inserted " + recordsCreated + " Enrollment UIDs.");
+                logger.info(LOG_PREFIX + "Successfully updated " + recordsCreated + " Enrollment UIDs.");
             } catch (SQLException e) {
                 logger.error(LOG_PREFIX + "Exception occurred while inserting Program Enrollment UIDs:" + e.getMessage());
                 e.printStackTrace();
