@@ -15,7 +15,7 @@ import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
-public class ActiveEnrollmentStepTest {
+public class NewActiveEnrollmentStepTest {
     @Mock
     private StepFactory stepFactory;
 
@@ -25,11 +25,11 @@ public class ActiveEnrollmentStepTest {
     @Mock
     private Step step;
 
-    private ActiveEnrollmentStep enrollmentStep;
+    private NewActiveEnrollmentStep enrollmentStep;
 
     @Before
     public void setUp() throws Exception {
-        enrollmentStep = new ActiveEnrollmentStep();
+        enrollmentStep = new NewActiveEnrollmentStep();
 
         setValuesForMemberFields(enrollmentStep, "stepFactory", stepFactory);
         setValuesForMemberFields(enrollmentStep, "tasklet", tasklet);
@@ -37,7 +37,7 @@ public class ActiveEnrollmentStepTest {
 
     @Test
     public void shouldReturnStep() {
-        String stepMessage = "Active Enrollment Step:: ";
+        String stepMessage = "New Active Enrollment Step:: ";
         when(stepFactory.build(stepMessage, tasklet)).thenReturn(step);
 
         Step actual = enrollmentStep.get();
