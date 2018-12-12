@@ -3,6 +3,7 @@ package com.thoughtworks.martdhis2sync.service;
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.step.NewActiveEnrollmentStep;
 import com.thoughtworks.martdhis2sync.step.NewActiveEnrollmentWithEventsStep;
+import com.thoughtworks.martdhis2sync.step.UpdatedActiveEnrollmentStep;
 import com.thoughtworks.martdhis2sync.step.UpdatedActiveEnrollmentWithEventsStep;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,6 +39,10 @@ public class ActiveEnrollmentServiceTest {
 
     @Mock
     private NewActiveEnrollmentStep newActiveEnrollmentStep;
+
+    @Mock
+    private UpdatedActiveEnrollmentStep updatedActiveEnrollmentStep;
+
     @Mock
     private JobService jobService;
 
@@ -66,7 +71,8 @@ public class ActiveEnrollmentServiceTest {
         setValuesForMemberFields(service, "jobService", jobService);
         setValuesForMemberFields(service, "logger", logger);
         setValuesForMemberFields(service, "updatedEnrollmentWithEventsStep", updatedActiveEnrollmentWithEventsStep);
-        setValuesForMemberFields(service, "activeEnrollmentStep", newActiveEnrollmentStep);
+        setValuesForMemberFields(service, "newActiveEnrollmentStep", newActiveEnrollmentStep);
+        setValuesForMemberFields(service, "updatedActiveEnrollmentStep", updatedActiveEnrollmentStep);
     }
 
     @Test
@@ -106,7 +112,7 @@ public class ActiveEnrollmentServiceTest {
     @Test
     public void shouldTriggerTheJobForUpdatedActiveEnrollments() throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
         when(updatedActiveEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, programName, mappingObj, enrollmentsToIgnore)).thenReturn(step);
-        when(newActiveEnrollmentStep.get()).thenReturn(step);
+        when(updatedActiveEnrollmentStep.get()).thenReturn(step);
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(step);
         steps.add(step);
@@ -116,7 +122,7 @@ public class ActiveEnrollmentServiceTest {
 
         verify(jobService, times(1)).triggerJob(programName, user, updateJobName, steps);
         verify(updatedActiveEnrollmentWithEventsStep, times(1)).get(enrLookupTable, evnLookupTable, programName, mappingObj, enrollmentsToIgnore);
-        verify(newActiveEnrollmentStep, times(1)).get();
+        verify(updatedActiveEnrollmentStep, times(1)).get();
     }
 
     @Test
