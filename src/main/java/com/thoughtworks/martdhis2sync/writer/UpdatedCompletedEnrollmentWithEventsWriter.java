@@ -3,6 +3,7 @@ package com.thoughtworks.martdhis2sync.writer;
 import com.thoughtworks.martdhis2sync.controller.PushController;
 import com.thoughtworks.martdhis2sync.model.DHISEnrollmentSyncResponse;
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
+import com.thoughtworks.martdhis2sync.model.EnrollmentDetails;
 import com.thoughtworks.martdhis2sync.model.EnrollmentImportSummary;
 import com.thoughtworks.martdhis2sync.model.EnrollmentResponse;
 import com.thoughtworks.martdhis2sync.model.Event;
@@ -13,6 +14,7 @@ import com.thoughtworks.martdhis2sync.responseHandler.EnrollmentResponseHandler;
 import com.thoughtworks.martdhis2sync.responseHandler.EventResponseHandler;
 import com.thoughtworks.martdhis2sync.service.JobService;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
+import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemWriter;
@@ -29,6 +31,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeLastChar;
 import static com.thoughtworks.martdhis2sync.util.EventUtil.getEventTrackers;
@@ -86,8 +89,10 @@ public class UpdatedCompletedEnrollmentWithEventsWriter implements ItemWriter<Pr
         Map<String, EnrollmentAPIPayLoad> groupedEnrollmentPayLoad = getGroupedEnrollmentPayLoad(tableRows);
         Collection<EnrollmentAPIPayLoad> payLoads = groupedEnrollmentPayLoad.values();
         String apiBody = getAPIBody(groupedEnrollmentPayLoad);
-        ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponse = syncRepository.sendEnrollmentData(URI, apiBody);
-        processResponseEntity(enrollmentResponse, payLoads);
+        if (!JobService.isIS_JOB_FAILED()) {
+            ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponse = syncRepository.sendEnrollmentData(URI, apiBody);
+            processResponseEntity(enrollmentResponse, payLoads);
+        }
     }
 
     private void processResponseEntity(ResponseEntity<DHISEnrollmentSyncResponse> responseEntity, Collection<EnrollmentAPIPayLoad> payLoads) throws Exception {
@@ -138,7 +143,7 @@ public class UpdatedCompletedEnrollmentWithEventsWriter implements ItemWriter<Pr
             body
                     .append(String.format(
                             ENROLLMENT_API_FORMAT,
-                            value.getEnrollmentId(),
+                            getEnrollmentId(value),
                             value.getInstanceId(),
                             value.getOrgUnit(),
                             value.getProgram(),
@@ -185,5 +190,31 @@ public class UpdatedCompletedEnrollmentWithEventsWriter implements ItemWriter<Pr
         });
 
         return removeLastChar(dataValuesApiBuilder);
+    }
+
+    private String getEnrollmentId(EnrollmentAPIPayLoad enrollment) {
+        List<EnrollmentDetails> enrollmentDetails = TEIUtil.getInstancesWithEnrollments().get(enrollment.getInstanceId());
+
+        String activeEnrollmentId = getActiveEnrollmentId(enrollmentDetails);
+
+        if (enrollment.getEnrollmentId().equals(activeEnrollmentId) || StringUtils.isEmpty(activeEnrollmentId)) {
+            return enrollment.getEnrollmentId();
+        }
+
+        JobService.setIS_JOB_FAILED(true);
+        String message = "DHIS has another active enrollment going on. Can't complete this enrollment. " +
+                "BAHMNI enrollment id: %s and DHIS enrollment id: %s";
+        logger.error(LOG_PREFIX + String.format(message, enrollment.getEnrollmentId(), activeEnrollmentId));
+        loggerService.collateLogMessage(String.format(message, enrollment.getEnrollmentId(), activeEnrollmentId));
+
+        return "";
+    }
+
+    private String getActiveEnrollmentId(List<EnrollmentDetails> enrollmentDetails) {
+        Optional<EnrollmentDetails> activeEnrollment = enrollmentDetails.stream()
+                .filter(enrollment -> EnrollmentAPIPayLoad.STATUS_ACTIVE.equals(enrollment.getStatus()))
+                .findFirst();
+
+        return activeEnrollment.isPresent() ? activeEnrollment.get().getEnrollment() : "";
     }
 }
