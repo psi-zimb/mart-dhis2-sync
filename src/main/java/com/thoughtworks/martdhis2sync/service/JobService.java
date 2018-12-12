@@ -1,6 +1,7 @@
 package com.thoughtworks.martdhis2sync.service;
 
 import com.thoughtworks.martdhis2sync.listener.JobCompletionNotificationListener;
+import lombok.Getter;
 import lombok.Setter;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
@@ -39,7 +40,8 @@ public class JobService {
     private LoggerService loggerService;
 
     @Setter
-    public static boolean IS_JOB_FAILED = false;
+    @Getter
+    private static boolean IS_JOB_FAILED = false;
 
     public void triggerJob(String programName, String user, String jobName, List<Step> steps, String openLatestCompletedEnrollment)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
