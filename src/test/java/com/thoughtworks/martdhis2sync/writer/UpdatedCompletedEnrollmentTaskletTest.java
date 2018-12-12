@@ -37,6 +37,7 @@ import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMember
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_ERROR;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_SUCCESS;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -202,6 +203,15 @@ public class UpdatedCompletedEnrollmentTaskletTest {
             verify(logger, times(1)).error("NEW COMPLETED ENROLLMENT SYNC: Exception occurred " +
                     "while inserting Event UIDs:can't get database connection");
         }
+    }
+
+    @Test
+    public void shouldNotCallSyncRepositoryIfTrackerIsEmpty() throws Exception {
+        tasklet.execute(stepContribution, chunkContext);
+
+        verify(syncRepository, times(0)).sendEnrollmentData(anyString(), anyString());
+        verify(trackersHandler, times(0)).insertInEnrollmentTracker("superman");
+        verify(trackersHandler, times(0)).insertInEventTracker("superman");
     }
 
     @After

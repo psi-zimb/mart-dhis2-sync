@@ -54,6 +54,9 @@ public class NewCompletedEnrollmentTasklet implements Tasklet {
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
         String user = chunkContext.getStepContext().getJobParameters().get("user").toString();
+        if (EnrollmentUtil.enrollmentsToSaveInTracker.isEmpty()) {
+            return RepeatStatus.FINISHED;
+        }
         String apiBody = getApiBody();
         ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponse = syncRepository.sendEnrollmentData(URI, apiBody);
         processResponseEntity(enrollmentResponse);
