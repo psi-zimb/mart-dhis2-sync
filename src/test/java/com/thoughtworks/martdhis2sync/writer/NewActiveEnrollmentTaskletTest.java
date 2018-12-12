@@ -33,7 +33,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.management.*")
 @PrepareForTest({BatchUtil.class})
-public class ActiveEnrollmentTaskletTest {
+public class NewActiveEnrollmentTaskletTest {
     @Mock
     private Logger logger;
 
@@ -49,7 +49,7 @@ public class ActiveEnrollmentTaskletTest {
     @Mock
     private TrackersHandler trackersHandler;
 
-    private ActiveEnrollmentTasklet tasklet;
+    private NewActiveEnrollmentTasklet tasklet;
 
     private EnrollmentAPIPayLoad payLoad1;
 
@@ -62,7 +62,7 @@ public class ActiveEnrollmentTaskletTest {
         Map<String, Object> jobParams = new HashMap<>();
         jobParams.put("user", "superman");
 
-        tasklet = new ActiveEnrollmentTasklet();
+        tasklet = new NewActiveEnrollmentTasklet();
 
         setValuesForMemberFields(tasklet, "logger", logger);
         setValuesForMemberFields(tasklet, "trackersHandler", trackersHandler);

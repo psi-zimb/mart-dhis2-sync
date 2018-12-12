@@ -1,6 +1,6 @@
 package com.thoughtworks.martdhis2sync.step;
 
-import com.thoughtworks.martdhis2sync.writer.ActiveEnrollmentTasklet;
+import com.thoughtworks.martdhis2sync.writer.NewActiveEnrollmentTasklet;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,7 +20,7 @@ public class ActiveEnrollmentStepTest {
     private StepFactory stepFactory;
 
     @Mock
-    private ActiveEnrollmentTasklet tasklet;
+    private NewActiveEnrollmentTasklet tasklet;
 
     @Mock
     private Step step;
