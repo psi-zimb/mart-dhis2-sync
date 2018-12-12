@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.service;
 
+import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.step.NewCompletedEnrollmentStep;
 import com.thoughtworks.martdhis2sync.step.NewCompletedEnrollmentWithEventsStep;
 import com.thoughtworks.martdhis2sync.step.UpdatedCompletedEnrollmentStep;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.SyncFailedException;
 import java.util.LinkedList;
+import java.util.List;
 
 @Component
 public class CompletedEnrollmentService {
@@ -53,12 +55,12 @@ public class CompletedEnrollmentService {
     }
 
     public void triggerJobForUpdatedCompletedEnrollments(String service, String user, String enrLookupTable,
-                                                         String evnLookupTable, Object mappingObj)
+                                                         String evnLookupTable, Object mappingObj, List<EnrollmentAPIPayLoad> enrollmentsToIgnore)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
             JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
 
         LinkedList<Step> steps = new LinkedList<>();
-        steps.add(updatedEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, service, mappingObj));
+        steps.add(updatedEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, service, mappingObj, enrollmentsToIgnore));
         steps.add(updatedCompletedEnrollmentStep.get());
         triggerJob(service, user, steps, JOB_UPDATED_COMPLETED_ENROLLMENTS);
     }

@@ -109,10 +109,12 @@ public class ActiveEnrollmentTaskletTest {
         when(trackersHandler.insertInEnrollmentTracker("superman")).thenReturn(1);
         when(trackersHandler.insertInEventTracker("superman")).thenThrow(new SQLException("can't get database connection"));
 
-        tasklet.execute(stepContribution, chunkContext);
-
-        verify(logger, times(1)).error("NEW ACTIVE ENROLLMENT SYNC: Exception occurred " +
-                "while inserting Event UIDs:can't get database connection");
+        try {
+            tasklet.execute(stepContribution, chunkContext);
+        } catch (Exception e) {
+            verify(logger, times(1)).error("NEW ACTIVE ENROLLMENT SYNC: Exception occurred " +
+                    "while inserting Event UIDs:can't get database connection");
+        }
     }
 
     @Test

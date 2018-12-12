@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.step;
 
+import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.processor.UpdatedCompletedEnrollmentWithEventsProcessor;
 import com.thoughtworks.martdhis2sync.reader.MappingReader;
 import com.thoughtworks.martdhis2sync.writer.UpdatedCompletedEnrollmentWithEventsWriter;
@@ -13,6 +14,8 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.beans.factory.ObjectFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
@@ -63,14 +66,18 @@ public class UpdatedActiveEnrollmentWithEventsStepTest {
         String stepName = "Updated Active Enrollment With Events Step:: ";
         String mappingObj = "";
         String envLookupTable = "patient_enrollment";
+        List<EnrollmentAPIPayLoad> enrollmentsToIgnore = new ArrayList<>();
 
-        when(mappingReader.getUpdatedActiveEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable)).thenReturn(jdbcCursorItemReader);
+        when(mappingReader
+                .getUpdatedActiveEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable, enrollmentsToIgnore))
+                .thenReturn(jdbcCursorItemReader);
         when(objectFactory.getObject()).thenReturn(processor);
         when(stepFactory.build(stepName, jdbcCursorItemReader, processor, writer)).thenReturn(step);
 
-        Step actual = eventStep.get(enrLookupTable, envLookupTable, programName, mappingObj);
+        Step actual = eventStep.get(enrLookupTable, envLookupTable, programName, mappingObj, enrollmentsToIgnore);
 
-        verify(mappingReader, times(1)).getUpdatedActiveEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable);
+        verify(mappingReader, times(1))
+                .getUpdatedActiveEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable, enrollmentsToIgnore);
         verify(stepFactory, times(1)).build(stepName, jdbcCursorItemReader, processor, writer);
         assertEquals(step, actual);
     }

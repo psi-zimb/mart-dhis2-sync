@@ -1,13 +1,10 @@
 package com.thoughtworks.martdhis2sync.controller;
 
 import com.thoughtworks.martdhis2sync.model.DHISSyncRequestBody;
-import com.thoughtworks.martdhis2sync.service.CompletedEnrollmentService;
-import com.thoughtworks.martdhis2sync.service.DHISMetaDataService;
-import com.thoughtworks.martdhis2sync.service.LoggerService;
-import com.thoughtworks.martdhis2sync.service.MappingService;
-import com.thoughtworks.martdhis2sync.service.TEIService;
+import com.thoughtworks.martdhis2sync.service.*;
 import com.thoughtworks.martdhis2sync.trackerHandler.TrackersHandler;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,13 +21,11 @@ import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMember
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doThrow;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.verifyStatic;
+import static org.powermock.api.mockito.PowerMockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(TrackersHandler.class)
@@ -51,6 +46,9 @@ public class PushControllerTest {
     private CompletedEnrollmentService completedEnrollmentService;
 
     @Mock
+    private ActiveEnrollmentService activeEnrollmentService;
+
+    @Mock
     private MarkerUtil markerUtil;
 
     private PushController pushController;
@@ -67,6 +65,7 @@ public class PushControllerTest {
         setValuesForMemberFields(pushController, "loggerService", loggerService);
         setValuesForMemberFields(pushController, "dhisMetaDataService", dhisMetaDataService);
         setValuesForMemberFields(pushController, "completedEnrollmentService", completedEnrollmentService);
+        setValuesForMemberFields(pushController, "activeEnrollmentService", activeEnrollmentService);
         setValuesForMemberFields(pushController, "markerUtil", markerUtil);
 
         mockStatic(TrackersHandler.class);
@@ -74,6 +73,11 @@ public class PushControllerTest {
         TrackersHandler.clearTrackerLists();
         when(markerUtil.getLastSyncedDate(service, "enrollment")).thenReturn(lastSyncedDate);
         when(markerUtil.getLastSyncedDate(service, "event")).thenReturn(lastSyncedDate);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        TrackersHandler.clearTrackerLists();
     }
 
     @Test
@@ -101,7 +105,6 @@ public class PushControllerTest {
         verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
         verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
         verifyStatic(times(0));
-        TrackersHandler.clearTrackerLists();
     }
 
     @Test
@@ -126,11 +129,10 @@ public class PushControllerTest {
         verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any());
         verify(completedEnrollmentService, times(1))
                 .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any());
-        verify(completedEnrollmentService, times(0)).triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any());
+        verify(completedEnrollmentService, times(0)).triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any());
         verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
         verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
         verifyStatic(times(1));
-        TrackersHandler.clearTrackerLists();
     }
 
     @Test
@@ -144,12 +146,12 @@ public class PushControllerTest {
         doNothing().when(loggerService).collateLogMessage("No delta data to sync.");
         when(mappingService.getMapping(service)).thenReturn(mapping);
         doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any());
-        doNothing().when(completedEnrollmentService).triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(),anyString(),  any());
-        doNothing().when(completedEnrollmentService).triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(),anyString(),  any());
+        doNothing().when(completedEnrollmentService).triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any());
+        doNothing().when(completedEnrollmentService).triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any());
 
         try {
             pushController.pushData(dhisSyncRequestBody);
-        } catch (Exception e ) {
+        } catch (Exception e) {
             verify(loggerService, times(1)).addLog(service, user, comment);
             verify(dhisMetaDataService, times(1)).getTrackedEntityInstances(
                     getDhisSyncRequestBody().getService()
@@ -161,12 +163,76 @@ public class PushControllerTest {
             verify(completedEnrollmentService, times(1)).triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any());
             verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
-            verifyStatic(times(2));
-            TrackersHandler.clearTrackerLists();
+            verifyStatic(times(4));
 
             assertEquals("NO DATA TO SYNC", e.getMessage());
         }
     }
+
+    @Test
+    public void shouldNotCallActiveEnrollmentServiceWhenCompletedEnrollmentServiceIsFailed() throws Exception {
+        Map<String, Object> mapping = getMapping();
+        DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
+
+        doNothing().when(dhisMetaDataService).filterByTypeDateTime();
+        doNothing().when(loggerService).addLog(service, user, comment);
+        doNothing().when(loggerService).updateLog(service, "failed");
+        when(mappingService.getMapping(service)).thenReturn(mapping);
+        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any());
+        doNothing().when(completedEnrollmentService)
+                .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any());
+        doNothing().when(completedEnrollmentService)
+                .triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any());
+        doThrow(new SyncFailedException("instance sync failed")).when(completedEnrollmentService)
+                .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any());
+
+        pushController.pushData(dhisSyncRequestBody);
+
+        verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
+        verify(loggerService, times(1)).addLog(service, user, comment);
+        verify(loggerService, times(1)).updateLog(service, "failed");
+        verify(mappingService, times(1)).getMapping(service);
+        verify(completedEnrollmentService, times(1))
+                .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any());
+        verify(activeEnrollmentService, times(0))
+                .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any());
+        verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
+        verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
+        verifyStatic(times(1));
+    }
+
+    @Test
+    public void shouldNotInvokeSecondJobOfActiveEnrollmentServiceIfFirstJobFails() throws Exception {
+        Map<String, Object> mapping = getMapping();
+        DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
+
+        doNothing().when(dhisMetaDataService).filterByTypeDateTime();
+        doNothing().when(loggerService).addLog(service, user, comment);
+        doNothing().when(loggerService).updateLog(service, "failed");
+        when(mappingService.getMapping(service)).thenReturn(mapping);
+        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any());
+        doNothing().when(completedEnrollmentService)
+                .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any());
+        doNothing().when(completedEnrollmentService)
+                .triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any());
+        doThrow(new SyncFailedException("instance sync failed")).when(activeEnrollmentService)
+                .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any());
+
+        pushController.pushData(dhisSyncRequestBody);
+
+        verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
+        verify(loggerService, times(1)).addLog(service, user, comment);
+        verify(loggerService, times(1)).updateLog(service, "failed");
+        verify(mappingService, times(1)).getMapping(service);
+        verify(activeEnrollmentService, times(1))
+                .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any());
+        verify(activeEnrollmentService, times(0))
+                .triggerJobForUpdatedActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any());
+        verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
+        verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
+        verifyStatic(times(3));
+    }
+
 
     private DHISSyncRequestBody getDhisSyncRequestBody() {
         DHISSyncRequestBody dhisSyncRequestBody = new DHISSyncRequestBody();
@@ -181,20 +247,20 @@ public class PushControllerTest {
                 "\"instance\":\"hts_instance_table\"," +
                 "\"enrollments\":\"hts_program_enrollment_table\"," +
                 "\"event\":\"hts_program_events_table\"" +
-            "}";
+                "}";
 
         String mappingJson = "{" +
                 "\"instance\":" +
-                    "{" +
-                        "\"Patient_Identifier\":\"\"," +
-                        "\"UIC\":\"rOb34aQLSyC\"" +
-                    "}," +
+                "{" +
+                "\"Patient_Identifier\":\"\"," +
+                "\"UIC\":\"rOb34aQLSyC\"" +
+                "}," +
                 "\"event\":" +
-                    "{" +
-                        "\"self_testing_outcome\":\"gwatO1kb3Fy\"," +
-                        "\"client_received\":\"gXNu7zJBTDN\"" +
-                    "}" +
-            "}";
+                "{" +
+                "\"self_testing_outcome\":\"gwatO1kb3Fy\"," +
+                "\"client_received\":\"gXNu7zJBTDN\"" +
+                "}" +
+                "}";
 
         String config = "{" +
                 "\"searchable\":[" +
