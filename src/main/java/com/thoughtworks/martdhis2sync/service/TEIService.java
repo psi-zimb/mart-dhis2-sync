@@ -25,10 +25,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.SyncFailedException;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -126,6 +123,11 @@ public class TEIService {
         LinkedTreeMap instanceMapping = (LinkedTreeMap) gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class).getInstance();
 
         List<Map<String, Object>> searchableFields = mappingDAO.getSearchableFields(mappingName);
+
+        if (searchableFields.isEmpty()) {
+            TEIUtil.setTrackedEntityInstanceInfos(Collections.emptyList());
+            return;
+        }
 
         searchableFields.get(0).keySet().forEach(filter -> {
             url.append("&filter=");
