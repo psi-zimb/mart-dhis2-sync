@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.service;
 
+import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.step.ActiveEnrollmentStep;
 import com.thoughtworks.martdhis2sync.step.NewActiveEnrollmentWithEventsStep;
 import com.thoughtworks.martdhis2sync.step.UpdatedActiveEnrollmentWithEventsStep;
@@ -17,7 +18,9 @@ import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteExcep
 import org.springframework.batch.core.repository.JobRestartException;
 
 import java.io.SyncFailedException;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static org.mockito.Mockito.*;
@@ -53,6 +56,7 @@ public class ActiveEnrollmentServiceTest {
     private String mappingObj = "";
     private String jobName = "New Active Enrollments";
     private String updateJobName = "Updated Active Enrollments";
+    private List<EnrollmentAPIPayLoad> enrollmentsToIgnore = new ArrayList<>();
 
     @Before
     public void setUp() throws Exception {
@@ -101,23 +105,23 @@ public class ActiveEnrollmentServiceTest {
 
     @Test
     public void shouldTriggerTheJobForUpdatedActiveEnrollments() throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
-        when(updatedActiveEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, programName, mappingObj)).thenReturn(step);
+        when(updatedActiveEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, programName, mappingObj, enrollmentsToIgnore)).thenReturn(step);
         when(activeEnrollmentStep.get()).thenReturn(step);
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(step);
         steps.add(step);
         doNothing().when(jobService).triggerJob(programName, user, updateJobName, steps);
 
-        service.triggerJobForUpdatedActiveEnrollments(programName, user, enrLookupTable, evnLookupTable, mappingObj);
+        service.triggerJobForUpdatedActiveEnrollments(programName, user, enrLookupTable, evnLookupTable, mappingObj, enrollmentsToIgnore);
 
         verify(jobService, times(1)).triggerJob(programName, user, updateJobName, steps);
-        verify(updatedActiveEnrollmentWithEventsStep, times(1)).get(enrLookupTable, evnLookupTable, programName, mappingObj);
+        verify(updatedActiveEnrollmentWithEventsStep, times(1)).get(enrLookupTable, evnLookupTable, programName, mappingObj, enrollmentsToIgnore);
         verify(activeEnrollmentStep, times(1)).get();
     }
 
     @Test
     public void shouldLogErrorOnJobFailForUpdatedActiveEnrollments() throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
-        when(updatedActiveEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, programName, mappingObj)).thenReturn(step);
+        when(updatedActiveEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, programName, mappingObj, enrollmentsToIgnore)).thenReturn(step);
         when(activeEnrollmentStep.get()).thenReturn(step);
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(step);
@@ -125,10 +129,10 @@ public class ActiveEnrollmentServiceTest {
         doThrow(new JobParametersInvalidException("Invalid Params")).when(jobService).triggerJob(programName, user, updateJobName, steps);
 
         try {
-            service.triggerJobForUpdatedActiveEnrollments(programName, user, enrLookupTable, evnLookupTable, mappingObj);
+            service.triggerJobForUpdatedActiveEnrollments(programName, user, enrLookupTable, evnLookupTable, mappingObj, enrollmentsToIgnore);
         } catch (Exception e) {
             verify(jobService, times(1)).triggerJob(programName, user, updateJobName, steps);
-            verify(updatedActiveEnrollmentWithEventsStep, times(1)).get(enrLookupTable, evnLookupTable, programName, mappingObj);
+            verify(updatedActiveEnrollmentWithEventsStep, times(1)).get(enrLookupTable, evnLookupTable, programName, mappingObj, enrollmentsToIgnore);
             verify(logger, times(1)).error("Active Enrollments: Invalid Params");
         }
 

@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.reader;
 
+import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import org.slf4j.Logger;
@@ -89,8 +90,10 @@ public class MappingReader {
     }
 
     public JdbcCursorItemReader<Map<String, Object>> getUpdatedCompletedEnrollmentWithEventsReader(
-            String enrollmentLookupTable, String programName, String eventLookupTable) {
-        String syncedCompletedEnrollmentIds = getEnrollmentIds();
+            String enrollmentLookupTable, String programName, String eventLookupTable,
+            List<EnrollmentAPIPayLoad> enrollmentsToIgnore) {
+
+        String syncedCompletedEnrollmentIds = getEnrollmentIds(enrollmentsToIgnore);
         String andClause = StringUtils.isEmpty(syncedCompletedEnrollmentIds) ? ""
                 : String.format("AND enrolTracker.enrollment_id NOT IN (%s)", syncedCompletedEnrollmentIds);
         String sql = String.format(getSql(updatedCompletedEnrWithEventsResource), enrollmentLookupTable, programName,
@@ -100,14 +103,17 @@ public class MappingReader {
 
     public JdbcCursorItemReader<Map<String, Object>> getNewActiveEnrollmentWithEventsReader(
             String enrollmentLookupTable, String programName, String eventLookupTable) {
+
         String sql = String.format(getSql(newActiveEnrWithEventsResource), enrollmentLookupTable,
                 eventLookupTable, programName);
         return get(sql);
     }
 
     public JdbcCursorItemReader<Map<String, Object>> getUpdatedActiveEnrollmentWithEventsReader(
-            String enrollmentLookupTable, String programName, String eventLookupTable) {
-        String syncedCompletedEnrollmentIds = getEnrollmentIds();
+            String enrollmentLookupTable, String programName, String eventLookupTable,
+            List<EnrollmentAPIPayLoad> enrollmentsToIgnore) {
+
+        String syncedCompletedEnrollmentIds = getEnrollmentIds(enrollmentsToIgnore);
         String andClause = StringUtils.isEmpty(syncedCompletedEnrollmentIds) ? ""
                 : String.format("AND enrolTracker.enrollment_id NOT IN (%s)", syncedCompletedEnrollmentIds);
         String sql = String.format(getSql(updatedActiveEnrWithEventsResource), enrollmentLookupTable, programName,
@@ -115,9 +121,9 @@ public class MappingReader {
         return get(sql);
     }
 
-    private String getEnrollmentIds() {
+    private String getEnrollmentIds(List<EnrollmentAPIPayLoad> enrollmentsToIgnore) {
         List<String> enrollmentIds = new ArrayList<>();
-        EnrollmentUtil.enrollmentsToSaveInTracker.forEach(enrollment ->
+        enrollmentsToIgnore.forEach(enrollment ->
                 enrollmentIds.add("'" + enrollment.getEnrollmentId() + "'")
         );
 
