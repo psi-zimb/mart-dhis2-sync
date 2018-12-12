@@ -1,10 +1,6 @@
 package com.thoughtworks.martdhis2sync.writer;
 
-import com.thoughtworks.martdhis2sync.model.DHISEnrollmentSyncResponse;
-import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
-import com.thoughtworks.martdhis2sync.model.EnrollmentImportSummary;
-import com.thoughtworks.martdhis2sync.model.EnrollmentResponse;
-import com.thoughtworks.martdhis2sync.model.ImportCount;
+import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.responseHandler.EnrollmentResponseHandler;
 import com.thoughtworks.martdhis2sync.trackerHandler.TrackersHandler;
@@ -27,11 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_ERROR;
@@ -128,6 +120,22 @@ public class UpdatedCompletedEnrollmentTaskletTest {
                 )
         );
 
+        Map<String, String> dataValues1 = new HashMap<>();
+        dataValues1.put("gXNu7zJBTDN", "no");
+        dataValues1.put("jkEjtKqlJtN", "event value1");
+        Map<String, String> dataValues2 = new HashMap<>();
+        dataValues2.put("gXNu7zJBTDN", "yes");
+        dataValues2.put("jkEjtKqlJtN", "event value2");
+        Map<String, String> dataValues3 = new HashMap<>();
+        dataValues3.put("gXNu7zJBTDN", "yes");
+        dataValues3.put("jkEjtKqlJtN", "event value3");
+        Event event1 = getEvents(instanceId1, date, dataValues1, "1");
+        List<Event> events1 = new LinkedList<>();
+        events1.add(event1);
+        payLoad1 = getEnrollmentPayLoad(instanceId1, enrDate, events1, "1");
+        EnrollmentUtil.enrollmentsToSaveInTracker.add(payLoad1);
+
+
         when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(response.getImportSummaries()).thenReturn(importSummaries);
@@ -142,6 +150,8 @@ public class UpdatedCompletedEnrollmentTaskletTest {
         verify(response, times(1)).getImportSummaries();
         verify(trackersHandler, times(1)).updateInEnrollmentTracker("superman");
         verify(trackersHandler, times(1)).insertInEventTracker("superman");
+
+        EnrollmentUtil.enrollmentsToSaveInTracker.clear();
     }
 
     @Test
@@ -158,6 +168,21 @@ public class UpdatedCompletedEnrollmentTaskletTest {
                 )
         );
 
+        Map<String, String> dataValues1 = new HashMap<>();
+        dataValues1.put("gXNu7zJBTDN", "no");
+        dataValues1.put("jkEjtKqlJtN", "event value1");
+        Map<String, String> dataValues2 = new HashMap<>();
+        dataValues2.put("gXNu7zJBTDN", "yes");
+        dataValues2.put("jkEjtKqlJtN", "event value2");
+        Map<String, String> dataValues3 = new HashMap<>();
+        dataValues3.put("gXNu7zJBTDN", "yes");
+        dataValues3.put("jkEjtKqlJtN", "event value3");
+        Event event1 = getEvents(instanceId1, date, dataValues1, "1");
+        List<Event> events1 = new LinkedList<>();
+        events1.add(event1);
+        payLoad1 = getEnrollmentPayLoad(instanceId1, enrDate, events1, "1");
+        EnrollmentUtil.enrollmentsToSaveInTracker.add(payLoad1);
+
         when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
         when(response.getImportSummaries()).thenReturn(importSummaries);
         when(trackersHandler.updateInEnrollmentTracker("superman")).thenReturn(1);
@@ -172,6 +197,8 @@ public class UpdatedCompletedEnrollmentTaskletTest {
         verify(enrollmentResponseHandler, times(1)).processCompletedSecondStepResponse(any(), any(), any(), any());
         verify(trackersHandler, times(1)).updateInEnrollmentTracker("superman");
         verify(trackersHandler, times(1)).insertInEventTracker("superman");
+
+        EnrollmentUtil.enrollmentsToSaveInTracker.clear();
     }
 
     @Test
@@ -248,6 +275,35 @@ public class UpdatedCompletedEnrollmentTaskletTest {
                 payLoad.getProgram(),
                 payLoad.getProgramStartDate(),
                 payLoad.getIncidentDate()
+        );
+    }
+
+    private EnrollmentAPIPayLoad getEnrollmentPayLoad(String instanceId, String enrDate, List<Event> events, String programUniqueId) {
+        return new EnrollmentAPIPayLoad(
+                "",
+                instanceId,
+                "xhjKKwoq",
+                "jSsoNjesL",
+                enrDate,
+                enrDate,
+                "ACTIVE",
+                programUniqueId,
+                events
+        );
+    }
+
+    private Event getEvents(String instanceId, String eventDate, Map<String, String> dataValues, String eventUniqueId) {
+        return new Event(
+                "",
+                instanceId,
+                "",
+                "xhjKKwoq",
+                "FJTkwmaP",
+                "jSsoNjesL",
+                eventDate,
+                "COMPLETED",
+                eventUniqueId,
+                dataValues
         );
     }
 }
