@@ -39,6 +39,12 @@ public class MappingReader {
     @Value("classpath:sql/UpdatedCompletedEnrollmentWithEvents.sql")
     private Resource updatedCompletedEnrWithEventsResource;
 
+    @Value("classpath:sql/NewActiveEnrollmentWithEvents.sql")
+    private Resource newActiveEnrWithEventsResource;
+
+    @Value("classpath:sql/UpdatedActiveEnrollmentWithEvents.sql")
+    private Resource updatedActiveEnrWithEventsResource;
+
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private JdbcCursorItemReader<Map<String, Object>> get(String sql) {
@@ -89,6 +95,23 @@ public class MappingReader {
                 : String.format("AND enrolTracker.enrollment_id NOT IN (%s)", syncedCompletedEnrollmentIds);
         String sql = String.format(getSql(updatedCompletedEnrWithEventsResource), enrollmentLookupTable, programName,
                                     eventLookupTable, enrollmentLookupTable, programName, andClause);
+        return get(sql);
+    }
+
+    public JdbcCursorItemReader<Map<String, Object>> getNewActiveEnrollmentWithEventsReader(
+            String enrollmentLookupTable, String programName, String eventLookupTable) {
+        String sql = String.format(getSql(newActiveEnrWithEventsResource), enrollmentLookupTable,
+                eventLookupTable, programName);
+        return get(sql);
+    }
+
+    public JdbcCursorItemReader<Map<String, Object>> getUpdatedActiveEnrollmentWithEventsReader(
+            String enrollmentLookupTable, String programName, String eventLookupTable) {
+        String syncedCompletedEnrollmentIds = getEnrollmentIds();
+        String andClause = StringUtils.isEmpty(syncedCompletedEnrollmentIds) ? ""
+                : String.format("AND enrolTracker.enrollment_id NOT IN (%s)", syncedCompletedEnrollmentIds);
+        String sql = String.format(getSql(updatedActiveEnrWithEventsResource), enrollmentLookupTable, programName,
+                eventLookupTable, enrollmentLookupTable, programName, andClause);
         return get(sql);
     }
 
