@@ -196,7 +196,7 @@ public class TEIServiceTest {
     public void shouldGetTrackedEntityInstanceFromDHIS() throws IOException {
         String program = "HIV Testing Service";
         String queryParams = "&filter=HF8Tu4tg:IN:NINETU190995MT;JKAPTA170994MT;";
-        String url = dhis2Url + TRACKED_ENTITY_INSTANCE_URI + "&ou=" + ORG_UNIT_ID + "&ouMode=DESCENDANTS" + queryParams;
+        String uri = TRACKED_ENTITY_INSTANCE_URI + "&ou=" + ORG_UNIT_ID + "&ouMode=DESCENDANTS" + queryParams;
         Map<String, Object> searchableMapping = new HashMap<>();
 
         trackedEntityInstanceResponse = ResponseEntity.ok(new TrackedEntityInstanceResponse(getTrackedEntityInstances()));
@@ -214,12 +214,12 @@ public class TEIServiceTest {
 
         when(mappingDAO.getSearchableFields(program)).thenReturn(getSearchableValues());
         when(mappingDAO.getMapping(program)).thenReturn(expectedMapping);
-        when(syncRepository.getTrackedEntityInstances(url)).thenReturn(trackedEntityInstanceResponse);
+        when(syncRepository.getTrackedEntityInstances(uri)).thenReturn(trackedEntityInstanceResponse);
 
         teiService.getTrackedEntityInstances(program);
 
         verify(mappingDAO, times(1)).getSearchableFields(program);
-        verify(syncRepository, times(1)).getTrackedEntityInstances(url);
+        verify(syncRepository, times(1)).getTrackedEntityInstances(uri);
         verifyStatic(times(1));
         TEIUtil.setTrackedEntityInstanceInfos(getTrackedEntityInstances());
     }
