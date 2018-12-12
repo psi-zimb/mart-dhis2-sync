@@ -2,6 +2,7 @@ package com.thoughtworks.martdhis2sync.writer;
 
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.model.Event;
+import com.thoughtworks.martdhis2sync.model.EventTracker;
 import com.thoughtworks.martdhis2sync.trackerHandler.TrackersHandler;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
@@ -30,7 +31,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.management.*")
-public class NewActiveEnrollmentTaskletTest {
+public class UpdatedActiveEnrollmentTaskletTest {
     @Mock
     private Logger logger;
 
@@ -46,9 +47,11 @@ public class NewActiveEnrollmentTaskletTest {
     @Mock
     private TrackersHandler trackersHandler;
 
-    private NewActiveEnrollmentTasklet tasklet;
+    private UpdatedActiveEnrollmentTasklet tasklet;
 
-    private EnrollmentAPIPayLoad payLoad1;
+    private EnrollmentAPIPayLoad payLoad;
+
+    private EventTracker eventTracker;
 
     private String instanceId1 = "instance1";
     private String enrDate = "2018-10-13";
@@ -59,7 +62,7 @@ public class NewActiveEnrollmentTaskletTest {
         Map<String, Object> jobParams = new HashMap<>();
         jobParams.put("user", "superman");
 
-        tasklet = new NewActiveEnrollmentTasklet();
+        tasklet = new UpdatedActiveEnrollmentTasklet();
 
         setValuesForMemberFields(tasklet, "logger", logger);
         setValuesForMemberFields(tasklet, "trackersHandler", trackersHandler);
@@ -79,8 +82,11 @@ public class NewActiveEnrollmentTaskletTest {
         Event event1 = getEvents(instanceId1, date, dataValues1, "1");
         List<Event> events1 = new LinkedList<>();
         events1.add(event1);
-        payLoad1 = getEnrollmentPayLoad(instanceId1, enrDate, events1, "1");
-        EnrollmentUtil.enrollmentsToSaveInTracker.add(payLoad1);
+        payLoad = getEnrollmentPayLoad(instanceId1, enrDate, events1, "1");
+        EnrollmentUtil.enrollmentsToSaveInTracker.add(payLoad);
+
+        eventTracker = new EventTracker("ieux8w6gn", instanceId1, "psuenc33", "11", "Uhyf56yg");
+        EventUtil.eventsToSaveInTracker.add(eventTracker);
     }
 
     @After
@@ -92,18 +98,18 @@ public class NewActiveEnrollmentTaskletTest {
     @Test
     public void shouldUpdateTrackers() throws Exception {
 
-        when(trackersHandler.insertInEnrollmentTracker("superman")).thenReturn(1);
+        when(trackersHandler.updateInEnrollmentTracker("superman")).thenReturn(1);
         when(trackersHandler.insertInEventTracker("superman")).thenReturn(1);
 
         tasklet.execute(stepContribution, chunkContext);
 
-        verify(trackersHandler, times(1)).insertInEnrollmentTracker("superman");
+        verify(trackersHandler, times(1)).updateInEnrollmentTracker("superman");
         verify(trackersHandler, times(1)).insertInEventTracker("superman");
     }
 
     @Test
-    public void shouldLogMessageWhenFailedToInsertIntoTrackers() throws Exception {
-        when(trackersHandler.insertInEnrollmentTracker("superman")).thenReturn(1);
+    public void shouldLogMessageWhenFailedToUpdateTrackers() throws Exception {
+        when(trackersHandler.updateInEnrollmentTracker("superman")).thenReturn(1);
         when(trackersHandler.insertInEventTracker("superman")).thenThrow(new SQLException("can't get database connection"));
 
         try {
@@ -115,8 +121,10 @@ public class NewActiveEnrollmentTaskletTest {
     }
 
     @Test
-    public void shouldNotCallSyncRepositoryIfTrackerIsEmpty() throws Exception {
+    public void shouldNotCallTrackerHandlerIfTrackerIsEmpty() throws Exception {
         EnrollmentUtil.enrollmentsToSaveInTracker.clear();
+        EventUtil.eventsToSaveInTracker.clear();
+
         tasklet.execute(stepContribution, chunkContext);
 
         verify(trackersHandler, times(0)).insertInEnrollmentTracker("superman");
@@ -151,4 +159,5 @@ public class NewActiveEnrollmentTaskletTest {
                 dataValues
         );
     }
+
 }
