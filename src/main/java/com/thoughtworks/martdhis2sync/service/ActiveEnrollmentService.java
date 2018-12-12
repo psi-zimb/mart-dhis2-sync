@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.service;
 
+import com.thoughtworks.martdhis2sync.step.ActiveEnrollmentStep;
 import com.thoughtworks.martdhis2sync.step.NewActiveEnrollmentWithEventsStep;
 import com.thoughtworks.martdhis2sync.step.UpdatedActiveEnrollmentWithEventsStep;
 import org.slf4j.Logger;
@@ -25,6 +26,9 @@ public class ActiveEnrollmentService {
     private UpdatedActiveEnrollmentWithEventsStep updatedEnrollmentWithEventsStep;
 
     @Autowired
+    private ActiveEnrollmentStep activeEnrollmentStep;
+
+    @Autowired
     private JobService jobService;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -40,6 +44,7 @@ public class ActiveEnrollmentService {
 
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(newEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, service, mappingObj));
+        steps.add(activeEnrollmentStep.get());
         triggerJob(service, user, steps, JOB_NEW_ACTIVE_ENROLLMENTS);
     }
 
@@ -50,6 +55,7 @@ public class ActiveEnrollmentService {
 
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(updatedEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, service, mappingObj));
+        steps.add(activeEnrollmentStep.get());
         triggerJob(service, user, steps, JOB_UPDATED_ACTIVE_ENROLLMENTS);
     }
 
