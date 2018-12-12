@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 import java.sql.SQLException;
 
 @Component
-public class ActiveEnrollmentTasklet implements Tasklet {
+public class NewActiveEnrollmentTasklet implements Tasklet {
 
     @Autowired
     private TrackersHandler trackersHandler;
