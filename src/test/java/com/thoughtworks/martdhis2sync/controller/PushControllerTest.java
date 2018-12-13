@@ -201,7 +201,7 @@ public class PushControllerTest {
         verify(completedEnrollmentService, times(1))
                 .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
         verify(activeEnrollmentService, times(0))
-                .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any());
+                .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
         verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
         verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
         verifyStatic(times(1));
@@ -222,7 +222,7 @@ public class PushControllerTest {
         doNothing().when(completedEnrollmentService)
                 .triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString());
         doThrow(new SyncFailedException("instance sync failed")).when(activeEnrollmentService)
-                .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any());
+                .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
 
         pushController.pushData(dhisSyncRequestBody);
 
@@ -231,9 +231,9 @@ public class PushControllerTest {
         verify(loggerService, times(1)).updateLog(service, "failed");
         verify(mappingService, times(1)).getMapping(service);
         verify(activeEnrollmentService, times(1))
-                .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any());
+                .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
         verify(activeEnrollmentService, times(0))
-                .triggerJobForUpdatedActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any());
+                .triggerJobForUpdatedActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString());
         verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
         verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
         verifyStatic(times(3));

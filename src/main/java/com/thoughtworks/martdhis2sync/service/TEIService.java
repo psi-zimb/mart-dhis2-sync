@@ -71,7 +71,7 @@ public class TEIService {
     public void getEnrollmentsForInstances(String enrollmentTable, String eventTable, String programName) throws Exception {
         TEIUtil.setInstancesWithEnrollments(new HashMap<>());
         List<Map<String, Object>> deltaInstanceIds = patientDAO.getDeltaEnrollmentInstanceIds(enrollmentTable, eventTable, programName);
-        if (deltaInstanceIds.size() > 0) {
+        if (!deltaInstanceIds.isEmpty()) {
             List<String> instanceIdsList = getInstanceIds(deltaInstanceIds);
             String program = deltaInstanceIds.get(0).get("program").toString();
             String instanceIds = String.join(";", instanceIdsList);
@@ -85,7 +85,7 @@ public class TEIService {
     private Map<String, List<EnrollmentDetails>> getMap(List<TrackedEntityInstance> trackedEntityInstances) {
         Map<String, List<EnrollmentDetails>> instancesMap = new HashMap<>();
         trackedEntityInstances.forEach(trackedEntityInstance -> {
-            if (trackedEntityInstance.getEnrollments().size() > 0) {
+            if (!trackedEntityInstance.getEnrollments().isEmpty()) {
                 instancesMap.put(trackedEntityInstance.getTrackedEntityInstance(), trackedEntityInstance.getEnrollments());
             }
         });
