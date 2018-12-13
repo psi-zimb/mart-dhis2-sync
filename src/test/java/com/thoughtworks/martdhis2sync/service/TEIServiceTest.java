@@ -2,10 +2,7 @@ package com.thoughtworks.martdhis2sync.service;
 
 import com.thoughtworks.martdhis2sync.dao.MappingDAO;
 import com.thoughtworks.martdhis2sync.dao.PatientDAO;
-import com.thoughtworks.martdhis2sync.model.Attribute;
-import com.thoughtworks.martdhis2sync.model.EnrollmentDetails;
-import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceInfo;
-import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceResponse;
+import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.step.TrackedEntityInstanceStep;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
@@ -201,14 +198,10 @@ public class TEIServiceTest {
 
         trackedEntityInstanceResponse = ResponseEntity.ok(new TrackedEntityInstanceResponse(getTrackedEntityInstances()));
 
-        expectedMapping = new HashMap<>();
-        expectedMapping.put("lookup_table", "{\"instance\": \"patient_identifier\", \"enrollments\": \"patient_enrollments\"}");
-        expectedMapping.put("config", "{\"searchable\": [\"UIC\", \"date_created\"]}");
-        expectedMapping.put("mapping_json", "{\"instance\": " +
-                "{" +
+        MappingJson mappingJson = new MappingJson();
+        mappingJson.setInstance("{" +
                 "\"UIC\": \"HF8Tu4tg\"," +
                 "\"date_created\": \"ojmUIu4tg\"" +
-                "}" +
                 "}");
         searchableMapping.put("UIC", "HF8Tu4tg");
 
@@ -216,7 +209,7 @@ public class TEIServiceTest {
         when(mappingDAO.getMapping(program)).thenReturn(expectedMapping);
         when(syncRepository.getTrackedEntityInstances(uri)).thenReturn(trackedEntityInstanceResponse);
 
-        teiService.getTrackedEntityInstances(program);
+        teiService.getTrackedEntityInstances(program, mappingJson);
 
         verify(mappingDAO, times(1)).getSearchableFields(program);
         verify(syncRepository, times(1)).getTrackedEntityInstances(uri);
