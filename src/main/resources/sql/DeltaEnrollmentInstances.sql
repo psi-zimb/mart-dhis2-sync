@@ -8,8 +8,7 @@ FROM (SELECT enrTable.*
           AND category = 'enrollment' AND program_name = '%s'
      ) AS enrollmentsTable
 FULL OUTER JOIN (SELECT evnTable.*,
-                   enrollments.program_unique_id AS event_program_unique_id,
-                   enrollments.status            AS event_program_status
+                   enrollments.program_unique_id AS event_program_unique_id
                    FROM %s evnTable
                    INNER JOIN %s enrollments ON evnTable."Patient_Identifier" = enrollments."Patient_Identifier"
                               AND evnTable.enrollment_date = COALESCE(enrollments.enrollment_date, evnTable.enrollment_date)
@@ -23,5 +22,3 @@ INNER JOIN instance_tracker insTracker ON COALESCE(eventsTable."Patient_Identifi
 LEFT JOIN enrollment_tracker enrolTracker ON COALESCE(enrollmentsTable.program, eventsTable.program) = enrolTracker.program
                                           AND enrolTracker.instance_id = insTracker.instance_id
                                           AND enrolTracker.program_unique_id = COALESCE(enrollmentsTable.program_unique_id, eventsTable.event_program_unique_id) :: TEXT
-WHERE (enrollmentsTable.status = 'COMPLETED' OR enrollmentsTable.status = 'CANCELLED' OR
-eventsTable.event_program_status = 'COMPLETED' OR eventsTable.event_program_status = 'CANCELLED')
