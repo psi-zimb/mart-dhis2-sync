@@ -1,8 +1,17 @@
 package com.thoughtworks.martdhis2sync.controller;
 
 import com.google.gson.Gson;
-import com.thoughtworks.martdhis2sync.model.*;
-import com.thoughtworks.martdhis2sync.service.*;
+import com.thoughtworks.martdhis2sync.model.Config;
+import com.thoughtworks.martdhis2sync.model.DHISSyncRequestBody;
+import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
+import com.thoughtworks.martdhis2sync.model.LookupTable;
+import com.thoughtworks.martdhis2sync.model.MappingJson;
+import com.thoughtworks.martdhis2sync.service.ActiveEnrollmentService;
+import com.thoughtworks.martdhis2sync.service.CompletedEnrollmentService;
+import com.thoughtworks.martdhis2sync.service.DHISMetaDataService;
+import com.thoughtworks.martdhis2sync.service.LoggerService;
+import com.thoughtworks.martdhis2sync.service.MappingService;
+import com.thoughtworks.martdhis2sync.service.TEIService;
 import com.thoughtworks.martdhis2sync.trackerHandler.TrackersHandler;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
@@ -14,12 +23,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.SyncFailedException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import static com.thoughtworks.martdhis2sync.service.LoggerService.*;
+import static com.thoughtworks.martdhis2sync.service.LoggerService.FAILED;
+import static com.thoughtworks.martdhis2sync.service.LoggerService.NO_DELTA_DATA;
+import static com.thoughtworks.martdhis2sync.service.LoggerService.SUCCESS;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getStringFromDate;
 import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_ENROLLMENT;
@@ -78,7 +87,7 @@ public class PushController {
                     lookupTable.getInstance(), mappingJson.getInstance());
 
             TrackersHandler.clearTrackerLists();
-            teiService.getEnrollmentsForInstances(lookupTable.getEnrollments(), requestBody.getService());
+            teiService.getEnrollmentsForInstances(lookupTable.getEnrollments(), lookupTable.getEvent(), requestBody.getService());
             completedEnrollmentService.triggerJobForNewCompletedEnrollments(requestBody.getService(), requestBody.getUser(),
                     lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), config.getOpenLatestCompletedEnrollment());
 

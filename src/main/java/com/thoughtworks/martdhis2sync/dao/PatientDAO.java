@@ -21,7 +21,7 @@ public class PatientDAO {
     @Qualifier("jdbcTemplate")
     private JdbcTemplate jdbcTemplate;
 
-    public List<Map<String, Object>> getDeltaEnrollmentInstanceIds(String enrollmentTable, String programName) throws Exception {
+    public List<Map<String, Object>> getDeltaEnrollmentInstanceIds(String enrollmentTable, String eventTable, String programName) throws Exception {
         String sql;
         try {
             sql = BatchUtil.convertResourceOutputToString(deltaEnrollmentInstances);
@@ -29,6 +29,6 @@ public class PatientDAO {
             throw new Exception("Error in converting sql to string:: " + e.getMessage());
         }
 
-        return jdbcTemplate.queryForList(String.format(sql, enrollmentTable, programName));
+        return jdbcTemplate.queryForList(String.format(sql, enrollmentTable, programName, eventTable, enrollmentTable, programName));
     }
 }
