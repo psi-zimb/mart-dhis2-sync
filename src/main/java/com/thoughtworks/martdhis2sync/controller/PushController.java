@@ -94,16 +94,18 @@ public class PushController {
             enrollmentsToIgnore = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
             TrackersHandler.clearTrackerLists();
             completedEnrollmentService.triggerJobForUpdatedCompletedEnrollments(requestBody.getService(), requestBody.getUser(),
-                    lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), enrollmentsToIgnore, config.getOpenLatestCompletedEnrollment());
+                    lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), enrollmentsToIgnore,
+                    config.getOpenLatestCompletedEnrollment());
 
             TrackersHandler.clearTrackerLists();
             activeEnrollmentService.triggerJobForNewActiveEnrollments(requestBody.getService(), requestBody.getUser(),
-                    lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent());
+                    lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), config.getOpenLatestCompletedEnrollment());
 
             enrollmentsToIgnore = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
             TrackersHandler.clearTrackerLists();
             activeEnrollmentService.triggerJobForUpdatedActiveEnrollments(requestBody.getService(), requestBody.getUser(),
-                    lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), enrollmentsToIgnore);
+                    lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), enrollmentsToIgnore,
+                    config.getOpenLatestCompletedEnrollment());
 
             if (!IS_DELTA_EXISTS) {
                 loggerService.collateLogMessage(NO_DELTA_DATA);
