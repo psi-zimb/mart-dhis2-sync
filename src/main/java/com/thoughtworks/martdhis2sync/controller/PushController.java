@@ -80,7 +80,7 @@ public class PushController {
             completedEnrollmentService.triggerJobForNewCompletedEnrollments(requestBody.getService(), requestBody.getUser(),
                     lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent());
 
-            Collections.copy(enrollmentsToIgnore, EnrollmentUtil.enrollmentsToSaveInTracker);
+            enrollmentsToIgnore = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
             TrackersHandler.clearTrackerLists();
             completedEnrollmentService.triggerJobForUpdatedCompletedEnrollments(requestBody.getService(), requestBody.getUser(),
                     lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), enrollmentsToIgnore);
@@ -89,7 +89,7 @@ public class PushController {
             activeEnrollmentService.triggerJobForNewActiveEnrollments(requestBody.getService(), requestBody.getUser(),
                     lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent());
 
-            enrollmentsToIgnore = EnrollmentUtil.enrollmentsToSaveInTracker.stream().collect(Collectors.toList());
+            enrollmentsToIgnore = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
             TrackersHandler.clearTrackerLists();
             activeEnrollmentService.triggerJobForUpdatedActiveEnrollments(requestBody.getService(), requestBody.getUser(),
                     lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), enrollmentsToIgnore);
