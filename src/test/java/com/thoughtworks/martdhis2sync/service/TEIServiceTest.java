@@ -138,9 +138,10 @@ public class TEIServiceTest {
     public void shouldHaveEmptyListForInstanceWithEnrollments() throws Exception {
         String enrollment = "enrollmentTable";
         String programName = "HTS";
-        when(patientDAO.getDeltaEnrollmentInstanceIds(enrollment, programName)).thenReturn(new ArrayList<>());
+        String eventTable = "eventTable";
+        when(patientDAO.getDeltaEnrollmentInstanceIds(enrollment, eventTable, programName)).thenReturn(new ArrayList<>());
 
-        teiService.getEnrollmentsForInstances(enrollment, programName);
+        teiService.getEnrollmentsForInstances(enrollment, eventTable, programName);
 
         assertEquals(0, TEIUtil.getInstancesWithEnrollments().size());
     }
@@ -149,6 +150,7 @@ public class TEIServiceTest {
     public void shouldReturnEnrollmentsForTheGivenProgramAndGivenInstances() throws Exception {
         String enrollment = "enrollmentTable";
         String programName = "HTS";
+        String eventTable = "eventTable";
         Map<String, Object> map1 = new HashMap<>();
         map1.put("instance_id", "instance1");
         map1.put("program", "program");
@@ -171,12 +173,12 @@ public class TEIServiceTest {
         trackedEntityInstance2.setTrackedEntityInstance("instance2");
         trackedEntityInstance2.setEnrollments(Collections.emptyList());
 
-        when(patientDAO.getDeltaEnrollmentInstanceIds(enrollment, programName)).thenReturn(Arrays.asList(map1, map2));
+        when(patientDAO.getDeltaEnrollmentInstanceIds(enrollment, eventTable, programName)).thenReturn(Arrays.asList(map1, map2));
         when(syncRepository.getTrackedEntityInstances(url)).thenReturn(responseEntity);
         when(responseEntity.getBody()).thenReturn(response);
         when(response.getTrackedEntityInstances()).thenReturn(Arrays.asList(trackedEntityInstance1, trackedEntityInstance2));
 
-        teiService.getEnrollmentsForInstances(enrollment, programName);
+        teiService.getEnrollmentsForInstances(enrollment, eventTable, programName);
 
         Map<String, List<EnrollmentDetails>> expected = new HashMap<>();
         expected.put("instance1", Arrays.asList(enrollment1, enrollment2));
