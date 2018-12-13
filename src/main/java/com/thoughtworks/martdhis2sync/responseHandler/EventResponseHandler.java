@@ -1,6 +1,7 @@
 package com.thoughtworks.martdhis2sync.responseHandler;
 
 import com.thoughtworks.martdhis2sync.model.*;
+import com.thoughtworks.martdhis2sync.service.JobService;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,7 @@ public class EventResponseHandler {
             } else if (IMPORT_SUMMARY_RESPONSE_SUCCESS.equals(eventsResponse.getStatus())) {
                 processImportSummaries(eventsResponse.getImportSummaries(), eventTrackerIterator);
             } else {
+                JobService.setIS_JOB_FAILED(true);
                 processErrorResponse(eventsResponse.getImportSummaries(), eventTrackerIterator, logger, logPrefix);
             }
         });
