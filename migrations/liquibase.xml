@@ -201,4 +201,17 @@
             ALTER TABLE instance_tracker ADD PRIMARY KEY (instance_id, patient_id);
         </sql>
     </changeSet>
+    <changeSet id="131220181457" author="Mahitha">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.key_column_usage WHERE table_schema='public' and
+                table_name='enrollment_tracker';
+            </sqlCheck>
+        </preConditions>
+        <comment>Changing primary key to (enrollment_id, program_unique_id) from enrollment_id in enrollment_tracker</comment>
+        <sql>
+            ALTER TABLE enrollment_tracker DROP CONSTRAINT enrollment_tracker_pkey;
+            ALTER TABLE enrollment_tracker ADD PRIMARY KEY (enrollment_id, program_unique_id);
+        </sql>
+    </changeSet>
 </databaseChangeLog>
