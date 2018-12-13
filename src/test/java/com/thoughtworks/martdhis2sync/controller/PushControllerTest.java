@@ -119,7 +119,7 @@ public class PushControllerTest {
         doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any());
         doThrow(new SyncFailedException("instance sync failed")).when(completedEnrollmentService)
                 .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
-        doNothing().when(teiService).getEnrollmentsForInstances("hts_program_enrollment_table", service);
+        doNothing().when(teiService).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service);
 
         pushController.pushData(dhisSyncRequestBody);
 
@@ -135,7 +135,7 @@ public class PushControllerTest {
         verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
         verifyStatic(times(1));
         TrackersHandler.clearTrackerLists();
-        verify(teiService, times(1)).getEnrollmentsForInstances("hts_program_enrollment_table", service);
+        verify(teiService, times(1)).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service);
     }
 
     @Test
@@ -149,7 +149,7 @@ public class PushControllerTest {
         doNothing().when(loggerService).collateLogMessage("No delta data to sync.");
         when(mappingService.getMapping(service)).thenReturn(mapping);
         doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any());
-        doNothing().when(teiService).getEnrollmentsForInstances("hts_program_enrollment_table", service);
+        doNothing().when(teiService).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service);
         doNothing().when(completedEnrollmentService).triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(),anyString(),  any(), anyString());
         doNothing().when(completedEnrollmentService).triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(),anyString(),  any(), any(), anyString());
 
@@ -169,7 +169,7 @@ public class PushControllerTest {
             verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
             verifyStatic(times(4));
             TrackersHandler.clearTrackerLists();
-            verify(teiService, times(1)).getEnrollmentsForInstances("hts_program_enrollment_table", service);
+            verify(teiService, times(1)).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service);
 
             assertEquals("NO DATA TO SYNC", e.getMessage());
         }
