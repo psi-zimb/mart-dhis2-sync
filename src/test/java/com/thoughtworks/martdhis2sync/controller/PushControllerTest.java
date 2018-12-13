@@ -1,6 +1,8 @@
 package com.thoughtworks.martdhis2sync.controller;
 
+import com.google.gson.Gson;
 import com.thoughtworks.martdhis2sync.model.DHISSyncRequestBody;
+import com.thoughtworks.martdhis2sync.model.MappingJson;
 import com.thoughtworks.martdhis2sync.service.*;
 import com.thoughtworks.martdhis2sync.trackerHandler.TrackersHandler;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
@@ -85,9 +87,11 @@ public class PushControllerTest {
     public void shouldNotCallEnrollmentServiceWhenTeiServiceIsFailed() throws Exception {
         Map<String, Object> mapping = getMapping();
         DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
+        Gson gson = new Gson();
+        MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
 
         doNothing().when(dhisMetaDataService).filterByTypeDateTime();
-        doNothing().when(teiService).getTrackedEntityInstances(dhisSyncRequestBody.getService());
+        doNothing().when(teiService).getTrackedEntityInstances(dhisSyncRequestBody.getService(), mappingJson);
         doNothing().when(loggerService).addLog(service, user, comment);
         doNothing().when(loggerService).updateLog(service, "failed");
         when(mappingService.getMapping(service)).thenReturn(mapping);
@@ -97,8 +101,7 @@ public class PushControllerTest {
 
         verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
         verify(teiService, times(1)).getTrackedEntityInstances(
-                getDhisSyncRequestBody().getService()
-        );
+                getDhisSyncRequestBody().getService(), mappingJson);
         verify(loggerService, times(1)).addLog(service, user, comment);
         verify(loggerService, times(1)).updateLog(service, "failed");
         verify(mappingService, times(1)).getMapping(service);
@@ -112,11 +115,14 @@ public class PushControllerTest {
     public void shouldNotCallUpdatedCompletedEnrollmentServiceWhenNewCompletedEnrollmentIsFailed() throws Exception {
         Map<String, Object> mapping = getMapping();
         DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
+        Gson gson = new Gson();
+        MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
 
         doNothing().when(dhisMetaDataService).filterByTypeDateTime();
         doNothing().when(loggerService).addLog(service, user, comment);
         doNothing().when(loggerService).updateLog(service, "failed");
         when(mappingService.getMapping(service)).thenReturn(mapping);
+        doNothing().when(teiService).getTrackedEntityInstances(dhisSyncRequestBody.getService(), mappingJson);
         doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
         doThrow(new SyncFailedException("instance sync failed")).when(completedEnrollmentService)
                 .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
@@ -128,6 +134,10 @@ public class PushControllerTest {
         verify(loggerService, times(1)).addLog(service, user, comment);
         verify(loggerService, times(1)).updateLog(service, "failed");
         verify(mappingService, times(1)).getMapping(service);
+        verify(teiService, times(1)).getTrackedEntityInstances(
+                getDhisSyncRequestBody().getService(),
+                mappingJson
+        );
         verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
         verify(completedEnrollmentService, times(1))
                 .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
@@ -143,8 +153,10 @@ public class PushControllerTest {
     public void shouldThrowExceptionWithNoDataToSync() throws Exception {
         Map<String, Object> mapping = getMapping();
         DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
+        Gson gson = new Gson();
+        MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
 
-        doNothing().when(teiService).getTrackedEntityInstances(getDhisSyncRequestBody().getService());
+        doNothing().when(teiService).getTrackedEntityInstances(getDhisSyncRequestBody().getService(), mappingJson);
         doNothing().when(loggerService).addLog(service, user, comment);
         doNothing().when(loggerService).updateLog(service, "success");
         doNothing().when(loggerService).collateLogMessage("No delta data to sync.");
@@ -158,8 +170,8 @@ public class PushControllerTest {
         } catch (Exception e) {
             verify(loggerService, times(1)).addLog(service, user, comment);
             verify(teiService, times(1)).getTrackedEntityInstances(
-                    getDhisSyncRequestBody().getService()
-            );
+                    getDhisSyncRequestBody().getService(),
+                    mappingJson);
             verify(loggerService, times(1)).updateLog(service, "success");
             verify(loggerService, times(1)).collateLogMessage("No delta data to sync.");
             verify(mappingService, times(1)).getMapping(service);
@@ -271,6 +283,9 @@ public class PushControllerTest {
         String config = "{" +
                 "\"searchable\":[" +
                 "\"UIC\"" +
+                "]," +
+                "\"comparable\":[" +
+                "Patient_Identifier" +
                 "]," +
                 "\"openLatestCompletedEnrollment\": \"no\"" +
                 "}";

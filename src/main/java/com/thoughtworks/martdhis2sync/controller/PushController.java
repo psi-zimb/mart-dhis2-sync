@@ -58,7 +58,6 @@ public class PushController {
         IS_DELTA_EXISTS = false;
         loggerService.addLog(requestBody.getService(), requestBody.getUser(), requestBody.getComment());
 
-        teiService.getTrackedEntityInstances(requestBody.getService());
         dhisMetaDataService.filterByTypeDateTime();
 
         Map<String, Object> mapping = mappingService.getMapping(requestBody.getService());
@@ -72,6 +71,7 @@ public class PushController {
         EventUtil.date = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_EVENT);
 
         try {
+            teiService.getTrackedEntityInstances(requestBody.getService(), mappingJson);
             teiService.triggerJob(requestBody.getService(), requestBody.getUser(),
                     lookupTable.getInstance(), mappingJson.getInstance(), config.getSearchable(), config.getComparable());
             TrackersHandler.clearTrackerLists();

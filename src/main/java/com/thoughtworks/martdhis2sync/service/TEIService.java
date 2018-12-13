@@ -76,6 +76,39 @@ public class TEIService {
         }
     }
 
+    public void getTrackedEntityInstances(String mappingName, MappingJson mappingJson) throws IOException {
+        StringBuilder url = new StringBuilder();
+
+        url.append(TEI_URI);
+        url.append("&ou=");
+        url.append(orgUnitID);
+        url.append("&ouMode=DESCENDANTS");
+
+        Gson gson = new Gson();
+        LinkedTreeMap instanceMapping = gson.fromJson(mappingJson.getInstance().toString(), LinkedTreeMap.class);
+
+        List<Map<String, Object>> searchableFields = mappingDAO.getSearchableFields(mappingName);
+
+        if (searchableFields.isEmpty()) {
+            TEIUtil.setTrackedEntityInstanceInfos(Collections.emptyList());
+            return;
+        }
+
+        searchableFields.get(0).keySet().forEach(filter -> {
+            url.append("&filter=");
+            url.append(instanceMapping.get(filter));
+            url.append(":IN:");
+
+            searchableFields.forEach(searchableField -> {
+                url.append(searchableField.get(filter));
+                url.append(";");
+            });
+        });
+
+        TEIUtil.setTrackedEntityInstanceInfos(
+                syncRepository.getTrackedEntityInstances(url.toString()).getBody().getTrackedEntityInstances()
+        );
+    }
 
     public void getEnrollmentsForInstances(String enrollmentTable, String eventTable, String programName) throws Exception {
         TEIUtil.setInstancesWithEnrollments(new HashMap<>());
@@ -107,41 +140,5 @@ public class TEIService {
                 .stream()
                 .map(instanceObj -> instanceObj.get("instance_id").toString())
                 .collect(Collectors.toList());
-    }
-
-    public void getTrackedEntityInstances(String mappingName) throws IOException {
-        StringBuilder url = new StringBuilder();
-
-        url.append(TEI_URI);
-        url.append("&ou=");
-        url.append(orgUnitID);
-        url.append("&ouMode=DESCENDANTS");
-
-        Map<String, Object> mapping = mappingDAO.getMapping(mappingName);
-
-        Gson gson = new Gson();
-        LinkedTreeMap instanceMapping = (LinkedTreeMap) gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class).getInstance();
-
-        List<Map<String, Object>> searchableFields = mappingDAO.getSearchableFields(mappingName);
-
-        if (searchableFields.isEmpty()) {
-            TEIUtil.setTrackedEntityInstanceInfos(Collections.emptyList());
-            return;
-        }
-
-        searchableFields.get(0).keySet().forEach(filter -> {
-            url.append("&filter=");
-            url.append(instanceMapping.get(filter));
-            url.append(":IN:");
-
-            searchableFields.forEach(searchableField -> {
-                url.append(searchableField.get(filter));
-                url.append(";");
-            });
-        });
-
-        TEIUtil.setTrackedEntityInstanceInfos(
-                syncRepository.getTrackedEntityInstances(url.toString()).getBody().getTrackedEntityInstances()
-        );
     }
 }
