@@ -1,6 +1,5 @@
 package com.thoughtworks.martdhis2sync.responseHandler;
 
-import com.thoughtworks.martdhis2sync.model.Enrollment;
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.model.EnrollmentImportSummary;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
