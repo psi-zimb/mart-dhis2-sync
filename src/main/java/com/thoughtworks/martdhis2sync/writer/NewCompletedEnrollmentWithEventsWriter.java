@@ -188,8 +188,7 @@ public class NewCompletedEnrollmentWithEventsWriter implements ItemWriter<Proces
                 break;
             }
             case NO: {
-                id = StringUtils.isEmpty(activeEnrollmentId)
-                        ? "" : activeEnrollmentId;
+                id = activeEnrollmentId;
                 break;
             }
         }
