@@ -25,13 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeLastChar;
 
@@ -55,6 +49,7 @@ public class NewCompletedEnrollmentWithEventsWriter implements ItemWriter<Proces
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private static final String LOG_PREFIX = "NEW COMPLETED ENROLLMENT WITH EVENTS SYNC: ";
     private static final String YES = "yes";
+    private static final String NO = "no";
 
     private List<EventTracker> eventTrackers = new ArrayList<>();
 
@@ -170,27 +165,35 @@ public class NewCompletedEnrollmentWithEventsWriter implements ItemWriter<Proces
 
     private String getDataValues(Map<String, String> dataValues) {
         StringBuilder dataValuesApiBuilder = new StringBuilder();
-        dataValues.forEach((key, value) -> {
-            dataValuesApiBuilder.append(
-                    String.format("{\"dataElement\":\"%s\", \"value\":\"%s\"},", key, value)
-            );
-        });
+        dataValues.forEach((key, value) -> dataValuesApiBuilder.append(
+                String.format("{\"dataElement\":\"%s\", \"value\":\"%s\"},", key, value)
+        ));
 
         return removeLastChar(dataValuesApiBuilder);
     }
 
     private String getEnrollmentId(EnrollmentAPIPayLoad enrollment) {
         List<EnrollmentDetails> enrollmentDetails = TEIUtil.getInstancesWithEnrollments().get(enrollment.getInstanceId());
-        if (enrollmentDetails.size() == 0) {
+        if (enrollmentDetails.isEmpty()) {
             return "";
         }
         String activeEnrollmentId = getActiveEnrollmentId(enrollmentDetails);
 
-        return YES.equals(openLatestCompletedEnrollment) ?
-                (StringUtils.isEmpty(activeEnrollmentId)
+        String id = "";
+        switch (openLatestCompletedEnrollment) {
+            case YES: {
+                id = StringUtils.isEmpty(activeEnrollmentId)
                         ? getLatestCompletedEnrollmentId(enrollmentDetails)
-                        : activeEnrollmentId)
-                : activeEnrollmentId;
+                        : activeEnrollmentId;
+                break;
+            }
+            case NO: {
+                id = StringUtils.isEmpty(activeEnrollmentId)
+                        ? "" : activeEnrollmentId;
+                break;
+            }
+        }
+        return id;
     }
 
     private String getLatestCompletedEnrollmentId(List<EnrollmentDetails> enrollmentDetails) {
