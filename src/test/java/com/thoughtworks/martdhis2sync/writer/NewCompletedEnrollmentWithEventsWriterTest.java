@@ -1,15 +1,6 @@
 package com.thoughtworks.martdhis2sync.writer;
 
-import com.thoughtworks.martdhis2sync.model.DHISEnrollmentSyncResponse;
-import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
-import com.thoughtworks.martdhis2sync.model.EnrollmentDetails;
-import com.thoughtworks.martdhis2sync.model.EnrollmentImportSummary;
-import com.thoughtworks.martdhis2sync.model.EnrollmentResponse;
-import com.thoughtworks.martdhis2sync.model.Event;
-import com.thoughtworks.martdhis2sync.model.ImportCount;
-import com.thoughtworks.martdhis2sync.model.ImportSummary;
-import com.thoughtworks.martdhis2sync.model.ProcessedTableRow;
-import com.thoughtworks.martdhis2sync.model.Response;
+import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.responseHandler.EnrollmentResponseHandler;
 import com.thoughtworks.martdhis2sync.responseHandler.EventResponseHandler;
@@ -24,13 +15,7 @@ import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_ERROR;
@@ -568,6 +553,70 @@ public class NewCompletedEnrollmentWithEventsWriterTest {
         verify(response, times(1)).getImportSummaries();
         verify(enrollmentResponseHandler, times(1)).processErrorResponse(any(), any(), any(), any());
         verify(eventResponseHandler, times(1)).process(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void shouldSyncNewEnrollmentWhenInstanceHasOnlyCompletedEnrollmentAndConfigIsNo() throws Exception {
+        setValuesForMemberFields(writer, "openLatestCompletedEnrollment", "no");
+
+        String instanceId = "instance1";
+        String enrDate = "2018-10-13";
+        String eventDate = "2018-10-14";
+        Map<String, String> dataValues1 = new HashMap<>();
+        dataValues1.put("gXNu7zJBTDN", "no");
+        dataValues1.put("jkEjtKqlJtN", "event value1");
+
+        Event event1 = getEvents(instanceId, eventDate, dataValues1, "1");
+        List<Event> events1 = new LinkedList<>();
+        events1.add(event1);
+        EnrollmentAPIPayLoad payLoad1 = getEnrollmentPayLoad(instanceId, enrDate, events1, "1");
+        ProcessedTableRow processedTableRow1 = getProcessedTableRow("1", payLoad1);
+
+        List<ProcessedTableRow> processedTableRows = Collections.singletonList(processedTableRow1);
+
+        EnrollmentDetails enrDetails1 = new EnrollmentDetails("xhjKKwoq", "enrollmentId1", "2018-11-04T00:00:00.000",
+                "2018-12-05T23:07:10.934", EnrollmentAPIPayLoad.STATUS_COMPLETED);
+        EnrollmentDetails enrDetails2 = new EnrollmentDetails("xhjKKwoq", "enrollmentId2", "2018-11-06T00:00:00.000",
+                "2018-12-07T18:14:41.513", EnrollmentAPIPayLoad.STATUS_COMPLETED);
+
+        instancesWithEnrollments.put(instanceId, Arrays.asList(enrDetails1, enrDetails2));
+
+        String requestBody = "{" +
+                "\"enrollments\":[" +
+                "{" +
+                getEnrollment(payLoad1, "") +
+                ", " +
+                "\"events\":[" +
+                getEvent(event1) +
+                "]" +
+                "}" +
+                "]" +
+                "}";
+
+        String enrReference1 = "enrReference1";
+        String envReference1 = "envReference1";
+
+        List<EnrollmentImportSummary> importSummaries = Arrays.asList(
+                new EnrollmentImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(1, 0, 0, 0),
+                        null, new ArrayList<>(), enrReference1, new Response("ImportSummaries",
+                        IMPORT_SUMMARY_RESPONSE_SUCCESS, 1, 0, 0, 0,
+                        Collections.singletonList(
+                                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(1, 0, 0, 0),
+                                        null, new ArrayList<>(), envReference1)),
+                        1
+                )
+                ));
+
+        when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
+        when(response.getImportSummaries()).thenReturn(importSummaries);
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
+
+        writer.write(processedTableRows);
+
+        verify(syncRepository, times(1)).sendEnrollmentData(uri, requestBody);
+        verify(responseEntity, times(1)).getBody();
+        verify(syncResponse, times(1)).getResponse();
+        verify(response, times(1)).getImportSummaries();
     }
 
     private ProcessedTableRow getProcessedTableRow(String programUniqueId, EnrollmentAPIPayLoad payLoad) {
