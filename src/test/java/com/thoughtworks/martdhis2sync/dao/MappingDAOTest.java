@@ -11,10 +11,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static org.junit.Assert.assertEquals;
@@ -99,4 +96,29 @@ public class MappingDAOTest {
         assertEquals(expected, actual);
     }
 
+    @Test
+    public void shouldReturnEmptyListIfNoSearchableRecordsAreFound() throws IOException {
+        List<Map<String, Object>> actual;
+
+        String sql = "SELECT %s " +
+                "FROM %s pi " +
+                "INNER JOIN marker m ON pi.date_created :: TIMESTAMP > COALESCE(m.last_synced_date, '-infinity') " +
+                "AND category = 'instance' AND program_name = '%s'";
+
+        String actualSql = "SELECT \"patient_id\" " +
+                "FROM patient_identifier pi " +
+                "INNER JOIN marker m ON pi.date_created :: TIMESTAMP > COALESCE(m.last_synced_date, '-infinity') " +
+                "AND category = 'instance' AND program_name = 'Patient Identifier Details'";
+
+
+        List<Map<String, Object>> expected = new ArrayList<>();
+
+        when(BatchUtil.convertResourceOutputToString(searchableResource)).thenReturn(sql);
+        when(jdbcTemplate.queryForMap(getMappingSql)).thenReturn(expectedMapping);
+        when(jdbcTemplate.queryForList(actualSql)).thenReturn(expected);
+
+        actual = mappingDAO.getSearchableFields(mappingName);
+
+        assertEquals(expected, actual);
+    }
 }

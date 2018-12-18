@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +44,10 @@ public class MappingDAO {
             columns.append("\"");
             columns.append(",");
         });
+
+        if (StringUtils.isEmpty(columns.toString())) {
+            return new ArrayList<>();
+        }
 
         return jdbcTemplate.queryForList(
                 String.format(
