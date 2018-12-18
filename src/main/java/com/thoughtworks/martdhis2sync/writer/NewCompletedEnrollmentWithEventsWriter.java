@@ -200,7 +200,7 @@ public class NewCompletedEnrollmentWithEventsWriter implements ItemWriter<Proces
         String maxCompletedDate = "";
         for (EnrollmentDetails enrollment : enrollmentDetails) {
             String completedDate = enrollment.getCompletedDate();
-            if (maxCompletedDate.compareTo(completedDate) < 1) {
+            if (!StringUtils.isEmpty(completedDate) && maxCompletedDate.compareTo(completedDate) < 1) {
                 latestCompletedEnrollmentId = enrollment.getEnrollment();
                 maxCompletedDate = completedDate;
             }
