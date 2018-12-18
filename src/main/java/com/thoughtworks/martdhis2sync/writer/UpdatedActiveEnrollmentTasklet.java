@@ -22,7 +22,7 @@ public class UpdatedActiveEnrollmentTasklet implements Tasklet {
 
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
-    private static final String LOG_PREFIX = "ACTIVE ENROLLMENT TASKLET: ";
+    private static final String LOG_PREFIX = "UPDATED ACTIVE ENROLLMENT TASKLET: ";
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
