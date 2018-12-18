@@ -174,7 +174,7 @@ public class NewCompletedEnrollmentWithEventsWriter implements ItemWriter<Proces
 
     private String getEnrollmentId(EnrollmentAPIPayLoad enrollment) {
         List<EnrollmentDetails> enrollmentDetails = TEIUtil.getInstancesWithEnrollments().get(enrollment.getInstanceId());
-        if (enrollmentDetails.isEmpty()) {
+        if (null == enrollmentDetails || enrollmentDetails.isEmpty()) {
             return "";
         }
         String activeEnrollmentId = getActiveEnrollmentId(enrollmentDetails);
