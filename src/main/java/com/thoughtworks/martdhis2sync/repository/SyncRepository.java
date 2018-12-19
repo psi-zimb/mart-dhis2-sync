@@ -140,8 +140,9 @@ public class SyncRepository {
                             new HttpEntity<>(getHttpHeaders()), TrackedEntityInstanceResponse.class);
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
 
-        }catch (Exception e){
+        } catch (Exception e){
             logger.error(LOG_PREFIX + e);
+            throw e;
         }
         return responseEntity;
     }
