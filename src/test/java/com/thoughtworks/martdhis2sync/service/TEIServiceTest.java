@@ -53,7 +53,6 @@ public class TEIServiceTest {
     @Mock
     private TrackedEntityInstanceResponse response;
 
-    private String dhis2Url = "http://play.dhis2.org";
     public static final String TRACKED_ENTITY_INSTANCE_URI = "/api/trackedEntityInstances?pageSize=10000";
     private String ORG_UNIT_ID = "DiszpKrYNg8";
     private ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstanceResponse;
@@ -69,7 +68,6 @@ public class TEIServiceTest {
         setValuesForMemberFields(teiService, "mappingDAO", mappingDAO);
         setValuesForMemberFields(teiService, "patientDAO", patientDAO);
         setValuesForMemberFields(teiService, "syncRepository", syncRepository);
-        setValuesForMemberFields(teiService, "dhis2Url", dhis2Url);
         setValuesForMemberFields(teiService, "orgUnitID", ORG_UNIT_ID);
 
         steps.add(step);
