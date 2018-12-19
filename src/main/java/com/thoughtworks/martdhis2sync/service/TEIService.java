@@ -25,7 +25,11 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.SyncFailedException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -33,9 +37,6 @@ public class TEIService {
     private final String TEI_ENROLLMENTS_URI = "/api/trackedEntityInstances?" +
             "fields=trackedEntityInstance,enrollments[program,enrollment,enrollmentDate,completedDate,status]&" +
             "program=%s&trackedEntityInstance=%s";
-
-    @Value("${dhis2.url}")
-    private String dhis2Url;
 
     @Value("${country.org.unit.id}")
     private String orgUnitID;
@@ -119,8 +120,12 @@ public class TEIService {
             String instanceIds = String.join(";", instanceIdsList);
             String url = String.format(TEI_ENROLLMENTS_URI, program, instanceIds);
 
-            ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstances = syncRepository.getTrackedEntityInstances(url);
-            TEIUtil.setInstancesWithEnrollments(getMap(trackedEntityInstances.getBody().getTrackedEntityInstances()));
+            try {
+                ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstances = syncRepository.getTrackedEntityInstances(url);
+                TEIUtil.setInstancesWithEnrollments(getMap(trackedEntityInstances.getBody().getTrackedEntityInstances()));
+            } catch (Exception ignored) {
+
+            }
         }
     }
 
