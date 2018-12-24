@@ -1,6 +1,12 @@
 package com.thoughtworks.martdhis2sync.writer;
 
-import com.thoughtworks.martdhis2sync.model.*;
+import com.thoughtworks.martdhis2sync.model.DHISEnrollmentSyncResponse;
+import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
+import com.thoughtworks.martdhis2sync.model.EnrollmentImportSummary;
+import com.thoughtworks.martdhis2sync.model.EnrollmentResponse;
+import com.thoughtworks.martdhis2sync.model.Event;
+import com.thoughtworks.martdhis2sync.model.EventTracker;
+import com.thoughtworks.martdhis2sync.model.ImportCount;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.responseHandler.EnrollmentResponseHandler;
 import com.thoughtworks.martdhis2sync.trackerHandler.TrackersHandler;
@@ -22,8 +28,12 @@ import org.springframework.batch.core.scope.context.StepContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_ERROR;
@@ -81,6 +91,7 @@ public class NewCompletedEnrollmentTaskletTest {
     private String instanceId2 = "instance2";
     private String enrDate = "2018-10-13";
     private String date = "2018-10-12 13:00:00";
+    private String logPrefix = "NEW COMPLETED ENROLLMENT SYNC: ";
 
     @Before
     public void setUp() throws Exception {
@@ -104,10 +115,14 @@ public class NewCompletedEnrollmentTaskletTest {
         when(syncResponse.getResponse()).thenReturn(response);
         when(chunkContext.getStepContext()).thenReturn(stepContext);
         when(stepContext.getJobParameters()).thenReturn(jobParams);
+
+        EventTracker eventTracker = new EventTracker("eventId", instanceId1, "xhjKKwoq", "1", "FJTkwmaP");
+
+        EventUtil.eventsToSaveInTracker.add(eventTracker);
     }
 
     @Test
-    public void shouldUpdateTrackersAfterSync() throws Exception {
+    public void shouldUpdateTrackersAfterSync() {
         String requestBody = "{" +
                 "\"enrollments\":[" +
                 getEnrollment(payLoad1) +
@@ -123,12 +138,6 @@ public class NewCompletedEnrollmentTaskletTest {
         Map<String, String> dataValues1 = new HashMap<>();
         dataValues1.put("gXNu7zJBTDN", "no");
         dataValues1.put("jkEjtKqlJtN", "event value1");
-        Map<String, String> dataValues2 = new HashMap<>();
-        dataValues2.put("gXNu7zJBTDN", "yes");
-        dataValues2.put("jkEjtKqlJtN", "event value2");
-        Map<String, String> dataValues3 = new HashMap<>();
-        dataValues3.put("gXNu7zJBTDN", "yes");
-        dataValues3.put("jkEjtKqlJtN", "event value3");
         Event event1 = getEvents(instanceId1, date, dataValues1, "1");
         List<Event> events1 = new LinkedList<>();
         events1.add(event1);
@@ -138,8 +147,6 @@ public class NewCompletedEnrollmentTaskletTest {
         when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(response.getImportSummaries()).thenReturn(importSummaries);
-        when(trackersHandler.insertInEnrollmentTracker("superman")).thenReturn(1);
-        when(trackersHandler.insertInEventTracker("superman")).thenReturn(1);
 
         tasklet.execute(stepContribution, chunkContext);
 
@@ -147,10 +154,8 @@ public class NewCompletedEnrollmentTaskletTest {
         verify(responseEntity, times(1)).getBody();
         verify(syncResponse, times(1)).getResponse();
         verify(response, times(1)).getImportSummaries();
-        verify(trackersHandler, times(1)).insertInEnrollmentTracker("superman");
-        verify(trackersHandler, times(1)).insertInEventTracker("superman");
-
-        EnrollmentUtil.enrollmentsToSaveInTracker.clear();
+        verify(trackersHandler, times(1)).insertInEnrollmentTracker("superman", logPrefix, logger);
+        verify(trackersHandler, times(1)).insertInEventTracker("superman", logPrefix, logger);
     }
 
     @Test
@@ -184,8 +189,6 @@ public class NewCompletedEnrollmentTaskletTest {
 
         when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
         when(response.getImportSummaries()).thenReturn(importSummaries);
-        when(trackersHandler.insertInEnrollmentTracker("superman")).thenReturn(1);
-        when(trackersHandler.insertInEventTracker("superman")).thenReturn(1);
 
         tasklet.execute(stepContribution, chunkContext);
 
@@ -194,14 +197,21 @@ public class NewCompletedEnrollmentTaskletTest {
         verify(syncResponse, times(1)).getResponse();
         verify(response, times(1)).getImportSummaries();
         verify(enrollmentResponseHandler, times(1)).processCompletedSecondStepResponse(any(), any(), any(), any());
-        verify(trackersHandler, times(1)).insertInEnrollmentTracker("superman");
-        verify(trackersHandler, times(1)).insertInEventTracker("superman");
-
-        EnrollmentUtil.enrollmentsToSaveInTracker.clear();
+        verify(trackersHandler, times(1)).insertInEnrollmentTracker("superman", logPrefix, logger);
+        verify(trackersHandler, times(1)).insertInEventTracker("superman", logPrefix, logger);
     }
 
     @Test
-    public void shouldLogMessageWhenFailedToInsertIntoTrackers() throws Exception {
+    public void shouldNotCallSyncRepositoryIfEnrollmentTrackerIsEmpty() throws Exception {
+        tasklet.execute(stepContribution, chunkContext);
+
+        verify(syncRepository, times(0)).sendEnrollmentData(anyString(), anyString());
+        verify(trackersHandler, times(0)).insertInEnrollmentTracker("superman", logPrefix, logger);
+        verify(trackersHandler, times(0)).insertInEventTracker("superman", logPrefix, logger);
+    }
+
+    @Test
+    public void shouldNotCallInsertEventTrackerIfEventTrackerIsEmpty() throws Exception {
         String requestBody = "{" +
                 "\"enrollments\":[" +
                 getEnrollment(payLoad1) +
@@ -217,12 +227,6 @@ public class NewCompletedEnrollmentTaskletTest {
         Map<String, String> dataValues1 = new HashMap<>();
         dataValues1.put("gXNu7zJBTDN", "no");
         dataValues1.put("jkEjtKqlJtN", "event value1");
-        Map<String, String> dataValues2 = new HashMap<>();
-        dataValues2.put("gXNu7zJBTDN", "yes");
-        dataValues2.put("jkEjtKqlJtN", "event value2");
-        Map<String, String> dataValues3 = new HashMap<>();
-        dataValues3.put("gXNu7zJBTDN", "yes");
-        dataValues3.put("jkEjtKqlJtN", "event value3");
         Event event1 = getEvents(instanceId1, date, dataValues1, "1");
         List<Event> events1 = new LinkedList<>();
         events1.add(event1);
@@ -230,29 +234,14 @@ public class NewCompletedEnrollmentTaskletTest {
         EnrollmentUtil.enrollmentsToSaveInTracker.add(payLoad1);
 
         when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(response.getImportSummaries()).thenReturn(importSummaries);
-        when(trackersHandler.insertInEnrollmentTracker("superman")).thenReturn(1);
-        when(trackersHandler.insertInEventTracker("superman")).thenThrow(new SQLException("can't get database connection"));
-
+        EventUtil.eventsToSaveInTracker.clear();
         tasklet.execute(stepContribution, chunkContext);
 
-        verify(syncRepository, times(1)).sendEnrollmentData(uri, requestBody);
-        verify(responseEntity, times(1)).getBody();
-        verify(syncResponse, times(1)).getResponse();
-        verify(response, times(1)).getImportSummaries();
-        verify(logger, times(1)).error("NEW COMPLETED ENROLLMENT SYNC: Exception occurred " +
-                "while inserting Event UIDs:can't get database connection");
-
-        EnrollmentUtil.enrollmentsToSaveInTracker.clear();
-    }
-
-    @Test
-    public void shouldNotCallSyncRepositoryIfTrackerIsEmpty() throws Exception {
-        tasklet.execute(stepContribution, chunkContext);
-
-        verify(syncRepository, times(0)).sendEnrollmentData(anyString(), anyString());
-        verify(trackersHandler, times(0)).insertInEnrollmentTracker("superman");
-        verify(trackersHandler, times(0)).insertInEventTracker("superman");
+        verify(syncRepository, times(1)).sendEnrollmentData(anyString(), anyString());
+        verify(trackersHandler, times(1)).insertInEnrollmentTracker("superman", logPrefix, logger);
+        verify(trackersHandler, times(0)).insertInEventTracker("superman", logPrefix, logger);
     }
 
     @After

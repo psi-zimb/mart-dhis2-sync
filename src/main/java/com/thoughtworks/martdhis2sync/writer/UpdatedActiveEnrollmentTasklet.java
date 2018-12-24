@@ -12,8 +12,6 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.sql.SQLException;
-
 @Component
 public class UpdatedActiveEnrollmentTasklet implements Tasklet {
 
@@ -25,27 +23,18 @@ public class UpdatedActiveEnrollmentTasklet implements Tasklet {
     private static final String LOG_PREFIX = "UPDATED ACTIVE ENROLLMENT TASKLET: ";
 
     @Override
-    public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+    public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
         String user = chunkContext.getStepContext().getJobParameters().get("user").toString();
-        int recordsCreated;
+        updateTrackers(user);
+        return RepeatStatus.FINISHED;
+    }
+
+    private void updateTrackers(String user) {
         if (!EnrollmentUtil.enrollmentsToSaveInTracker.isEmpty()) {
-            try {
-                recordsCreated = trackersHandler.updateInEnrollmentTracker(user);
-                logger.info(LOG_PREFIX + "Successfully updated " + recordsCreated + " Enrollment UIDs.");
-            } catch (SQLException e) {
-                logger.error(LOG_PREFIX + "Exception occurred while inserting Program Enrollment UIDs:" + e.getMessage());
-                e.printStackTrace();
-            }
+            trackersHandler.updateInEnrollmentTracker(user, LOG_PREFIX, logger);
         }
         if (!EventUtil.eventsToSaveInTracker.isEmpty()) {
-            try {
-                recordsCreated = trackersHandler.insertInEventTracker(user);
-                logger.info(LOG_PREFIX + "Successfully inserted " + recordsCreated + " Event UIDs.");
-            } catch (SQLException e) {
-                logger.error(LOG_PREFIX + "Exception occurred while inserting Event UIDs:" + e.getMessage());
-                e.printStackTrace();
-            }
+            trackersHandler.insertInEventTracker(user, LOG_PREFIX, logger);
         }
-        return RepeatStatus.FINISHED;
     }
 }
