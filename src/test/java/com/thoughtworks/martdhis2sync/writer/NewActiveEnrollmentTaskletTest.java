@@ -2,6 +2,7 @@ package com.thoughtworks.martdhis2sync.writer;
 
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.model.Event;
+import com.thoughtworks.martdhis2sync.model.EventTracker;
 import com.thoughtworks.martdhis2sync.trackerHandler.TrackersHandler;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
@@ -17,7 +18,6 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.scope.context.StepContext;
 
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -48,11 +48,7 @@ public class NewActiveEnrollmentTaskletTest {
 
     private NewActiveEnrollmentTasklet tasklet;
 
-    private EnrollmentAPIPayLoad payLoad1;
-
-    private String instanceId1 = "instance1";
-    private String enrDate = "2018-10-13";
-    private String date = "2018-10-12 13:00:00";
+    private String logPrefix = "NEW ACTIVE ENROLLMENT TASKLET: ";
 
     @Before
     public void setUp() throws Exception {
@@ -70,17 +66,53 @@ public class NewActiveEnrollmentTaskletTest {
         Map<String, String> dataValues1 = new HashMap<>();
         dataValues1.put("gXNu7zJBTDN", "no");
         dataValues1.put("jkEjtKqlJtN", "event value1");
-        Map<String, String> dataValues2 = new HashMap<>();
-        dataValues2.put("gXNu7zJBTDN", "yes");
-        dataValues2.put("jkEjtKqlJtN", "event value2");
-        Map<String, String> dataValues3 = new HashMap<>();
-        dataValues3.put("gXNu7zJBTDN", "yes");
-        dataValues3.put("jkEjtKqlJtN", "event value3");
-        Event event1 = getEvents(instanceId1, date, dataValues1, "1");
+
+        Event event1 = getEvents(dataValues1);
         List<Event> events1 = new LinkedList<>();
         events1.add(event1);
-        payLoad1 = getEnrollmentPayLoad(instanceId1, enrDate, events1, "1");
+
+        EnrollmentAPIPayLoad payLoad1 = getEnrollmentPayLoad(events1);
+
         EnrollmentUtil.enrollmentsToSaveInTracker.add(payLoad1);
+
+        EventTracker eventTracker = new EventTracker("eventId", "instance1", "xhjKKwoq", "1", "FJTkwmaP");
+        EventUtil.eventsToSaveInTracker.add(eventTracker);
+    }
+
+    @Test
+    public void shouldUpdateTrackers() {
+        tasklet.execute(stepContribution, chunkContext);
+
+        verify(trackersHandler, times(1)).insertInEnrollmentTracker("superman", logPrefix, logger);
+        verify(trackersHandler, times(1)).insertInEventTracker("superman", logPrefix, logger);
+    }
+
+    @Test
+    public void shouldNotCallTrackerIfEnrollmentTrackerAndEventTrackersAreEmpty() {
+        EnrollmentUtil.enrollmentsToSaveInTracker.clear();
+        EventUtil.eventsToSaveInTracker.clear();
+        tasklet.execute(stepContribution, chunkContext);
+
+        verify(trackersHandler, times(0)).insertInEnrollmentTracker("superman", logPrefix, logger);
+        verify(trackersHandler, times(0)).insertInEventTracker("superman", logPrefix, logger);
+    }
+
+    @Test
+    public void shouldNotCallInsertIntoEventTrackerIfEventTrackerIsEmpty() throws Exception {
+        EventUtil.eventsToSaveInTracker.clear();
+        tasklet.execute(stepContribution, chunkContext);
+
+        verify(trackersHandler, times(1)).insertInEnrollmentTracker("superman", logPrefix, logger);
+        verify(trackersHandler, times(0)).insertInEventTracker("superman", logPrefix, logger);
+    }
+
+    @Test
+    public void shouldNotCallInsertIntoEnrollmentTrackerIfEnrollmentTrackerIsEmpty() throws Exception {
+        EnrollmentUtil.enrollmentsToSaveInTracker.clear();
+        tasklet.execute(stepContribution, chunkContext);
+
+        verify(trackersHandler, times(0)).insertInEnrollmentTracker("superman", logPrefix, logger);
+        verify(trackersHandler, times(1)).insertInEventTracker("superman", logPrefix, logger);
     }
 
     @After
@@ -89,65 +121,31 @@ public class NewActiveEnrollmentTaskletTest {
         EventUtil.eventsToSaveInTracker.clear();
     }
 
-    @Test
-    public void shouldUpdateTrackers() throws Exception {
-
-        when(trackersHandler.insertInEnrollmentTracker("superman")).thenReturn(1);
-        when(trackersHandler.insertInEventTracker("superman")).thenReturn(1);
-
-        tasklet.execute(stepContribution, chunkContext);
-
-        verify(trackersHandler, times(1)).insertInEnrollmentTracker("superman");
-        verify(trackersHandler, times(1)).insertInEventTracker("superman");
-    }
-
-    @Test
-    public void shouldLogMessageWhenFailedToInsertIntoTrackers() throws Exception {
-        when(trackersHandler.insertInEnrollmentTracker("superman")).thenReturn(1);
-        when(trackersHandler.insertInEventTracker("superman")).thenThrow(new SQLException("can't get database connection"));
-
-        try {
-            tasklet.execute(stepContribution, chunkContext);
-        } catch (Exception e) {
-            verify(logger, times(1)).error("NEW ACTIVE ENROLLMENT SYNC: Exception occurred " +
-                    "while inserting Event UIDs:can't get database connection");
-        }
-    }
-
-    @Test
-    public void shouldNotCallSyncRepositoryIfTrackerIsEmpty() throws Exception {
-        EnrollmentUtil.enrollmentsToSaveInTracker.clear();
-        tasklet.execute(stepContribution, chunkContext);
-
-        verify(trackersHandler, times(0)).insertInEnrollmentTracker("superman");
-        verify(trackersHandler, times(0)).insertInEventTracker("superman");
-    }
-
-    private EnrollmentAPIPayLoad getEnrollmentPayLoad(String instanceId, String enrDate, List<Event> events, String programUniqueId) {
+    private EnrollmentAPIPayLoad getEnrollmentPayLoad(List<Event> events) {
         return new EnrollmentAPIPayLoad(
-                "",
-                instanceId,
+                "enrollmentId1",
+                "instance1",
                 "xhjKKwoq",
                 "jSsoNjesL",
-                enrDate,
-                enrDate,
+                "2018-10-13",
+                "2018-10-13",
                 "ACTIVE",
-                programUniqueId,
+                "1",
                 events
         );
     }
 
-    private Event getEvents(String instanceId, String eventDate, Map<String, String> dataValues, String eventUniqueId) {
+    private Event getEvents(Map<String, String> dataValues) {
         return new Event(
-                "",
-                instanceId,
+                "eventId1",
+                "instance1",
                 "",
                 "xhjKKwoq",
                 "FJTkwmaP",
                 "jSsoNjesL",
-                eventDate,
+                "2018-10-12 13:00:00",
                 "COMPLETED",
-                eventUniqueId,
+                "1",
                 dataValues
         );
     }

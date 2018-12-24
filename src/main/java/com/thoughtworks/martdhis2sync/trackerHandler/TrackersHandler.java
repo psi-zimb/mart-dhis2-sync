@@ -5,6 +5,7 @@ import com.thoughtworks.martdhis2sync.model.EventTracker;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +25,7 @@ public class TrackersHandler {
     @Autowired
     private DataSource dataSource;
 
-    public int insertInEnrollmentTracker(String user) throws SQLException {
+    public void insertInEnrollmentTracker(String user, String logPrefix, Logger logger) {
         String sql = "INSERT INTO public.enrollment_tracker(" +
                 "enrollment_id, instance_id, program, status, program_unique_id, created_by, date_created)" +
                 "values (?, ?, ?, ?, ?, ?, ?)";
@@ -43,11 +44,14 @@ public class TrackersHandler {
                     updateCount += ps.executeUpdate();
                 }
             }
+            logger.info(logPrefix + "Successfully inserted " + updateCount + " Enrollment UIDs.");
+        } catch (SQLException e) {
+            logger.error(logPrefix + "Exception occurred while inserting Program Enrollment UIDs: " + e.getMessage());
+            e.printStackTrace();
         }
-        return updateCount;
     }
 
-    public int insertInEventTracker(String user) throws SQLException {
+    public void insertInEventTracker(String user, String logPrefix, Logger logger) {
         String sql = "INSERT INTO public.event_tracker(" +
                 "event_id, instance_id, program, program_stage, event_unique_id, created_by, date_created)" +
                 "values (?, ?, ?, ?, ?, ?, ?)";
@@ -66,11 +70,14 @@ public class TrackersHandler {
                     updateCount += ps.executeUpdate();
                 }
             }
+            logger.info(logPrefix + "Successfully inserted " + updateCount + " Event UIDs.");
+        } catch (SQLException e) {
+            logger.error(logPrefix + "Exception occurred while inserting Event UIDs: " + e.getMessage());
+            e.printStackTrace();
         }
-        return updateCount;
     }
 
-    public int updateInEnrollmentTracker(String user) throws SQLException {
+    public void updateInEnrollmentTracker(String user, String logPrefix, Logger logger) {
         String sql = "UPDATE public.enrollment_tracker " +
                 "SET status = ?, created_by = ?, date_created = ? " +
                 "WHERE enrollment_id = ?";
@@ -86,8 +93,11 @@ public class TrackersHandler {
                     updateCount += ps.executeUpdate();
                 }
             }
+            logger.info(logPrefix + "Successfully updated " + updateCount + " Enrollment UIDs.");
+        } catch (SQLException e) {
+            logger.error(logPrefix + "Exception occurred while updating Program Enrollment UIDs: " + e.getMessage());
+            e.printStackTrace();
         }
-        return updateCount;
     }
 
     public static void clearTrackerLists() {

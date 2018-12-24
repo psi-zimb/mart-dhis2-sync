@@ -8,6 +8,7 @@ import com.thoughtworks.martdhis2sync.responseHandler.EnrollmentResponseHandler;
 import com.thoughtworks.martdhis2sync.service.JobService;
 import com.thoughtworks.martdhis2sync.trackerHandler.TrackersHandler;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
+import com.thoughtworks.martdhis2sync.util.EventUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -19,7 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -52,7 +52,7 @@ public class NewCompletedEnrollmentTasklet implements Tasklet {
             "}";
 
     @Override
-    public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+    public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
         String user = chunkContext.getStepContext().getJobParameters().get("user").toString();
         if (EnrollmentUtil.enrollmentsToSaveInTracker.isEmpty()) {
             return RepeatStatus.FINISHED;
@@ -94,21 +94,10 @@ public class NewCompletedEnrollmentTasklet implements Tasklet {
     }
 
     private void updateTrackers(String user) {
-        int recordsCreated;
-        try {
-            recordsCreated = trackersHandler.insertInEnrollmentTracker(user);
-            logger.info(LOG_PREFIX + "Successfully inserted " + recordsCreated + " Enrollment UIDs.");
-        } catch (SQLException e) {
-            logger.error(LOG_PREFIX + "Exception occurred while inserting Program Enrollment UIDs:" + e.getMessage());
-            e.printStackTrace();
-        }
+        trackersHandler.insertInEnrollmentTracker(user, LOG_PREFIX, logger);
 
-        try {
-            recordsCreated = trackersHandler.insertInEventTracker(user);
-            logger.info(LOG_PREFIX + "Successfully inserted " + recordsCreated + " Event UIDs.");
-        } catch (SQLException e) {
-            logger.error(LOG_PREFIX + "Exception occurred while inserting Event UIDs:" + e.getMessage());
-            e.printStackTrace();
+        if (!EventUtil.eventsToSaveInTracker.isEmpty()) {
+            trackersHandler.insertInEventTracker(user, LOG_PREFIX, logger);
         }
     }
 }
