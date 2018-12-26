@@ -3,7 +3,7 @@ package com.thoughtworks.martdhis2sync.step;
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.processor.UpdatedCompletedEnrollmentWithEventsProcessor;
 import com.thoughtworks.martdhis2sync.reader.MappingReader;
-import com.thoughtworks.martdhis2sync.writer.UpdatedCompletedEnrollmentWithEventsWriter;
+import com.thoughtworks.martdhis2sync.writer.UpdatedActiveAndCompletedEnrollmentWithEventsWriter;
 import org.springframework.batch.core.Step;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,7 @@ public class UpdatedActiveEnrollmentWithEventsStep {
     private ObjectFactory<UpdatedCompletedEnrollmentWithEventsProcessor> processorObjectFactory;
 
     @Autowired
-    private UpdatedCompletedEnrollmentWithEventsWriter writer;
+    private UpdatedActiveAndCompletedEnrollmentWithEventsWriter writer;
 
     @Autowired
     private StepFactory stepFactory;
