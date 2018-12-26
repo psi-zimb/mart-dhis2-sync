@@ -38,7 +38,7 @@ import static com.thoughtworks.martdhis2sync.util.EventUtil.getEventTrackers;
 import static com.thoughtworks.martdhis2sync.util.EventUtil.placeNewEventsFirst;
 
 @Component
-public class UpdatedCompletedEnrollmentWithEventsWriter implements ItemWriter<ProcessedTableRow> {
+public class UpdatedActiveAndCompletedEnrollmentWithEventsWriter implements ItemWriter<ProcessedTableRow> {
 
     private static final String URI = "/api/enrollments?strategy=CREATE_AND_UPDATE";
 

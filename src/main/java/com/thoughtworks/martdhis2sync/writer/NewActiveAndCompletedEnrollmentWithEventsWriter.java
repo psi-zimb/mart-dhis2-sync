@@ -31,7 +31,7 @@ import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeLastChar;
 
 @Component
 @StepScope
-public class NewCompletedEnrollmentWithEventsWriter implements ItemWriter<ProcessedTableRow> {
+public class NewActiveAndCompletedEnrollmentWithEventsWriter implements ItemWriter<ProcessedTableRow> {
     private static final String URI = "/api/enrollments?strategy=CREATE_AND_UPDATE";
 
     @Autowired
