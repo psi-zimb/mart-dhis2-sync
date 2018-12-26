@@ -556,6 +556,52 @@ public class UpdatedActiveAndCompletedEnrollmentWithEventsWriterTest {
         verify(response, times(1)).getImportSummaries();
     }
 
+    @Test
+    public void shouldSendDataWithBahmniEnrollmentIdWhenDHISHasSameEnrollmentAsActive() throws Exception {
+        String instanceId = "instance1";
+        String enrDate = "2018-10-13";
+        String eventDate = "2018-10-14";
+        Map<String, String> dataValues1 = new HashMap<>();
+        dataValues1.put("gXNu7zJBTDN", "no");
+        dataValues1.put("jkEjtKqlJtN", "event value1");
+
+        Event event1 = getEvents(instanceId, eventDate, dataValues1, "1");
+        List<Event> events1 = new LinkedList<>();
+        events1.add(event1);
+        EnrollmentAPIPayLoad payLoad1 = getEnrollmentPayLoad(instanceId, enrDate, events1, "3", "1");
+        ProcessedTableRow processedTableRow1 = getProcessedTableRow("3", payLoad1);
+
+        List<ProcessedTableRow> processedTableRows = Collections.singletonList(processedTableRow1);
+        String requestBody = "{" +
+                "\"enrollments\":[" +
+                "{" +
+                    getEnrollment(payLoad1, payLoad1.getEnrollmentId()) +
+                ", " +
+                "\"events\":[" +
+                    getEvent(event1) +
+                "]" +
+                "}" +
+                "]" +
+                "}";
+
+        EnrollmentDetails enrollmentDetails1 = new EnrollmentDetails(payLoad1.getProgram(), payLoad1.getEnrollmentId(),
+                payLoad1.getProgramStartDate(), "2018-10-12T12:00:00.234", EnrollmentAPIPayLoad.STATUS_ACTIVE);
+
+        instancesWithEnrollments.clear();
+        instancesWithEnrollments.put(instanceId, Collections.singletonList(enrollmentDetails1));
+
+        when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
+        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
+        when(response.getImportSummaries()).thenReturn(new ArrayList<>());
+
+        writer.write(processedTableRows);
+
+        verify(syncRepository, times(1)).sendEnrollmentData(uri, requestBody);
+        verify(responseEntity, times(1)).getBody();
+        verify(syncResponse, times(1)).getResponse();
+        verify(response, times(1)).getImportSummaries();
+    }
+
     private ProcessedTableRow getProcessedTableRow(String enrollmentUniqueId, EnrollmentAPIPayLoad payLoad) {
         return new ProcessedTableRow(
                 enrollmentUniqueId,

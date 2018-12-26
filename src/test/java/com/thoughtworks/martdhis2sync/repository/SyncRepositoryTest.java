@@ -1,6 +1,12 @@
 package com.thoughtworks.martdhis2sync.repository;
 
-import com.thoughtworks.martdhis2sync.model.*;
+import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
+import com.thoughtworks.martdhis2sync.model.DataElementResponse;
+import com.thoughtworks.martdhis2sync.model.ImportSummary;
+import com.thoughtworks.martdhis2sync.model.OrgUnitResponse;
+import com.thoughtworks.martdhis2sync.model.Response;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityAttributeResponse;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceResponse;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
 import org.junit.Before;
 import org.junit.Test;
@@ -205,6 +211,19 @@ public class SyncRepositoryTest {
     }
 
     @Test
+    public void shouldLogErrorWhenDhisGivesErrorResponse() {
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
+                .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
+
+        ResponseEntity<TrackedEntityAttributeResponse> trackedEntityAttributes = syncRepository.getTrackedEntityAttributes("");
+
+        verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
+        verify(logger, times(1)).error("SyncRepository: org.springframework.web.client.HttpServerErrorException: 500 INTERNAL_SERVER_ERROR");
+
+        assertNull(trackedEntityAttributes);
+    }
+
+    @Test
     public void shouldGetTEIsInfoAndLog() {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
                 .thenReturn(trackedEntityInstanceResponse);
@@ -219,6 +238,21 @@ public class SyncRepositoryTest {
 
         assertEquals(trackedEntityInstanceResponse, trackedEntityInstances);
     }
+
+    @Test
+    public void shouldLogErrorWhenDhisGivesErrorResponseForTrackedEntityInstances() {
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
+                .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
+
+        try {
+            syncRepository.getTrackedEntityInstances("");
+        } catch (Exception e) {
+
+            verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
+            verify(logger, times(1)).error("SyncRepository: org.springframework.web.client.HttpServerErrorException: 500 INTERNAL_SERVER_ERROR");
+        }
+    }
+
 
     @Test
     public void shouldThrowExceptionWhenGettingDataElementsInfoAndLogThat() {
