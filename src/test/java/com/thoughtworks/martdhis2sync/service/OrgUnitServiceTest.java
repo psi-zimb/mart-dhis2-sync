@@ -76,13 +76,24 @@ public class OrgUnitServiceTest {
         verify(dataSource, times(1)).getConnection();
     }
 
-    @Test(expected = SQLException.class)
-    @SneakyThrows
-    public void shouldHandleExceptionsThrownWhenTryingToGetOrgUnitsFromDHIS() {
+    @Test
+    public void shouldHandleExceptionsThrownWhenTryingToGetOrgUnitsFromDHIS() throws SQLException {
         responseEntity = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new OrgUnitResponse(new Pager(), orgUnitList));
 
         when(syncRepository.getOrgUnits(dhis2Url + URI_ORG_UNIT)).thenReturn(responseEntity);
         when(dataSource.getConnection()).thenThrow(new SQLException());
+
+        try {
+            orgUnitService.getOrgUnitsList();
+        } catch (SQLException e) {
+            verify(syncRepository, times(1)).getOrgUnits(dhis2Url + URI_ORG_UNIT);
+            verify(dataSource, times(1)).getConnection();
+        }
+    }
+
+    @Test
+    public void shouldNotUpdateTrackerWhenDhisReturnsNull() throws SQLException {
+        when(syncRepository.getOrgUnits(dhis2Url + URI_ORG_UNIT)).thenReturn(null);
 
         orgUnitService.getOrgUnitsList();
 
@@ -90,4 +101,93 @@ public class OrgUnitServiceTest {
         verify(dataSource, times(0)).getConnection();
     }
 
+    @Test
+    public void shouldThrowExceptionWhenPrepareStatementWithDeleteQueryIsFailed() throws SQLException {
+        String deleteQuery = "DELETE FROM public.orgunit_tracker";
+
+        responseEntity = ResponseEntity.ok(new OrgUnitResponse(new Pager(), orgUnitList));
+
+        when(syncRepository.getOrgUnits(dhis2Url + URI_ORG_UNIT)).thenReturn(responseEntity);
+        when(dataSource.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(deleteQuery)).thenThrow(new SQLException());
+
+        try {
+            orgUnitService.getOrgUnitsList();
+        } catch (SQLException e) {
+            verify(syncRepository, times(1)).getOrgUnits(dhis2Url + URI_ORG_UNIT);
+            verify(dataSource, times(1)).getConnection();
+            verify(connection, times(1)).prepareStatement(deleteQuery);
+        }
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenExecuteUpdateWithDeleteQueryIsFailed() throws SQLException {
+        String deleteQuery = "DELETE FROM public.orgunit_tracker";
+
+        responseEntity = ResponseEntity.ok(new OrgUnitResponse(new Pager(), orgUnitList));
+
+        when(syncRepository.getOrgUnits(dhis2Url + URI_ORG_UNIT)).thenReturn(responseEntity);
+        when(dataSource.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(deleteQuery)).thenReturn(preparedStatement);
+        when(preparedStatement.executeUpdate()).thenThrow(new SQLException());
+
+        try {
+            orgUnitService.getOrgUnitsList();
+        } catch (SQLException e) {
+            verify(syncRepository, times(1)).getOrgUnits(dhis2Url + URI_ORG_UNIT);
+            verify(dataSource, times(1)).getConnection();
+            verify(connection, times(1)).prepareStatement(deleteQuery);
+            verify(preparedStatement, times(1)).executeUpdate();
+        }
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenPrepareStatementWithSelectQueryIsFailed() throws SQLException {
+        String deleteQuery = "DELETE FROM public.orgunit_tracker";
+        String selectQuery = "INSERT INTO public.orgunit_tracker(orgunit, id, date_created) values (?, ?, ?)";
+
+        responseEntity = ResponseEntity.ok(new OrgUnitResponse(new Pager(), orgUnitList));
+
+        when(syncRepository.getOrgUnits(dhis2Url + URI_ORG_UNIT)).thenReturn(responseEntity);
+        when(dataSource.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(deleteQuery)).thenReturn(preparedStatement);
+        when(preparedStatement.executeUpdate()).thenReturn(1);
+        when(connection.prepareStatement(selectQuery)).thenThrow(new SQLException());
+
+        try {
+            orgUnitService.getOrgUnitsList();
+        } catch (SQLException e) {
+            verify(syncRepository, times(1)).getOrgUnits(dhis2Url + URI_ORG_UNIT);
+            verify(dataSource, times(1)).getConnection();
+            verify(connection, times(1)).prepareStatement(deleteQuery);
+            verify(connection, times(1)).prepareStatement(selectQuery);
+            verify(preparedStatement, times(1)).executeUpdate();
+        }
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenExecuteUpdateWithSelectQueryIsFailed() throws SQLException {
+        String deleteQuery = "DELETE FROM public.orgunit_tracker";
+        String selectQuery = "INSERT INTO public.orgunit_tracker(orgunit, id, date_created) values (?, ?, ?)";
+
+        responseEntity = ResponseEntity.ok(new OrgUnitResponse(new Pager(), orgUnitList));
+
+        when(syncRepository.getOrgUnits(dhis2Url + URI_ORG_UNIT)).thenReturn(responseEntity);
+        when(dataSource.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(deleteQuery)).thenReturn(preparedStatement);
+        when(connection.prepareStatement(selectQuery)).thenReturn(preparedStatement);
+        when(preparedStatement.executeUpdate())
+                .thenReturn(1)
+                .thenThrow(new SQLException());
+
+        try {
+            orgUnitService.getOrgUnitsList();
+        } catch (SQLException e) {
+            verify(syncRepository, times(1)).getOrgUnits(dhis2Url + URI_ORG_UNIT);
+            verify(dataSource, times(1)).getConnection();
+            verify(connection, times(1)).prepareStatement(deleteQuery);
+            verify(connection, times(1)).prepareStatement(selectQuery);
+            verify(preparedStatement, times(2)).executeUpdate();
+        }
+    }
 }
