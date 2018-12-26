@@ -3,7 +3,7 @@ package com.thoughtworks.martdhis2sync.step;
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.processor.UpdatedCompletedEnrollmentWithEventsProcessor;
 import com.thoughtworks.martdhis2sync.reader.MappingReader;
-import com.thoughtworks.martdhis2sync.writer.UpdatedCompletedEnrollmentWithEventsWriter;
+import com.thoughtworks.martdhis2sync.writer.UpdatedActiveAndCompletedEnrollmentWithEventsWriter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,7 +38,7 @@ public class UpdatedCompletedEnrollmentWithEventsStepTest {
     private UpdatedCompletedEnrollmentWithEventsProcessor processor;
 
     @Mock
-    private UpdatedCompletedEnrollmentWithEventsWriter writer;
+    private UpdatedActiveAndCompletedEnrollmentWithEventsWriter writer;
 
     @Mock
     private Step step;
