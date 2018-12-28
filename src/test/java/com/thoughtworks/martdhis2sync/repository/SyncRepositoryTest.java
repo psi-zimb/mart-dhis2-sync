@@ -1,7 +1,10 @@
 package com.thoughtworks.martdhis2sync.repository;
 
+import com.thoughtworks.martdhis2sync.model.DHISEnrollmentSyncResponse;
 import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
 import com.thoughtworks.martdhis2sync.model.DataElementResponse;
+import com.thoughtworks.martdhis2sync.model.EnrollmentImportSummary;
+import com.thoughtworks.martdhis2sync.model.EnrollmentResponse;
 import com.thoughtworks.martdhis2sync.model.ImportSummary;
 import com.thoughtworks.martdhis2sync.model.OrgUnitResponse;
 import com.thoughtworks.martdhis2sync.model.Response;
@@ -45,6 +48,9 @@ public class SyncRepositoryTest {
 
     @Mock
     private ResponseEntity<DHISSyncResponse> responseEntity;
+
+    @Mock
+    private ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponseEntity;
 
     @Mock
     private ResponseEntity<OrgUnitResponse> orgUnitResponse;
@@ -280,5 +286,78 @@ public class SyncRepositoryTest {
         verify(logger, times(1)).error("SyncRepository: org.springframework.web.client.HttpServerErrorException: 409 CONFLICT");
 
         assertNull(orgUnits);
+    }
+
+    @Test
+    public void shouldReturnResponseEntityAndLogTheInfoOnEnrollmentSyncWithEvents() {
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
+                .thenReturn(enrollmentResponseEntity);
+        when(enrollmentResponseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
+        doNothing().when(logger).info("SyncRepository: Received 200 status code.");
+
+        ResponseEntity<DHISEnrollmentSyncResponse> actualResponse = syncRepository.sendEnrollmentData("/api/enrollments", body);
+
+        verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
+        verify(enrollmentResponseEntity, times(1)).getStatusCode();
+        verify(logger, times(1)).info("SyncRepository: Received 200 status code.");
+
+        assertEquals(enrollmentResponseEntity, actualResponse);
+    }
+
+    @Test
+    public void shouldReturnResponseEntityAndLogTheErrorForEnrollmentWithEventSync() {
+        String response = "{" +
+                "\"httpStatus\":\"Conflict\", " +
+                "\"httpStatusCode\":\"409\", " +
+                "\"status\":\"ERROR\", " +
+                "\"response\":{" +
+                "\"ignored\":1, " +
+                "\"importSummaries\": [" +
+                    "{\"description\": \"Program has another active enrollment going on. Not possible to incomplete\"}" +
+                "]" +
+            "}" +
+        "}";
+
+        EnrollmentImportSummary importSummary = new EnrollmentImportSummary();
+        importSummary.setDescription("Program has another active enrollment going on. Not possible to incomplete");
+        EnrollmentResponse responseObj = new EnrollmentResponse();
+        responseObj.setIgnored(1);
+        responseObj.setImportSummaries(Collections.singletonList(importSummary));
+        DHISEnrollmentSyncResponse enrollmentSyncResponse = new DHISEnrollmentSyncResponse();
+        enrollmentSyncResponse.setHttpStatus("Conflict");
+        enrollmentSyncResponse.setHttpStatusCode(409);
+        enrollmentSyncResponse.setStatus("ERROR");
+        enrollmentSyncResponse.setResponse(responseObj);
+        ResponseEntity<DHISEnrollmentSyncResponse> errorResponse = new ResponseEntity<>(enrollmentSyncResponse, HttpStatus.CONFLICT);
+        Charset charset = Charset.forName("UTF-8");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
+                .thenThrow(new HttpClientErrorException(HttpStatus.CONFLICT, "CONFLICT", response.getBytes(), charset));
+        doNothing().when(logger).error("SyncRepository: org.springframework.web.client.HttpClientErrorException: 409 CONFLICT");
+        doNothing().when(loggerService).collateLogMessage("409 CONFLICT");
+
+        ResponseEntity<DHISEnrollmentSyncResponse> actualResponse = syncRepository.sendEnrollmentData("/api/enrollments", body);
+
+        verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
+        verify(logger, times(1)).error("SyncRepository: org.springframework.web.client.HttpClientErrorException: 409 CONFLICT");
+        verify(loggerService, times(1)).collateLogMessage("409 CONFLICT");
+
+        assertEquals(errorResponse, actualResponse);
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenDHISThrowsServerErrorException() {
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
+                .thenThrow(new HttpServerErrorException(HttpStatus.CONFLICT, "CONFLICT"));
+        doNothing().when(logger).error("SyncRepository: org.springframework.web.client.HttpServerErrorException: 409 CONFLICT");
+        doNothing().when(loggerService).collateLogMessage("409 CONFLICT");
+
+        try {
+            syncRepository.sendEnrollmentData("/api/enrollments", body);
+        } catch (HttpServerErrorException e) {
+            verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
+            verify(logger, times(1)).error("SyncRepository: org.springframework.web.client.HttpServerErrorException: 409 CONFLICT");
+            verify(loggerService, times(1)).collateLogMessage("409 CONFLICT");
+        }
     }
 }
