@@ -1,7 +1,7 @@
 package com.thoughtworks.martdhis2sync.step;
 
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
-import com.thoughtworks.martdhis2sync.processor.UpdatedCompletedEnrollmentWithEventsProcessor;
+import com.thoughtworks.martdhis2sync.processor.UpdatedEnrollmentWithEventsProcessor;
 import com.thoughtworks.martdhis2sync.reader.MappingReader;
 import com.thoughtworks.martdhis2sync.writer.UpdatedActiveAndCompletedEnrollmentWithEventsWriter;
 import org.junit.Before;
@@ -34,10 +34,10 @@ public class UpdatedActiveEnrollmentWithEventsStepTest {
     private JdbcCursorItemReader<Map<String, Object>> jdbcCursorItemReader;
 
     @Mock
-    private ObjectFactory<UpdatedCompletedEnrollmentWithEventsProcessor> objectFactory;
+    private ObjectFactory<UpdatedEnrollmentWithEventsProcessor> objectFactory;
 
     @Mock
-    private UpdatedCompletedEnrollmentWithEventsProcessor processor;
+    private UpdatedEnrollmentWithEventsProcessor processor;
 
     @Mock
     private UpdatedActiveAndCompletedEnrollmentWithEventsWriter writer;
