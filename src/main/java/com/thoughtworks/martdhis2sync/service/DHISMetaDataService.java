@@ -24,10 +24,9 @@ public class DHISMetaDataService {
     @Value("${dhis2.url}")
     private String dhis2Url;
 
-    private static final String LOG_PREFIX = "Data Element Service: ";
+    private static final String LOG_PREFIX = "DHIS2 Metadata Service: ";
     private static final String URI_DATE_TIME_DATA_ELEMENTS = "/api/dataElements?pageSize=1000&filter=valueType:eq:DATETIME";
     private static final String URI_DATE_TIME_T_E_ATTRIBUTES = "/api/trackedEntityAttributes?pageSize=1000&filter=valueType:eq:DATETIME";
-    private static final String TEI_URI = "/api/trackedEntityInstances?pageSize=10000";
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private String url;

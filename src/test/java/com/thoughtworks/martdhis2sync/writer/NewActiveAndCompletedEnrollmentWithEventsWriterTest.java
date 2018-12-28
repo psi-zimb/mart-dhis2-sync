@@ -261,6 +261,45 @@ public class NewActiveAndCompletedEnrollmentWithEventsWriterTest {
     }
 
     @Test
+    public void shouldHaveEmptyEnrollmentIdWhenInstanceDoesNotExistInTheList() throws Exception {
+        String instanceId = "instance4";
+        String enrDate = "2018-10-13";
+        String eventDate = "2018-10-14";
+        Map<String, String> dataValues1 = new HashMap<>();
+        dataValues1.put("gXNu7zJBTDN", "no");
+        dataValues1.put("jkEjtKqlJtN", "event value1");
+
+        Event event1 = getEvents(instanceId, eventDate, dataValues1, "1");
+        List<Event> events1 = new LinkedList<>();
+        events1.add(event1);
+        EnrollmentAPIPayLoad payLoad1 = getEnrollmentPayLoad(instanceId, enrDate, events1, "1");
+        ProcessedTableRow processedTableRow1 = getProcessedTableRow("1", payLoad1);
+
+        List<ProcessedTableRow> processedTableRows = Collections.singletonList(processedTableRow1);
+        String requestBody = "{" +
+                "\"enrollments\":[" +
+                    "{" +
+                        getEnrollment(payLoad1, "") +
+                        ", " +
+                        "\"events\":[" +
+                            getEvent(event1) +
+                        "]" +
+                    "}" +
+                "]" +
+            "}";
+
+        when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
+        when(response.getImportSummaries()).thenReturn(new ArrayList<>());
+
+        writer.write(processedTableRows);
+
+        verify(syncRepository, times(1)).sendEnrollmentData(uri, requestBody);
+        verify(responseEntity, times(1)).getBody();
+        verify(syncResponse, times(1)).getResponse();
+        verify(response, times(1)).getImportSummaries();
+    }
+
+    @Test
     public void shouldHaveActiveEnrollmentIdWhenInstanceAlreadyHasEnrollment() throws Exception {
         String instanceId = "instance1";
         String enrDate = "2018-10-13";
@@ -371,6 +410,104 @@ public class NewActiveAndCompletedEnrollmentWithEventsWriterTest {
                 "2018-12-05T23:07:10.934", EnrollmentAPIPayLoad.STATUS_COMPLETED);
         EnrollmentDetails enrDetails2 = new EnrollmentDetails("xhjKKwoq", "enrollmentId2", "2018-11-06T00:00:00.000",
                 "2018-12-07T18:14:41.513", EnrollmentAPIPayLoad.STATUS_COMPLETED);
+
+        instancesWithEnrollments.put(instanceId, Arrays.asList(enrDetails1, enrDetails2));
+
+        String requestBody = "{" +
+                "\"enrollments\":[" +
+                "{" +
+                getEnrollment(payLoad1, "enrollmentId2") +
+                ", " +
+                "\"events\":[" +
+                getEvent(event1) +
+                "]" +
+                "}" +
+                "]" +
+                "}";
+
+        when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
+        when(response.getImportSummaries()).thenReturn(new ArrayList<>());
+
+        writer.write(processedTableRows);
+
+        verify(syncRepository, times(1)).sendEnrollmentData(uri, requestBody);
+        verify(responseEntity, times(1)).getBody();
+        verify(syncResponse, times(1)).getResponse();
+        verify(response, times(1)).getImportSummaries();
+    }
+
+    @Test
+    public void shouldHaveLatestCompletedEnrollmentIdAndDoNotConsiderTheOrderWhenInstanceHasOnlyCompletedEnrollmentAndConfigIsYes() throws Exception {
+        setValuesForMemberFields(writer, "openLatestCompletedEnrollment", "yes");
+
+        String instanceId = "instance1";
+        String enrDate = "2018-10-13";
+        String eventDate = "2018-10-14";
+        Map<String, String> dataValues1 = new HashMap<>();
+        dataValues1.put("gXNu7zJBTDN", "no");
+        dataValues1.put("jkEjtKqlJtN", "event value1");
+
+        Event event1 = getEvents(instanceId, eventDate, dataValues1, "1");
+        List<Event> events1 = new LinkedList<>();
+        events1.add(event1);
+        EnrollmentAPIPayLoad payLoad1 = getEnrollmentPayLoad(instanceId, enrDate, events1, "1");
+        ProcessedTableRow processedTableRow1 = getProcessedTableRow("1", payLoad1);
+
+        List<ProcessedTableRow> processedTableRows = Collections.singletonList(processedTableRow1);
+
+        EnrollmentDetails enrDetails1 = new EnrollmentDetails("xhjKKwoq", "enrollmentId1", "2018-11-04T00:00:00.000",
+                "2018-12-07T18:14:41.513", EnrollmentAPIPayLoad.STATUS_COMPLETED);
+        EnrollmentDetails enrDetails2 = new EnrollmentDetails("xhjKKwoq", "enrollmentId2", "2018-11-06T00:00:00.000",
+                "2018-12-05T23:07:10.934", EnrollmentAPIPayLoad.STATUS_COMPLETED);
+
+        instancesWithEnrollments.put(instanceId, Arrays.asList(enrDetails1, enrDetails2));
+
+        String requestBody = "{" +
+                "\"enrollments\":[" +
+                "{" +
+                getEnrollment(payLoad1, "enrollmentId1") +
+                ", " +
+                "\"events\":[" +
+                getEvent(event1) +
+                "]" +
+                "}" +
+                "]" +
+                "}";
+
+        when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
+        when(response.getImportSummaries()).thenReturn(new ArrayList<>());
+
+        writer.write(processedTableRows);
+
+        verify(syncRepository, times(1)).sendEnrollmentData(uri, requestBody);
+        verify(responseEntity, times(1)).getBody();
+        verify(syncResponse, times(1)).getResponse();
+        verify(response, times(1)).getImportSummaries();
+    }
+
+    @Test
+    public void shouldHaveActiveEnrollmentIdWhenInstanceHasActiveEnrollmentAndConfigIsYes() throws Exception {
+        setValuesForMemberFields(writer, "openLatestCompletedEnrollment", "yes");
+
+        String instanceId = "instance1";
+        String enrDate = "2018-10-13";
+        String eventDate = "2018-10-14";
+        Map<String, String> dataValues1 = new HashMap<>();
+        dataValues1.put("gXNu7zJBTDN", "no");
+        dataValues1.put("jkEjtKqlJtN", "event value1");
+
+        Event event1 = getEvents(instanceId, eventDate, dataValues1, "1");
+        List<Event> events1 = new LinkedList<>();
+        events1.add(event1);
+        EnrollmentAPIPayLoad payLoad1 = getEnrollmentPayLoad(instanceId, enrDate, events1, "1");
+        ProcessedTableRow processedTableRow1 = getProcessedTableRow("1", payLoad1);
+
+        List<ProcessedTableRow> processedTableRows = Collections.singletonList(processedTableRow1);
+
+        EnrollmentDetails enrDetails1 = new EnrollmentDetails("xhjKKwoq", "enrollmentId1", "2018-11-04T00:00:00.000",
+                "2018-12-05T23:07:10.934", EnrollmentAPIPayLoad.STATUS_COMPLETED);
+        EnrollmentDetails enrDetails2 = new EnrollmentDetails("xhjKKwoq", "enrollmentId2", "2018-11-06T00:00:00.000",
+                null, EnrollmentAPIPayLoad.STATUS_ACTIVE);
 
         instancesWithEnrollments.put(instanceId, Arrays.asList(enrDetails1, enrDetails2));
 

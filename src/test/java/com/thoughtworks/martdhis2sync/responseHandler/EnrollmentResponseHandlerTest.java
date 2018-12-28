@@ -156,14 +156,78 @@ public class EnrollmentResponseHandlerTest {
     }
 
     @Test
-    public void shouldChangeToStatusActiveForFailedEnrollments() {
+    public void shouldNotChangeToStatusActiveForSuccessfullyUpdatedEnrollments() {
         EnrollmentUtil.enrollmentsToSaveInTracker.clear();
         String logPrefix = "New Completed Enrollments:: ";
         String enrReference1 = "enrReference1";
+        String enrReference2 = "enrReference2";
+
+        List<EnrollmentImportSummary> importSummaries = Arrays.asList(
+                new EnrollmentImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(1, 0, 0, 0),
+                        null, new ArrayList<>(), enrReference1, null
+                ),
+                new EnrollmentImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(1, 0, 0, 0),
+                        null, new ArrayList<>(),
+                        null, null
+                )
+        );
+        payLoad1.setEnrollmentId(enrReference1);
+        payLoad1.setStatus("COMPLETED");
+        payLoad2.setEnrollmentId(enrReference2);
+        payLoad2.setStatus("COMPLETED");
+        List<EnrollmentAPIPayLoad> payLoads = Arrays.asList(payLoad1, payLoad2);
+        Iterator<EnrollmentAPIPayLoad> iterator = payLoads.iterator();
+
+        responseHandler.processCompletedSecondStepResponse(importSummaries, iterator, logger, logPrefix);
+
+        assertEquals("COMPLETED", payLoad1.getStatus());
+        assertEquals("COMPLETED", payLoad2.getStatus());
+    }
+
+    @Test
+    public void shouldChangeStatusOfFailedToUpdatedEnrollmentToActiveAndLogDescription() {
+        EnrollmentUtil.enrollmentsToSaveInTracker.clear();
+        String logPrefix = "New Completed Enrollments:: ";
+        String enrReference1 = "enrReference1";
+        String enrReference2 = "enrReference2";
+
+        String description = "Failed to update";
+        List<EnrollmentImportSummary> importSummaries = Arrays.asList(
+                new EnrollmentImportSummary("", EnrollmentImportSummary.IMPORT_SUMMARY_RESPONSE_ERROR, new ImportCount(0, 0, 1, 0),
+                        description, new ArrayList<>(), enrReference1, null
+                ),
+                new EnrollmentImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(1, 0, 0, 0),
+                        null, new ArrayList<>(),
+                        null, null
+                )
+        );
+
+        payLoad1.setEnrollmentId(enrReference1);
+        payLoad1.setStatus("COMPLETED");
+        payLoad2.setEnrollmentId(enrReference2);
+        payLoad2.setStatus("COMPLETED");
+        List<EnrollmentAPIPayLoad> payLoads = Arrays.asList(payLoad1, payLoad2);
+        Iterator<EnrollmentAPIPayLoad> iterator = payLoads.iterator();
+
+        responseHandler.processCompletedSecondStepResponse(importSummaries, iterator, logger, logPrefix);
+
+        verify(logger, times(1)).error(logPrefix + description);
+        verify(loggerService, times(1)).collateLogMessage(description);
+
+        assertEquals("ACTIVE", payLoad1.getStatus());
+        assertEquals("COMPLETED", payLoad2.getStatus());
+    }
+
+    @Test
+    public void shouldChangeStatusOfFailedToUpdatedEnrollmentToActiveAndLogTheConflict() {
+        EnrollmentUtil.enrollmentsToSaveInTracker.clear();
+        String logPrefix = "New Completed Enrollments:: ";
+        String enrReference1 = "enrReference1";
+        String enrReference2 = "enrReference2";
 
         String conflictMessage = "Enrollment Date can't be future date :Mon Oct 20 00:00:00 IST 2020";
         List<EnrollmentImportSummary> importSummaries = Arrays.asList(
-                new EnrollmentImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(1, 0, 0, 0),
+                new EnrollmentImportSummary("", EnrollmentImportSummary.IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(1, 0, 0, 0),
                         null, new ArrayList<>(), enrReference1, null
                 ),
                 new EnrollmentImportSummary("", IMPORT_SUMMARY_RESPONSE_ERROR, new ImportCount(0, 0, 1, 0),
@@ -171,21 +235,23 @@ public class EnrollmentResponseHandlerTest {
                         null, null
                 )
         );
+
         payLoad1.setEnrollmentId(enrReference1);
+        payLoad1.setStatus("COMPLETED");
+        payLoad2.setEnrollmentId(enrReference2);
+        payLoad2.setStatus("COMPLETED");
         List<EnrollmentAPIPayLoad> payLoads = Arrays.asList(payLoad1, payLoad2);
         Iterator<EnrollmentAPIPayLoad> iterator = payLoads.iterator();
-        List<EnrollmentAPIPayLoad> expected = new ArrayList<>();
-        expected.add(payLoad1);
 
-        responseHandler.processErrorResponse(importSummaries, iterator, logger, logPrefix);
+        responseHandler.processCompletedSecondStepResponse(importSummaries, iterator, logger, logPrefix);
 
         verify(logger, times(1)).error(logPrefix + CONFLICT_OBJ_ENROLLMENT_DATE + ": " +
                 conflictMessage);
         verify(loggerService, times(1)).collateLogMessage(CONFLICT_OBJ_ENROLLMENT_DATE + ": " +
                 conflictMessage);
-        assertEquals(expected, EnrollmentUtil.enrollmentsToSaveInTracker);
 
-        EnrollmentUtil.enrollmentsToSaveInTracker.clear();
+        assertEquals("COMPLETED", payLoad1.getStatus());
+        assertEquals("ACTIVE", payLoad2.getStatus());
     }
 
     private EnrollmentAPIPayLoad getEnrollmentPayLoad(String instanceId, String enrDate, String programUniqueId) {
