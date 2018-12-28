@@ -1,6 +1,6 @@
 package com.thoughtworks.martdhis2sync.step;
 
-import com.thoughtworks.martdhis2sync.processor.NewCompletedEnrollmentWithEventsProcessor;
+import com.thoughtworks.martdhis2sync.processor.NewEnrollmentWithEventsProcessor;
 import com.thoughtworks.martdhis2sync.reader.MappingReader;
 import com.thoughtworks.martdhis2sync.writer.NewActiveAndCompletedEnrollmentWithEventsWriter;
 import org.junit.Before;
@@ -31,10 +31,10 @@ public class NewActiveEnrollmentWithEventsStepTest {
     private JdbcCursorItemReader<Map<String, Object>> jdbcCursorItemReader;
 
     @Mock
-    private ObjectFactory<NewCompletedEnrollmentWithEventsProcessor> objectFactory;
+    private ObjectFactory<NewEnrollmentWithEventsProcessor> objectFactory;
 
     @Mock
-    private NewCompletedEnrollmentWithEventsProcessor processor;
+    private NewEnrollmentWithEventsProcessor processor;
 
     @Mock
     private NewActiveAndCompletedEnrollmentWithEventsWriter writer;

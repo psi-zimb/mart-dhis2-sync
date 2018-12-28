@@ -1,6 +1,6 @@
 package com.thoughtworks.martdhis2sync.step;
 
-import com.thoughtworks.martdhis2sync.processor.NewCompletedEnrollmentWithEventsProcessor;
+import com.thoughtworks.martdhis2sync.processor.NewEnrollmentWithEventsProcessor;
 import com.thoughtworks.martdhis2sync.reader.MappingReader;
 import com.thoughtworks.martdhis2sync.writer.NewActiveAndCompletedEnrollmentWithEventsWriter;
 import org.springframework.batch.core.Step;
@@ -15,7 +15,7 @@ public class NewCompletedEnrollmentWithEventsStep {
     private MappingReader mappingReader;
 
     @Autowired
-    private ObjectFactory<NewCompletedEnrollmentWithEventsProcessor> processorObjectFactory;
+    private ObjectFactory<NewEnrollmentWithEventsProcessor> processorObjectFactory;
 
     @Autowired
     private NewActiveAndCompletedEnrollmentWithEventsWriter writer;
@@ -33,8 +33,8 @@ public class NewCompletedEnrollmentWithEventsStep {
                 writer);
     }
 
-    private NewCompletedEnrollmentWithEventsProcessor getProcessor(Object mappingObj) {
-        NewCompletedEnrollmentWithEventsProcessor processor = processorObjectFactory.getObject();
+    private NewEnrollmentWithEventsProcessor getProcessor(Object mappingObj) {
+        NewEnrollmentWithEventsProcessor processor = processorObjectFactory.getObject();
         processor.setMappingObj(mappingObj);
 
         return processor;
