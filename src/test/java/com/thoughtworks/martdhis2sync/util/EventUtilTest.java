@@ -13,6 +13,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -160,6 +161,18 @@ public class EventUtilTest {
         Assert.assertEquals(event1, events.get(0));
         Assert.assertEquals(event3, events.get(1));
         Assert.assertEquals(event2, events.get(2));
+    }
+
+    @Test
+    public void shouldUpdateEventDateWhenTheGivenDateIsGreater() {
+        EventUtil.date = new Date(Long.MIN_VALUE);
+        String givenDate = "2018-10-28 12:00:03";
+
+        Date dateMock = mock(Date.class);
+        when(BatchUtil.getDateFromString(givenDate, DATEFORMAT_WITH_24HR_TIME)).thenReturn(dateMock);
+        EventUtil.updateLatestEventDateCreated(givenDate);
+
+        assertEquals(dateMock, EventUtil.date);
     }
 
     private JsonObject getTableRow(String eventId) {

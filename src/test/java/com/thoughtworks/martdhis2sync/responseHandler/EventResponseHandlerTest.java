@@ -574,6 +574,44 @@ public class EventResponseHandlerTest {
         EventUtil.eventsToSaveInTracker.clear();
     }
 
+    @Test
+    public void shouldLogConflictMessageAndUpdateTrackerWhenResponseHasWarningWithImport() {
+        EventUtil.eventsToSaveInTracker.clear();
+        List<Event> events1 = new LinkedList<>();
+        event1 = getEvents("", eventDate, dataValues1, "1", "");
+        events1.add(event1);
+        payLoad1 = getEnrollmentPayLoad(instanceId1, enrDate, events1, "1", enrReference1);
+
+        List<EnrollmentAPIPayLoad> enrollmentAPIPayLoads = Collections.singletonList(payLoad1);
+
+        EventTracker eventTracker1 = getEventTracker("", instanceId1, "1");
+
+        List<EventTracker> eventTrackers = Collections.singletonList(eventTracker1);
+
+        List<Conflict> conflicts = Collections.singletonList(new Conflict("jfDdErl", "value_not_true_only"));
+        List<EnrollmentImportSummary> importSummaries = Collections.singletonList(
+                new EnrollmentImportSummary("", IMPORT_SUMMARY_RESPONSE_SUCCESS, new ImportCount(1, 0, 0, 0),
+                        null, new ArrayList<>(), enrReference1, new Response("ImportSummaries",
+                        IMPORT_SUMMARY_RESPONSE_ERROR, 1, 0, 0, 1,
+                        Arrays.asList(
+                                new ImportSummary("", IMPORT_SUMMARY_RESPONSE_WARNING,
+                                        new ImportCount(1, 0, 1, 0),
+                                        null, conflicts, null)
+                        ),
+                        1
+                )
+                )
+        );
+
+        responseHandler.process(enrollmentAPIPayLoads, importSummaries, eventTrackers, logger, prefix);
+
+        assertEquals(1, EventUtil.eventsToSaveInTracker.size());
+        verify(logger, times(1)).error(prefix + "jfDdErl: value_not_true_only");
+        verify(loggerService, times(1)).collateLogMessage("jfDdErl: value_not_true_only");
+
+        EventUtil.eventsToSaveInTracker.clear();
+    }
+
     private EnrollmentAPIPayLoad getEnrollmentPayLoad(String instanceId, String enrDate, List<Event> events, String programUniqueId, String  enrollmentId) {
         return new EnrollmentAPIPayLoad(
                 enrollmentId,
