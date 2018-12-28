@@ -16,7 +16,7 @@ import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
 import static com.thoughtworks.martdhis2sync.util.EventUtil.getDataValues;
 
 @Component
-public class UpdatedCompletedEnrollmentWithEventsProcessor extends EnrollmentWithEventProcessor implements ItemProcessor {
+public class UpdatedEnrollmentWithEventsProcessor extends EnrollmentWithEventProcessor implements ItemProcessor {
 
     @Setter
     private Object mappingObj;
