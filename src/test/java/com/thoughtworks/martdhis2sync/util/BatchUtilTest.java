@@ -18,6 +18,7 @@ import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.convertResourceOutputToString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getFormattedDateString;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getQuotedString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.hasValue;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeLastChar;
@@ -134,5 +135,10 @@ public class BatchUtilTest {
     @Test
     public void shouldGetUnquotedString() {
         assertEquals("someValue", getUnquotedString("\"someValue\""));
+    }
+
+    @Test
+    public void shouldGetQuotedString() {
+        assertEquals("\"someString\"", getQuotedString("someString"));
     }
 }

@@ -179,20 +179,13 @@ public class NewActiveAndCompletedEnrollmentWithEventsWriter implements ItemWrit
         }
         String activeEnrollmentId = getActiveEnrollmentId(enrollmentDetails);
 
-        String id = "";
-        switch (openLatestCompletedEnrollment) {
-            case YES: {
-                id = StringUtils.isEmpty(activeEnrollmentId)
-                        ? getLatestCompletedEnrollmentId(enrollmentDetails)
-                        : activeEnrollmentId;
-                break;
-            }
-            case NO: {
-                id = activeEnrollmentId;
-                break;
-            }
+        if (YES.equals(openLatestCompletedEnrollment)) {
+            return StringUtils.isEmpty(activeEnrollmentId)
+                    ? getLatestCompletedEnrollmentId(enrollmentDetails)
+                    : activeEnrollmentId;
         }
-        return id;
+
+        return activeEnrollmentId;
     }
 
     private String getLatestCompletedEnrollmentId(List<EnrollmentDetails> enrollmentDetails) {
@@ -200,7 +193,7 @@ public class NewActiveAndCompletedEnrollmentWithEventsWriter implements ItemWrit
         String maxCompletedDate = "";
         for (EnrollmentDetails enrollment : enrollmentDetails) {
             String completedDate = enrollment.getCompletedDate();
-            if (!StringUtils.isEmpty(completedDate) && maxCompletedDate.compareTo(completedDate) < 1) {
+            if (maxCompletedDate.compareTo(completedDate) < 1) {
                 latestCompletedEnrollmentId = enrollment.getEnrollment();
                 maxCompletedDate = completedDate;
             }

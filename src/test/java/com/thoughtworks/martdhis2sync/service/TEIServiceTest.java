@@ -14,7 +14,9 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpServerErrorException;
 
 import java.io.IOException;
 import java.io.SyncFailedException;
@@ -188,6 +190,31 @@ public class TEIServiceTest {
     }
 
     @Test
+    public void shouldReturnAddAnyEnrollmentsIfSyncRepoThrowsError() throws Exception {
+        String enrollment = "enrollmentTable";
+        String programName = "HTS";
+        String eventTable = "eventTable";
+        Map<String, Object> map1 = new HashMap<>();
+        map1.put("instance_id", "instance1");
+        map1.put("program", "program");
+
+        Map<String, Object> map2 = new HashMap<>();
+        map2.put("instance_id", "instance2");
+        map2.put("program", "program");
+
+        String url = "/api/trackedEntityInstances?" +
+                "fields=trackedEntityInstance,enrollments[program,enrollment,enrollmentDate,completedDate,status]&" +
+                "program=program&trackedEntityInstance=instance1;instance2";
+
+        when(patientDAO.getDeltaEnrollmentInstanceIds(enrollment, eventTable, programName)).thenReturn(Arrays.asList(map1, map2));
+        when(syncRepository.getTrackedEntityInstances(url)).thenThrow(new HttpServerErrorException(HttpStatus.CONFLICT));
+
+        teiService.getEnrollmentsForInstances(enrollment, eventTable, programName);
+
+        assertEquals(0, TEIUtil.getInstancesWithEnrollments().size());
+    }
+
+    @Test
     public void shouldGetTrackedEntityInstanceFromDHIS() throws IOException {
         String program = "HIV Testing Service";
         String queryParams = "&filter=HF8Tu4tg:IN:NINETU190995MT;JKAPTA170994MT;";
@@ -213,6 +240,27 @@ public class TEIServiceTest {
         verify(syncRepository, times(1)).getTrackedEntityInstances(uri);
         verifyStatic(times(1));
         TEIUtil.setTrackedEntityInstanceInfos(getTrackedEntityInstances());
+    }
+
+    @Test
+    public void shouldNotGetTrackedEntityInstanceIfSearchblesIsEmpty() throws IOException {
+        String program = "HIV Testing Service";
+
+        MappingJson mappingJson = new MappingJson();
+        mappingJson.setInstance("{" +
+                "\"UIC\": \"HF8Tu4tg\"," +
+                "\"date_created\": \"ojmUIu4tg\"" +
+                "}");
+
+        when(mappingDAO.getSearchableFields(program)).thenReturn(new ArrayList<>());
+
+        teiService.getTrackedEntityInstances(program, mappingJson);
+
+        verify(mappingDAO, times(1)).getSearchableFields(program);
+        verifyStatic(times(1));
+        TEIUtil.setTrackedEntityInstanceInfos(Collections.emptyList());
+
+        assertEquals(0, TEIUtil.getTrackedEntityInstanceInfos().size());
     }
 
     private List<TrackedEntityInstanceInfo> getTrackedEntityInstances() {

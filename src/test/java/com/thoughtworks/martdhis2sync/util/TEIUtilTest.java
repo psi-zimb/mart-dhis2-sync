@@ -48,4 +48,34 @@ public class TEIUtilTest {
 
         assertEquals(0, TEIUtil.getPatientIdTEIUidMap().size());
     }
+
+    @Test
+    public void shouldAddToTheTrackedEntityInstances() {
+        JsonObject tableRowObject = new JsonObject();
+        tableRowObject.addProperty("Patient_Identifier", "NAH00001");
+        tableRowObject.addProperty("instance_id", "88djSeH");
+
+        TEIUtil.resetTrackedEntityInstaceIDs();
+
+        TEIUtil.setTrackedEntityInstanceIDs(tableRowObject);
+
+        assertEquals("88djSeH", TEIUtil.getTrackedEntityInstanceIDs().get("NAH00001"));
+    }
+
+    @Test
+    public void shouldClearTrackedEntityInstanceIds() {
+        TEIUtil.resetTrackedEntityInstaceIDs();
+
+        JsonObject tableRowObject = new JsonObject();
+        tableRowObject.addProperty("Patient_Identifier", "NAH00001");
+        tableRowObject.addProperty("instance_id", "88djSeH");
+
+        TEIUtil.setTrackedEntityInstanceIDs(tableRowObject);
+
+        assertEquals(1, TEIUtil.getTrackedEntityInstanceIDs().size());
+
+        TEIUtil.resetTrackedEntityInstaceIDs();
+
+        assertEquals(0, TEIUtil.getTrackedEntityInstanceIDs().size());
+    }
 }
