@@ -31,8 +31,8 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({EnrollmentUtil.class, BatchUtil.class, EventUtil.class})
-public class NewCompletedEnrollmentWithEventsProcessorTest {
-    private NewCompletedEnrollmentWithEventsProcessor processor;
+public class NewEnrollmentWithEventsProcessorTest {
+    private NewEnrollmentWithEventsProcessor processor;
 
     private String eventDateCreated = "2018-10-25 13:46:23";
     private String enrollmentDateCreated = "2018-10-24 13:46:23";
@@ -51,7 +51,7 @@ public class NewCompletedEnrollmentWithEventsProcessorTest {
     public void setUp() throws Exception {
         dataValues.put("gXNu7zJBTDN", "no");
 
-        processor = new NewCompletedEnrollmentWithEventsProcessor();
+        processor = new NewEnrollmentWithEventsProcessor();
 
         mockStatic(EnrollmentUtil.class);
         mockStatic(EventUtil.class);
