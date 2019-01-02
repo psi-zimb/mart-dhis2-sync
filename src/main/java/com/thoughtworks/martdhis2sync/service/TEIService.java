@@ -120,12 +120,8 @@ public class TEIService {
             String instanceIds = String.join(";", instanceIdsList);
             String url = String.format(TEI_ENROLLMENTS_URI, program, instanceIds);
 
-            try {
-                ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstances = syncRepository.getTrackedEntityInstances(url);
-                TEIUtil.setInstancesWithEnrollments(getMap(trackedEntityInstances.getBody().getTrackedEntityInstances()));
-            } catch (Exception ignored) {
-
-            }
+            ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstances = syncRepository.getTrackedEntityInstances(url);
+            TEIUtil.setInstancesWithEnrollments(getMap(trackedEntityInstances.getBody().getTrackedEntityInstances()));
         }
     }
 

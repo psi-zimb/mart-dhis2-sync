@@ -253,12 +253,32 @@ public class SyncRepositoryTest {
         try {
             syncRepository.getTrackedEntityInstances("");
         } catch (Exception e) {
-
             verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
             verify(logger, times(1)).error("SyncRepository: org.springframework.web.client.HttpServerErrorException: 500 INTERNAL_SERVER_ERROR");
+            verify(loggerService, times(1)).collateLogMessage("500 INTERNAL_SERVER_ERROR");
         }
     }
 
+    @Test
+    public void shouldLogErrorMessageWhenDhisGivesErrorResponseForTrackedEntityInstances() {
+        String response = "{" +
+                "\"httpStatus\":\"Conflict\", " +
+                "\"httpStatusCode\":\"409\", " +
+                "\"trackedEntityInstances\": []," +
+                "\"message\": \"Attribute doesn't exist\"" +
+                "}";
+        Charset charset = Charset.forName("UTF-8");
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
+                .thenThrow(new HttpClientErrorException(HttpStatus.CONFLICT, "Attribute doesn't exist", response.getBytes(), charset));
+
+        try {
+            syncRepository.getTrackedEntityInstances("");
+        } catch (Exception e) {
+            verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
+            verify(logger, times(1)).error("SyncRepository: org.springframework.web.client.HttpClientErrorException: 409 Attribute doesn't exist");
+            verify(loggerService, times(1)).collateLogMessage("409 Attribute doesn't exist");
+        }
+    }
 
     @Test
     public void shouldThrowExceptionWhenGettingDataElementsInfoAndLogThat() {

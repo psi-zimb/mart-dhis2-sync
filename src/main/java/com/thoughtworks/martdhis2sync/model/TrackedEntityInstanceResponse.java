@@ -11,4 +11,6 @@ import java.util.List;
 @AllArgsConstructor
 public class TrackedEntityInstanceResponse {
     private List<TrackedEntityInstanceInfo> trackedEntityInstances;
+    private String message;
+    private int httpStatusCode;
 }

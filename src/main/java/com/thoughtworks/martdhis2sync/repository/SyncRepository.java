@@ -140,7 +140,16 @@ public class SyncRepository {
                             new HttpEntity<>(getHttpHeaders()), TrackedEntityInstanceResponse.class);
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
 
-        } catch (Exception e){
+        } catch (HttpClientErrorException e) {
+            responseEntity = new ResponseEntity<>(
+                    new Gson().fromJson(e.getResponseBodyAsString(), TrackedEntityInstanceResponse.class),
+                    e.getStatusCode());
+            TrackedEntityInstanceResponse body = responseEntity.getBody();
+            loggerService.collateLogMessage(String.format("%s %s", body.getHttpStatusCode(), body.getMessage()));
+            logger.error(LOG_PREFIX + e);
+            throw e;
+        } catch (HttpServerErrorException e) {
+            loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
             logger.error(LOG_PREFIX + e);
             throw e;
         }
