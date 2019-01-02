@@ -13,6 +13,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.web.client.HttpServerErrorException;
 
 import java.io.SyncFailedException;
 import java.util.Date;
@@ -97,18 +98,21 @@ public class PushControllerTest {
         when(mappingService.getMapping(service)).thenReturn(mapping);
         doThrow(new SyncFailedException("instance sync failed")).when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
 
-        pushController.pushData(dhisSyncRequestBody);
-
-        verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
-        verify(teiService, times(1)).getTrackedEntityInstances(
-                getDhisSyncRequestBody().getService(), mappingJson);
-        verify(loggerService, times(1)).addLog(service, user, comment);
-        verify(loggerService, times(1)).updateLog(service, "failed");
-        verify(mappingService, times(1)).getMapping(service);
-        verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
-        verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
-        verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
-        verifyStatic(times(0));
+        try {
+            pushController.pushData(dhisSyncRequestBody);
+        } catch (HttpServerErrorException e) {
+            verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
+            verify(teiService, times(1)).getTrackedEntityInstances(
+                    getDhisSyncRequestBody().getService(), mappingJson);
+            verify(loggerService, times(1)).addLog(service, user, comment);
+            verify(loggerService, times(1)).updateLog(service, "failed");
+            verify(mappingService, times(1)).getMapping(service);
+            verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
+            verifyStatic(times(0));
+            assertEquals("500 SYNC FAILED", e.getMessage());
+        }
     }
 
     @Test
@@ -128,25 +132,28 @@ public class PushControllerTest {
                 .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
         doNothing().when(teiService).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service);
 
-        pushController.pushData(dhisSyncRequestBody);
-
-        verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
-        verify(loggerService, times(1)).addLog(service, user, comment);
-        verify(loggerService, times(1)).updateLog(service, "failed");
-        verify(mappingService, times(1)).getMapping(service);
-        verify(teiService, times(1)).getTrackedEntityInstances(
-                getDhisSyncRequestBody().getService(),
-                mappingJson
-        );
-        verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
-        verify(completedEnrollmentService, times(1))
-                .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
-        verify(completedEnrollmentService, times(0)).triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString());
-        verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
-        verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
-        verifyStatic(times(1));
-        TrackersHandler.clearTrackerLists();
-        verify(teiService, times(1)).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service);
+        try {
+            pushController.pushData(dhisSyncRequestBody);
+        } catch (HttpServerErrorException e) {
+            verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
+            verify(loggerService, times(1)).addLog(service, user, comment);
+            verify(loggerService, times(1)).updateLog(service, "failed");
+            verify(mappingService, times(1)).getMapping(service);
+            verify(teiService, times(1)).getTrackedEntityInstances(
+                    getDhisSyncRequestBody().getService(),
+                    mappingJson
+            );
+            verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
+            verify(completedEnrollmentService, times(1))
+                    .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
+            verify(completedEnrollmentService, times(0)).triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString());
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
+            verifyStatic(times(1));
+            TrackersHandler.clearTrackerLists();
+            verify(teiService, times(1)).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service);
+            assertEquals("500 SYNC FAILED", e.getMessage());
+        }
     }
 
     @Test
@@ -183,7 +190,7 @@ public class PushControllerTest {
             TrackersHandler.clearTrackerLists();
             verify(teiService, times(1)).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service);
 
-            assertEquals("NO DATA TO SYNC", e.getMessage());
+            assertEquals("500 NO DATA TO SYNC", e.getMessage());
         }
     }
 
@@ -204,19 +211,22 @@ public class PushControllerTest {
         doThrow(new SyncFailedException("instance sync failed")).when(completedEnrollmentService)
                 .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
 
-        pushController.pushData(dhisSyncRequestBody);
-
-        verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
-        verify(loggerService, times(1)).addLog(service, user, comment);
-        verify(loggerService, times(1)).updateLog(service, "failed");
-        verify(mappingService, times(1)).getMapping(service);
-        verify(completedEnrollmentService, times(1))
-                .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
-        verify(activeEnrollmentService, times(0))
-                .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
-        verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
-        verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
-        verifyStatic(times(1));
+        try {
+            pushController.pushData(dhisSyncRequestBody);
+        } catch (HttpServerErrorException e) {
+            verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
+            verify(loggerService, times(1)).addLog(service, user, comment);
+            verify(loggerService, times(1)).updateLog(service, "failed");
+            verify(mappingService, times(1)).getMapping(service);
+            verify(completedEnrollmentService, times(1))
+                    .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
+            verify(activeEnrollmentService, times(0))
+                    .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
+            verifyStatic(times(1));
+            assertEquals("500 SYNC FAILED", e.getMessage());
+        }
     }
 
     @Test
@@ -236,19 +246,22 @@ public class PushControllerTest {
         doThrow(new SyncFailedException("instance sync failed")).when(activeEnrollmentService)
                 .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
 
-        pushController.pushData(dhisSyncRequestBody);
-
-        verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
-        verify(loggerService, times(1)).addLog(service, user, comment);
-        verify(loggerService, times(1)).updateLog(service, "failed");
-        verify(mappingService, times(1)).getMapping(service);
-        verify(activeEnrollmentService, times(1))
-                .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
-        verify(activeEnrollmentService, times(0))
-                .triggerJobForUpdatedActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString());
-        verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
-        verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
-        verifyStatic(times(3));
+        try {
+            pushController.pushData(dhisSyncRequestBody);
+        } catch (HttpServerErrorException e) {
+            verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
+            verify(loggerService, times(1)).addLog(service, user, comment);
+            verify(loggerService, times(1)).updateLog(service, "failed");
+            verify(mappingService, times(1)).getMapping(service);
+            verify(activeEnrollmentService, times(1))
+                    .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
+            verify(activeEnrollmentService, times(0))
+                    .triggerJobForUpdatedActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString());
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
+            verifyStatic(times(3));
+            assertEquals("500 SYNC FAILED", e.getMessage());
+        }
     }
 
 
