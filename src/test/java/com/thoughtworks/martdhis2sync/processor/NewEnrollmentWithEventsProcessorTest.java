@@ -125,6 +125,30 @@ public class NewEnrollmentWithEventsProcessorTest {
         assertEquals(expected, actual);
     }
 
+    @Test
+    public void shouldReturnEventWithDefaultStatusWhenTheValueIsEmpty() throws ParseException {
+        JsonObject tableRowObject = getTableRowObjectWithEvent();
+        tableRowObject.remove("status");
+        JsonObject mappingJsonObj = getMappingJsonObj();
+
+        doNothing().when(EventUtil.class);
+        EventUtil.updateLatestEventDateCreated(eventDateCreated);
+        doNothing().when(EnrollmentUtil.class);
+        EnrollmentUtil.updateLatestEnrollmentDateCreated(enrollmentDateCreated);
+        when(EventUtil.getDataValues(tableRowObject, mappingJsonObj)).thenReturn(dataValues);
+
+        processor.setMappingObj(mappingJsonObj);
+
+        ProcessedTableRow actual = processor.process(tableRowObject);
+
+        verifyStatic(times(1));
+        getFormattedDateString(eventDateValue, DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME);
+        verifyStatic(times(2));
+        getFormattedDateString(enrDate, DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME);
+
+        assertEquals(getExpected(), actual);
+    }
+
     private JsonObject getTableRowObjectWithEvent() {
         JsonObject tableRowObject = new JsonObject();
         tableRowObject.addProperty("incident_date", enrDate);
