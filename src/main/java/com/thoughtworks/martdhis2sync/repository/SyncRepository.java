@@ -48,47 +48,11 @@ public class SyncRepository {
     private static final String LOG_PREFIX = "SyncRepository: ";
 
     public ResponseEntity<DHISSyncResponse> sendData(String uri, String body) {
-        ResponseEntity<DHISSyncResponse> responseEntity;
-        System.out.println("\nREQ: " + body);
-        try {
-            responseEntity = restTemplate
-                    .exchange(dhis2Url + uri, HttpMethod.POST, new HttpEntity<>(body, getHttpHeaders()), DHISSyncResponse.class);
-            logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
-        } catch (HttpClientErrorException e) {
-            responseEntity = new ResponseEntity<>(
-                    new Gson().fromJson(e.getResponseBodyAsString(), DHISSyncResponse.class),
-                    e.getStatusCode());
-            loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
-            logger.error(LOG_PREFIX + e);
-        } catch (HttpServerErrorException e) {
-            loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
-            logger.error(LOG_PREFIX + e);
-            throw e;
-        }
-        System.out.println("\nRES: " + responseEntity);
-        return responseEntity;
+        return sync(uri, body, DHISSyncResponse.class);
     }
 
     public ResponseEntity<DHISEnrollmentSyncResponse> sendEnrollmentData(String uri, String body) {
-        ResponseEntity<DHISEnrollmentSyncResponse> responseEntity;
-        System.out.println("\nREQ: " + body);
-        try {
-            responseEntity = restTemplate
-                    .exchange(dhis2Url + uri, HttpMethod.POST, new HttpEntity<>(body, getHttpHeaders()), DHISEnrollmentSyncResponse.class);
-            logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
-        } catch (HttpClientErrorException e) {
-            responseEntity = new ResponseEntity<>(
-                    new Gson().fromJson(e.getResponseBodyAsString(), DHISEnrollmentSyncResponse.class),
-                    e.getStatusCode());
-            loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
-            logger.error(LOG_PREFIX + e);
-        } catch (HttpServerErrorException e) {
-            loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
-            logger.error(LOG_PREFIX + e);
-            throw e;
-        }
-        System.out.println("\nRES: " + responseEntity);
-        return responseEntity;
+        return sync(uri, body, DHISEnrollmentSyncResponse.class);
     }
 
     public ResponseEntity<OrgUnitResponse> getOrgUnits(String url) {
@@ -166,5 +130,27 @@ public class SyncRepository {
         httpHeaders.set("Authorization", authHeader);
 
         return httpHeaders;
+    }
+
+    private <T> ResponseEntity<T> sync(String uri, String body, Class<T> type) {
+        ResponseEntity<T> responseEntity;
+        System.out.println("\nREQ: " + body);
+        try {
+            responseEntity = restTemplate
+                    .exchange(dhis2Url + uri, HttpMethod.POST, new HttpEntity<>(body, getHttpHeaders()), type);
+            logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
+        } catch (HttpClientErrorException e) {
+            responseEntity = new ResponseEntity<>(
+                    new Gson().fromJson(e.getResponseBodyAsString(), type),
+                    e.getStatusCode());
+            loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
+            logger.error(LOG_PREFIX + e);
+        } catch (HttpServerErrorException e) {
+            loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
+            logger.error(LOG_PREFIX + e);
+            throw e;
+        }
+        System.out.println("\nRES: " + responseEntity);
+        return responseEntity;
     }
 }
