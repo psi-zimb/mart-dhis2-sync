@@ -19,7 +19,7 @@ apply plugin: 'io.spring.dependency-management'
 apply plugin: 'jacoco'
 
 group = 'com.thoughtworks'
-version = '0.0.1-SNAPSHOT'
+version = '1.0.0'
 
 description = "Sync from Mart to DHIS"
 
