@@ -4,6 +4,7 @@ buildscript {
 	}
 	dependencies {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+		classpath 'org.owasp:dependency-check-gradle:4.0.1'
 	}
 }
 
@@ -17,6 +18,7 @@ apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'jacoco'
+apply plugin: 'org.owasp.dependencycheck'
 
 group = 'com.thoughtworks'
 version = '1.0.0'
@@ -141,3 +143,10 @@ task wrapper(type: Wrapper) {
 	gradleVersion = '4.8.1'
 }
 
+dependencyCheck {
+	analyzers {
+		centralEnabled = false
+	}
+	suppressionFile = './owasp-suppressions.xml'
+	failBuildOnCVSS = 7
+}
