@@ -134,7 +134,6 @@ public class SyncRepository {
 
     private <T> ResponseEntity<T> sync(String uri, String body, Class<T> type) {
         ResponseEntity<T> responseEntity;
-        System.out.println("\nREQ: " + body);
         try {
             responseEntity = restTemplate
                     .exchange(dhis2Url + uri, HttpMethod.POST, new HttpEntity<>(body, getHttpHeaders()), type);
@@ -150,7 +149,6 @@ public class SyncRepository {
             logger.error(LOG_PREFIX + e);
             throw e;
         }
-        System.out.println("\nRES: " + responseEntity);
         return responseEntity;
     }
 }
