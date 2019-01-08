@@ -5,6 +5,8 @@ buildscript {
 	dependencies {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
 		classpath 'org.owasp:dependency-check-gradle:4.0.1'
+		classpath 'org.apache.logging.log4j:log4j-core:2.8.2'
+		classpath 'org.apache.logging.log4j:log4j-api:2.8.2'
 	}
 }
 
@@ -44,6 +46,8 @@ dependencies {
 	compile('org.postgresql:postgresql')
 	compile('com.google.code.gson:gson:2.8.4')
 	compile('org.projectlombok:lombok:1.18.2')
+	compile('org.apache.logging.log4j:log4j-core:2.8.2') {force=true}
+	compile('org.apache.logging.log4j:log4j-api:2.8.2') {force=true}
 	compile group: 'commons-io', name: 'commons-io', version: '2.4'
 
 	testCompile('org.springframework.boot:spring-boot-starter-test')
@@ -148,5 +152,5 @@ dependencyCheck {
 		centralEnabled = false
 	}
 	suppressionFile = './owasp-suppressions.xml'
-	failBuildOnCVSS = 7
+	failBuildOnCVSS = 8
 }
