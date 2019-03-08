@@ -121,19 +121,23 @@ public class TEIService {
             String url = String.format(TEI_ENROLLMENTS_URI, program, instanceIds);
 
             ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstances = syncRepository.getTrackedEntityInstances(url);
-            TEIUtil.setInstancesWithEnrollments(getMap(trackedEntityInstances.getBody().getTrackedEntityInstances()));
+            TEIUtil.setInstancesWithEnrollments(getMap(trackedEntityInstances.getBody().getTrackedEntityInstances(), program));
         }
     }
 
-    private Map<String, List<EnrollmentDetails>> getMap(List<TrackedEntityInstanceInfo> trackedEntityInstances) {
+    private Map<String, List<EnrollmentDetails>> getMap(List<TrackedEntityInstanceInfo> trackedEntityInstances, String currentProgram) {
         Map<String, List<EnrollmentDetails>> instancesMap = new HashMap<>();
         trackedEntityInstances.forEach(trackedEntityInstance -> {
             if (!trackedEntityInstance.getEnrollments().isEmpty()) {
-                instancesMap.put(trackedEntityInstance.getTrackedEntityInstance(), trackedEntityInstance.getEnrollments());
+                instancesMap.put(trackedEntityInstance.getTrackedEntityInstance(), filterProgramsBy(currentProgram, trackedEntityInstance.getEnrollments()));
             }
         });
 
         return instancesMap;
+    }
+
+    private List<EnrollmentDetails> filterProgramsBy(String program, List<EnrollmentDetails> allEnrollments) {
+        return allEnrollments.stream().filter(enrollment -> program.equals(enrollment.getProgram())).collect(Collectors.toList());
     }
 
     private List<String> getInstanceIds(List<Map<String, Object>> newEnrollmentInstances) {
