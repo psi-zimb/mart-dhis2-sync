@@ -168,9 +168,11 @@ public class TEIServiceTest {
 
         EnrollmentDetails enrollment1 = new EnrollmentDetails("program", "enrollment1", "2018-10-22", "2018-12-10", "COMPLETED");
         EnrollmentDetails enrollment2 = new EnrollmentDetails("program", "enrollment2", "2018-10-22", null, "ACTIVE");
+        EnrollmentDetails enrollment3 = new EnrollmentDetails("program2", "enrollment3", "2018-10-22", null, "ACTIVE");
+        EnrollmentDetails enrollment4 = new EnrollmentDetails("program2", "enrollment4", "2018-10-22", null, "ACTIVE");
 
         TrackedEntityInstanceInfo trackedEntityInstance1 = new TrackedEntityInstanceInfo();
-        trackedEntityInstance1.setEnrollments(Arrays.asList(enrollment1, enrollment2));
+        trackedEntityInstance1.setEnrollments(Arrays.asList(enrollment1, enrollment2, enrollment3, enrollment4));
         trackedEntityInstance1.setTrackedEntityInstance("instance1");
         TrackedEntityInstanceInfo trackedEntityInstance2 = new TrackedEntityInstanceInfo();
         trackedEntityInstance2.setTrackedEntityInstance("instance2");
