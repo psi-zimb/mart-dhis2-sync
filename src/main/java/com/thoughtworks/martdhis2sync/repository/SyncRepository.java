@@ -142,7 +142,7 @@ public class SyncRepository {
             responseEntity = restTemplate
                     .exchange(dhis2Url + uri, HttpMethod.POST, new HttpEntity<>(body, getHttpHeaders()), type);
 
-            System.out.println("Enrollment Sync Response---------->\n" + responseEntity);
+            System.out.println("Response---------->\n" + responseEntity);
 
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
         } catch (HttpClientErrorException e) {
