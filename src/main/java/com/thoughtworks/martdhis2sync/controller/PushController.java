@@ -88,7 +88,8 @@ public class PushController {
             throw e;
         } catch (Exception e) {
             loggerService.updateLog(requestBody.getService(), FAILED);
-            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "SYNC FAILED");
+//            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "SYNC FAILED");
+            e.printStackTrace();
         }
     }
 
@@ -102,11 +103,14 @@ public class PushController {
     private void triggerEnrollmentsSync(DHISSyncRequestBody requestBody, LookupTable lookupTable, MappingJson mappingJson, Config config) throws Exception {
         TrackersHandler.clearTrackerLists();
 
+        System.out.println("=========================TEI sync Success=========================\n\n" +
+                "=========================Getting enrollments fro TEI=========================\n");
+
         teiService.getEnrollmentsForInstances(lookupTable.getEnrollments(), lookupTable.getEvent(), requestBody.getService());
 
-        System.out.println("=========================TEI sync Success=========================\n\n" +
+        System.out.println("=========================Got enrollments for TEI=========================\n\n" +
                 "=========================New Completed Enrollment Sync Started=========================\n");
-        
+
         completedEnrollmentService.triggerJobForNewCompletedEnrollments(requestBody.getService(), requestBody.getUser(),
                 lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), config.getOpenLatestCompletedEnrollment());
 
