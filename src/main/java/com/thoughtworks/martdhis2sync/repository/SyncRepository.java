@@ -99,9 +99,14 @@ public class SyncRepository {
     public ResponseEntity<TrackedEntityInstanceResponse> getTrackedEntityInstances(String uri) {
         ResponseEntity<TrackedEntityInstanceResponse> responseEntity = null;
         try {
+            System.out.println("Tracked Entity Request URI---> "+ uri);
+
             responseEntity = restTemplate
                     .exchange(dhis2Url + uri, HttpMethod.GET,
                             new HttpEntity<>(getHttpHeaders()), TrackedEntityInstanceResponse.class);
+
+            System.out.println("Response---------->\n" + responseEntity);
+
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
 
         } catch (HttpClientErrorException e) {
