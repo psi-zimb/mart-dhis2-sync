@@ -34,7 +34,7 @@ public class OrgUnitService {
     @Autowired
     private SyncRepository syncRepository;
 
-    private static final String URI_ORG_UNIT = "/api/organisationUnits?pageSize=150000";
+    private static final String URI_ORG_UNIT = "/api/organisationUnits?fields=:all&pageSize=150000";
 
     private List<OrgUnit> orgUnits = new ArrayList<>();
 
@@ -76,7 +76,7 @@ public class OrgUnitService {
             }
             try (PreparedStatement ps = connection.prepareStatement(insertQuery)) {
                 for (OrgUnit ou : orgUnits) {
-                    ps.setString(1, ou.getDisplayName());
+                    ps.setString(1, ou.getCode());
                     ps.setString(2, ou.getId());
                     ps.setTimestamp(3, Timestamp.valueOf(BatchUtil.GetUTCDateTimeAsString()));
                     updateCount += ps.executeUpdate();
