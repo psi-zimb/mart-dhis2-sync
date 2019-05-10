@@ -135,8 +135,15 @@ public class SyncRepository {
     private <T> ResponseEntity<T> sync(String uri, String body, Class<T> type) {
         ResponseEntity<T> responseEntity;
         try {
+
+            System.out.println("Request URI---> "+ uri);
+            System.out.println("Request body--->\n"+ body);
+
             responseEntity = restTemplate
                     .exchange(dhis2Url + uri, HttpMethod.POST, new HttpEntity<>(body, getHttpHeaders()), type);
+
+            System.out.println("Enrollment Sync Response---------->\n" + responseEntity);
+
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
         } catch (HttpClientErrorException e) {
             responseEntity = new ResponseEntity<>(
