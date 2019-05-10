@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OrgUnit {
     private String id;
-    private String displayName;
+    private String code;
 }
