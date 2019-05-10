@@ -104,11 +104,17 @@ public class PushController {
 
         teiService.getEnrollmentsForInstances(lookupTable.getEnrollments(), lookupTable.getEvent(), requestBody.getService());
 
+        System.out.println("=========================TEI sync Success=========================\n\n" +
+                "=========================New Completed Enrollment Sync Started=========================\n");
+        
         completedEnrollmentService.triggerJobForNewCompletedEnrollments(requestBody.getService(), requestBody.getUser(),
                 lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), config.getOpenLatestCompletedEnrollment());
 
         enrollmentsToIgnore = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
         TrackersHandler.clearTrackerLists();
+
+        System.out.println("=========================New Completed Enrollment Sync Success=========================\n\n" +
+                "=========================Update Complete Enrollment Sync Started=========================\n");
 
         completedEnrollmentService.triggerJobForUpdatedCompletedEnrollments(requestBody.getService(), requestBody.getUser(),
                 lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), enrollmentsToIgnore,
@@ -116,12 +122,19 @@ public class PushController {
 
         TrackersHandler.clearTrackerLists();
 
+        System.out.println("=========================Update Complete Enrollment Sync Success=========================\n\n" +
+                "=========================New Active Enrollment Sync Started=========================\n");
+
         activeEnrollmentService.triggerJobForNewActiveEnrollments(requestBody.getService(), requestBody.getUser(),
                 lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), config.getOpenLatestCompletedEnrollment());
 
         enrollmentsToIgnore = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
         TrackersHandler.clearTrackerLists();
 
+
+        System.out.println("=========================New Active Enrollment Sync Success=========================\n\n" +
+                "=========================Update Active Enrollment Sync Started");
+        
         activeEnrollmentService.triggerJobForUpdatedActiveEnrollments(requestBody.getService(), requestBody.getUser(),
                 lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), enrollmentsToIgnore,
                 config.getOpenLatestCompletedEnrollment());
