@@ -50,8 +50,7 @@ public class OrgUnitServiceTest {
 
     private ResponseEntity<OrgUnitResponse> responseEntity;
     private String dhis2Url = "http://play.dhis2.org";
-    private String URI_ORG_UNIT = "/api/organisationUnits?pageSize=150000";
-    ;
+    private String URI_ORG_UNIT = "/api/organisationUnits?fields=:all&pageSize=150000";
 
     @Before
     public void setUp() throws Exception {
