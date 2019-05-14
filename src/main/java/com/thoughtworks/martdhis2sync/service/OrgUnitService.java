@@ -28,13 +28,18 @@ public class OrgUnitService {
     @Value("${dhis2.url}")
     private String dhis2Url;
 
+    @Value("${country.org.unit.id.for.patient.data.duplication.check}")
+    private String rootOrgUnit;
+
     @Autowired
     private DataSource dataSource;
 
     @Autowired
     private SyncRepository syncRepository;
 
-    private static final String URI_ORG_UNIT = "/api/organisationUnits?fields=:all&pageSize=150000";
+    private static final String URI_ORG_UNIT = "/api/organisationUnits/";
+
+    private static final String QUERY_PARAMS = "fields=:all&pageSize=150000&includeDescendants=true";
 
     private List<OrgUnit> orgUnits = new ArrayList<>();
 
@@ -48,7 +53,7 @@ public class OrgUnitService {
 
         logger.info(LOG_PREFIX + "Started.");
         orgUnits.clear();
-        String url = dhis2Url + URI_ORG_UNIT;
+        String url = dhis2Url + URI_ORG_UNIT + rootOrgUnit + "?" + QUERY_PARAMS;
         ResponseEntity<OrgUnitResponse> responseEntity;
         do {
             responseEntity = syncRepository.getOrgUnits(url);
