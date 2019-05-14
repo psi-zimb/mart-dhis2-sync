@@ -50,7 +50,10 @@ public class OrgUnitServiceTest {
 
     private ResponseEntity<OrgUnitResponse> responseEntity;
     private String dhis2Url = "http://play.dhis2.org";
-    private String URI_ORG_UNIT = "/api/organisationUnits?fields=:all&pageSize=150000";
+    private String URI_ORG_UNIT = "/api/organisationUnits/";
+    private String ROOT_ORG_UNIT = "SxgCPPeiq3c";
+    private String QUERY_PARAMS = "?fields=:all&pageSize=150000&includeDescendants=true";
+    private String URLToGetOrgUnits = dhis2Url + URI_ORG_UNIT + ROOT_ORG_UNIT + QUERY_PARAMS;
 
     @Before
     public void setUp() throws Exception {
@@ -58,6 +61,7 @@ public class OrgUnitServiceTest {
         setValuesForMemberFields(orgUnitService, "syncRepository", syncRepository);
         setValuesForMemberFields(orgUnitService, "dataSource", dataSource);
         setValuesForMemberFields(orgUnitService, "dhis2Url", dhis2Url);
+        setValuesForMemberFields(orgUnitService, "rootOrgUnit", ROOT_ORG_UNIT);
     }
 
     @Test
@@ -65,13 +69,13 @@ public class OrgUnitServiceTest {
     public void shouldGetAllOrgUnitsFromDHIS() {
         responseEntity = ResponseEntity.ok(new OrgUnitResponse(new Pager(), orgUnitList));
 
-        when(syncRepository.getOrgUnits(dhis2Url + URI_ORG_UNIT)).thenReturn(responseEntity);
+        when(syncRepository.getOrgUnits(URLToGetOrgUnits)).thenReturn(responseEntity);
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(any())).thenReturn(preparedStatement);
 
         orgUnitService.getOrgUnitsList();
 
-        verify(syncRepository, times(1)).getOrgUnits(dhis2Url + URI_ORG_UNIT);
+        verify(syncRepository, times(1)).getOrgUnits(URLToGetOrgUnits);
         verify(dataSource, times(1)).getConnection();
     }
 
@@ -79,24 +83,24 @@ public class OrgUnitServiceTest {
     public void shouldHandleExceptionsThrownWhenTryingToGetOrgUnitsFromDHIS() throws SQLException {
         responseEntity = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new OrgUnitResponse(new Pager(), orgUnitList));
 
-        when(syncRepository.getOrgUnits(dhis2Url + URI_ORG_UNIT)).thenReturn(responseEntity);
+        when(syncRepository.getOrgUnits(URLToGetOrgUnits)).thenReturn(responseEntity);
         when(dataSource.getConnection()).thenThrow(new SQLException());
 
         try {
             orgUnitService.getOrgUnitsList();
         } catch (SQLException e) {
-            verify(syncRepository, times(1)).getOrgUnits(dhis2Url + URI_ORG_UNIT);
+            verify(syncRepository, times(1)).getOrgUnits(URLToGetOrgUnits);
             verify(dataSource, times(1)).getConnection();
         }
     }
 
     @Test
     public void shouldNotUpdateTrackerWhenDhisReturnsNull() throws SQLException {
-        when(syncRepository.getOrgUnits(dhis2Url + URI_ORG_UNIT)).thenReturn(null);
+        when(syncRepository.getOrgUnits(URLToGetOrgUnits)).thenReturn(null);
 
         orgUnitService.getOrgUnitsList();
 
-        verify(syncRepository, times(1)).getOrgUnits(dhis2Url + URI_ORG_UNIT);
+        verify(syncRepository, times(1)).getOrgUnits(URLToGetOrgUnits);
         verify(dataSource, times(0)).getConnection();
     }
 
@@ -106,14 +110,14 @@ public class OrgUnitServiceTest {
 
         responseEntity = ResponseEntity.ok(new OrgUnitResponse(new Pager(), orgUnitList));
 
-        when(syncRepository.getOrgUnits(dhis2Url + URI_ORG_UNIT)).thenReturn(responseEntity);
+        when(syncRepository.getOrgUnits(URLToGetOrgUnits)).thenReturn(responseEntity);
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(deleteQuery)).thenThrow(new SQLException());
 
         try {
             orgUnitService.getOrgUnitsList();
         } catch (SQLException e) {
-            verify(syncRepository, times(1)).getOrgUnits(dhis2Url + URI_ORG_UNIT);
+            verify(syncRepository, times(1)).getOrgUnits(URLToGetOrgUnits);
             verify(dataSource, times(1)).getConnection();
             verify(connection, times(1)).prepareStatement(deleteQuery);
         }
@@ -125,7 +129,7 @@ public class OrgUnitServiceTest {
 
         responseEntity = ResponseEntity.ok(new OrgUnitResponse(new Pager(), orgUnitList));
 
-        when(syncRepository.getOrgUnits(dhis2Url + URI_ORG_UNIT)).thenReturn(responseEntity);
+        when(syncRepository.getOrgUnits(URLToGetOrgUnits)).thenReturn(responseEntity);
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(deleteQuery)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenThrow(new SQLException());
@@ -133,7 +137,7 @@ public class OrgUnitServiceTest {
         try {
             orgUnitService.getOrgUnitsList();
         } catch (SQLException e) {
-            verify(syncRepository, times(1)).getOrgUnits(dhis2Url + URI_ORG_UNIT);
+            verify(syncRepository, times(1)).getOrgUnits(URLToGetOrgUnits);
             verify(dataSource, times(1)).getConnection();
             verify(connection, times(1)).prepareStatement(deleteQuery);
             verify(preparedStatement, times(1)).executeUpdate();
@@ -147,7 +151,7 @@ public class OrgUnitServiceTest {
 
         responseEntity = ResponseEntity.ok(new OrgUnitResponse(new Pager(), orgUnitList));
 
-        when(syncRepository.getOrgUnits(dhis2Url + URI_ORG_UNIT)).thenReturn(responseEntity);
+        when(syncRepository.getOrgUnits(URLToGetOrgUnits)).thenReturn(responseEntity);
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(deleteQuery)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
@@ -156,7 +160,7 @@ public class OrgUnitServiceTest {
         try {
             orgUnitService.getOrgUnitsList();
         } catch (SQLException e) {
-            verify(syncRepository, times(1)).getOrgUnits(dhis2Url + URI_ORG_UNIT);
+            verify(syncRepository, times(1)).getOrgUnits(URLToGetOrgUnits);
             verify(dataSource, times(1)).getConnection();
             verify(connection, times(1)).prepareStatement(deleteQuery);
             verify(connection, times(1)).prepareStatement(selectQuery);
@@ -171,7 +175,7 @@ public class OrgUnitServiceTest {
 
         responseEntity = ResponseEntity.ok(new OrgUnitResponse(new Pager(), orgUnitList));
 
-        when(syncRepository.getOrgUnits(dhis2Url + URI_ORG_UNIT)).thenReturn(responseEntity);
+        when(syncRepository.getOrgUnits(URLToGetOrgUnits)).thenReturn(responseEntity);
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(deleteQuery)).thenReturn(preparedStatement);
         when(connection.prepareStatement(selectQuery)).thenReturn(preparedStatement);
@@ -182,7 +186,7 @@ public class OrgUnitServiceTest {
         try {
             orgUnitService.getOrgUnitsList();
         } catch (SQLException e) {
-            verify(syncRepository, times(1)).getOrgUnits(dhis2Url + URI_ORG_UNIT);
+            verify(syncRepository, times(1)).getOrgUnits(URLToGetOrgUnits);
             verify(dataSource, times(1)).getConnection();
             verify(connection, times(1)).prepareStatement(deleteQuery);
             verify(connection, times(1)).prepareStatement(selectQuery);
