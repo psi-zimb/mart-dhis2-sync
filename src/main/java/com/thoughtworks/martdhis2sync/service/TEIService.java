@@ -38,7 +38,7 @@ public class TEIService {
             "fields=trackedEntityInstance,enrollments[program,enrollment,enrollmentDate,completedDate,status]&" +
             "program=%s&trackedEntityInstance=%s";
 
-    @Value("${country.org.unit.id}")
+    @Value("${country.org.unit.id.for.patient.data.duplication.check}")
     private String orgUnitID;
 
     @Autowired
