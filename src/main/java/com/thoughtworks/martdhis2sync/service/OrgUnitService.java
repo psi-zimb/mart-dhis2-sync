@@ -39,7 +39,7 @@ public class OrgUnitService {
 
     private static final String URI_ORG_UNIT = "/api/organisationUnits/";
 
-    private static final String QUERY_PARAMS = "fields=:all&pageSize=150000&includeDescendants=true";
+    private static final String QUERY_PARAMS = "includeDescendants=true";
 
     private List<OrgUnit> orgUnits = new ArrayList<>();
 
@@ -54,15 +54,11 @@ public class OrgUnitService {
         logger.info(LOG_PREFIX + "Started.");
         orgUnits.clear();
         String url = dhis2Url + URI_ORG_UNIT + rootOrgUnit + "?" + QUERY_PARAMS;
-        ResponseEntity<OrgUnitResponse> responseEntity;
-        do {
-            responseEntity = syncRepository.getOrgUnits(url);
-            if (null == responseEntity) {
-                return;
-            }
-            orgUnits.addAll(responseEntity.getBody().getOrganisationUnits());
-            url = responseEntity.getBody().getPager().getNextPage();
-        } while (null != url);
+        ResponseEntity<OrgUnitResponse> responseEntity = syncRepository.getOrgUnits(url);
+        if (null == responseEntity) {
+            return;
+        }
+        orgUnits.addAll(responseEntity.getBody().getOrganisationUnits());
 
         OrgUnitUtil.getOrgUnitMap().clear();
         int count = updateTracker();
