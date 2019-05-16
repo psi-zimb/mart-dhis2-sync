@@ -21,6 +21,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class OrgUnitService {
@@ -50,6 +51,7 @@ public class OrgUnitService {
     @Scheduled(cron = "${org.unit.cron.interval}")
     @PostConstruct
     public void getOrgUnitsList() throws SQLException {
+        List<OrgUnit> orgUnitsWithCode;
 
         logger.info(LOG_PREFIX + "Started.");
         orgUnits.clear();
@@ -58,7 +60,15 @@ public class OrgUnitService {
         if (null == responseEntity) {
             return;
         }
-        orgUnits.addAll(responseEntity.getBody().getOrganisationUnits());
+
+        orgUnitsWithCode = responseEntity
+                .getBody()
+                .getOrganisationUnits()
+                .stream()
+                .filter(orgUnit -> orgUnit.getCode() != null)
+                .collect(Collectors.toList());
+
+        this.orgUnits.addAll(orgUnitsWithCode);
 
         OrgUnitUtil.getOrgUnitMap().clear();
         int count = updateTracker();
