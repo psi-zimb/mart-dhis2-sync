@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.SyncFailedException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -40,6 +41,9 @@ public class TEIService {
 
     @Value("${country.org.unit.id.for.patient.data.duplication.check}")
     private String orgUnitID;
+
+    @Value("${tracked.entity.filter.uri.limit}")
+    private int TEI_FILTER_URI_LIMIT;
 
     @Autowired
     private MappingDAO mappingDAO;
@@ -78,6 +82,7 @@ public class TEIService {
     }
 
     public void getTrackedEntityInstances(String mappingName, MappingJson mappingJson) throws IOException {
+        List<TrackedEntityInstanceInfo> allTEIInfos = new ArrayList<>();
         StringBuilder url = new StringBuilder();
 
         url.append(TEI_URI);
@@ -95,20 +100,23 @@ public class TEIService {
             return;
         }
 
-        searchableFields.get(0).keySet().forEach(filter -> {
-            url.append("&filter=");
-            url.append(instanceMapping.get(filter));
-            url.append(":IN:");
+        separateSearchFieldsBasedOnFilterLimit(searchableFields).forEach(searchableFieldGroup -> {
+            StringBuilder uri = new StringBuilder();
+            searchableFieldGroup.get(0).keySet().forEach(filter -> {
+                uri.append("&filter=");
+                uri.append(instanceMapping.get(filter));
+                uri.append(":IN:");
 
-            searchableFields.forEach(searchableField -> {
-                url.append(searchableField.get(filter));
-                url.append(";");
+                searchableFieldGroup.forEach(searchableField -> {
+                    uri.append(searchableField.get(filter));
+                    uri.append(";");
+                });
             });
+
+            allTEIInfos.addAll(syncRepository.getTrackedEntityInstances(url.toString() + uri).getBody().getTrackedEntityInstances());
         });
 
-        TEIUtil.setTrackedEntityInstanceInfos(
-                syncRepository.getTrackedEntityInstances(url.toString()).getBody().getTrackedEntityInstances()
-        );
+        TEIUtil.setTrackedEntityInstanceInfos(allTEIInfos);
     }
 
     public void getEnrollmentsForInstances(String enrollmentTable, String eventTable, String programName) throws Exception {
@@ -149,5 +157,23 @@ public class TEIService {
                 .stream()
                 .map(instanceObj -> instanceObj.get("instance_id").toString())
                 .collect(Collectors.toList());
+    }
+
+    private List<List<Map<String, Object>>> separateSearchFieldsBasedOnFilterLimit(List<Map<String, Object>> searchableFields) {
+        List<List<Map<String, Object>>> result = new ArrayList<>();
+        List<Map<String, Object>> searchableGroup = new ArrayList<>();
+        searchableFields.forEach(searchableField -> {
+            if (searchableGroup.size() >= TEI_FILTER_URI_LIMIT) {
+                result.add(new ArrayList<>(searchableGroup));
+                searchableGroup.clear();
+            }
+            searchableGroup.add(searchableField);
+        });
+
+        if (!searchableGroup.isEmpty()) {
+            result.add(searchableGroup);
+        }
+
+        return result;
     }
 }
