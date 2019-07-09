@@ -2,7 +2,11 @@ package com.thoughtworks.martdhis2sync.service;
 
 import com.thoughtworks.martdhis2sync.dao.MappingDAO;
 import com.thoughtworks.martdhis2sync.dao.PatientDAO;
-import com.thoughtworks.martdhis2sync.model.*;
+import com.thoughtworks.martdhis2sync.model.Attribute;
+import com.thoughtworks.martdhis2sync.model.EnrollmentDetails;
+import com.thoughtworks.martdhis2sync.model.MappingJson;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceInfo;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceResponse;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.step.TrackedEntityInstanceStep;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
@@ -20,11 +24,22 @@ import org.springframework.web.client.HttpServerErrorException;
 
 import java.io.IOException;
 import java.io.SyncFailedException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 @RunWith(PowerMockRunner.class)
@@ -57,6 +72,7 @@ public class TEIServiceTest {
 
     public static final String TRACKED_ENTITY_INSTANCE_URI = "/api/trackedEntityInstances?pageSize=10000";
     private String ORG_UNIT_ID = "DiszpKrYNg8";
+    private int TEI_FILTER_URI_LIMIT = 5;
     private ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstanceResponse;
     private HashMap<String, Object> expectedMapping;
     private TEIService teiService;
@@ -71,6 +87,7 @@ public class TEIServiceTest {
         setValuesForMemberFields(teiService, "patientDAO", patientDAO);
         setValuesForMemberFields(teiService, "syncRepository", syncRepository);
         setValuesForMemberFields(teiService, "orgUnitID", ORG_UNIT_ID);
+        setValuesForMemberFields(teiService, "TEI_FILTER_URI_LIMIT", TEI_FILTER_URI_LIMIT);
 
         steps.add(step);
 
@@ -267,6 +284,35 @@ public class TEIServiceTest {
         assertEquals(0, TEIUtil.getTrackedEntityInstanceInfos().size());
     }
 
+    @Test
+    public void shouldSearchForFiveHundredTEIsAtATimeAndMakeTheCallMultipleTimesAccordingly() throws IOException {
+        String program = "HIV Testing Service";
+        String firstFiveUICs = "I14NM8TQ8A;K195G5NR3Q;XHPW96RN9H;5M7SEGZ1Q3;CR4XHTG1O7;";
+        String lastFourUICs = "E8WXHJPWUG;UIBXG5IM3O;ZQT65ZLHRL;54KE7VC6AL;";
+        String queryParams = "&filter=HF8Tu4tg:IN:";
+        String uriWithoutSearchValues = TRACKED_ENTITY_INSTANCE_URI + "&ou=" + ORG_UNIT_ID + "&ouMode=DESCENDANTS";
+
+        trackedEntityInstanceResponse = ResponseEntity.ok(new TrackedEntityInstanceResponse(getTrackedEntityInstances(), "", 200));
+
+        MappingJson mappingJson = new MappingJson();
+        mappingJson.setInstance("{" +
+                "\"UIC\": \"HF8Tu4tg\"," +
+                "\"date_created\": \"ojmUIu4tg\"" +
+                "}");
+
+        when(mappingDAO.getSearchableFields(program)).thenReturn(getTenSearchableValues());
+        when(mappingDAO.getMapping(program)).thenReturn(expectedMapping);
+        when(syncRepository.getTrackedEntityInstances(anyString())).thenReturn(trackedEntityInstanceResponse);
+
+        teiService.getTrackedEntityInstances(program, mappingJson);
+
+        verify(mappingDAO, times(1)).getSearchableFields(program);
+        verify(syncRepository, times(1)).getTrackedEntityInstances(uriWithoutSearchValues + queryParams + firstFiveUICs);
+        verify(syncRepository, times(1)).getTrackedEntityInstances(uriWithoutSearchValues + queryParams + lastFourUICs);
+        verifyStatic(times(1));
+        TEIUtil.setTrackedEntityInstanceInfos(getTrackedEntityInstances());
+    }
+
     private List<TrackedEntityInstanceInfo> getTrackedEntityInstances() {
         List<TrackedEntityInstanceInfo> trackedEntityInstanceInfos = new LinkedList<>();
         List<Attribute> attributesOfPatient1 = new ArrayList<>();
@@ -363,6 +409,48 @@ public class TEIServiceTest {
         Map<String, Object> searchable2 = new HashMap<>();
         searchable2.put("UIC", "JKAPTA170994MT");
         searchableValues.add(searchable2);
+
+        return searchableValues;
+    }
+
+    private List<Map<String, Object>> getTenSearchableValues() {
+        List<Map<String, Object>> searchableValues = new LinkedList<>();
+
+        Map<String, Object> searchable1 = new HashMap<>();
+        searchable1.put("UIC", "I14NM8TQ8A");
+        searchableValues.add(searchable1);
+
+        Map<String, Object> searchable2 = new HashMap<>();
+        searchable2.put("UIC", "K195G5NR3Q");
+        searchableValues.add(searchable2);
+
+        Map<String, Object> searchable3 = new HashMap<>();
+        searchable3.put("UIC", "XHPW96RN9H");
+        searchableValues.add(searchable3);
+
+        Map<String, Object> searchable4 = new HashMap<>();
+        searchable4.put("UIC", "5M7SEGZ1Q3");
+        searchableValues.add(searchable4);
+
+        Map<String, Object> searchable5 = new HashMap<>();
+        searchable5.put("UIC", "CR4XHTG1O7");
+        searchableValues.add(searchable5);
+
+        Map<String, Object> searchable6 = new HashMap<>();
+        searchable6.put("UIC", "E8WXHJPWUG");
+        searchableValues.add(searchable6);
+
+        Map<String, Object> searchable7 = new HashMap<>();
+        searchable7.put("UIC", "UIBXG5IM3O");
+        searchableValues.add(searchable7);
+
+        Map<String, Object> searchable8 = new HashMap<>();
+        searchable8.put("UIC", "ZQT65ZLHRL");
+        searchableValues.add(searchable8);
+
+        Map<String, Object> searchable9 = new HashMap<>();
+        searchable9.put("UIC", "54KE7VC6AL");
+        searchableValues.add(searchable9);
 
         return searchableValues;
     }
