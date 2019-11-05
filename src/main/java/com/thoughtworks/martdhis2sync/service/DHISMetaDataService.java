@@ -25,49 +25,57 @@ public class DHISMetaDataService {
     private String dhis2Url;
 
     private static final String LOG_PREFIX = "DHIS2 Metadata Service: ";
+
     private static final String URI_DATE_TIME_DATA_ELEMENTS = "/api/dataElements?pageSize=1000&filter=valueType:eq:DATETIME";
     private static final String URI_DATE_TIME_T_E_ATTRIBUTES = "/api/trackedEntityAttributes?pageSize=1000&filter=valueType:eq:DATETIME";
+
+    private static final String URI_DATE_DATA_ELEMENTS = "/api/dataElements?pageSize=1000&filter=valueType:eq:DATE";
+    private static final String URI_DATE_T_E_ATTRIBUTES = "/api/trackedEntityAttributes?pageSize=1000&filter=valueType:eq:DATE";
+
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private String url;
 
-    private List<String> getTEAttributes() {
+    private List<String> getTEAttributes(String elementType) {
         List<String> trackedEntityAttributes = new LinkedList<>();
-        url = dhis2Url + URI_DATE_TIME_T_E_ATTRIBUTES;
+        url = dhis2Url + elementType;
         do {
-            ResponseEntity<TrackedEntityAttributeResponse> dateTimeTEAttributes =
+            ResponseEntity<TrackedEntityAttributeResponse> typeTEAttribiutes =
                     syncRepository.getTrackedEntityAttributes(url);
-            if (null == dateTimeTEAttributes) {
+            if (null == typeTEAttribiutes) {
                 break;
             }
-            url = dateTimeTEAttributes.getBody().getPager().getNextPage();
-            dateTimeTEAttributes.getBody().getTrackedEntityAttributes()
+            url = typeTEAttribiutes.getBody().getPager().getNextPage();
+            typeTEAttribiutes.getBody().getTrackedEntityAttributes()
                     .forEach(tEA -> trackedEntityAttributes.add(tEA.getId()));
         } while (null != url);
 
-        logger.info(LOG_PREFIX + "Received " + trackedEntityAttributes.size() + " Tracked Entity Attributes of type DateTime");
+        logger.info(LOG_PREFIX + "Received " + trackedEntityAttributes.size() + " Tracked Entity Attributes of type: " + elementType);
         return trackedEntityAttributes;
     }
 
-    private List<String> getDataElements() {
-        List<String> dateTimeDataElements = new LinkedList<>();
-        url = dhis2Url + URI_DATE_TIME_DATA_ELEMENTS;
+    private List<String> getDataElements(String elementType) {
+        List<String> typeDataElements = new LinkedList<>();
+        url = dhis2Url + elementType;
         do {
             ResponseEntity<DataElementResponse> dataElementResponse = syncRepository.getDataElements(url);
             if (null == dataElementResponse) {
                 break;
             }
             dataElementResponse.getBody().getDataElements()
-                    .forEach(dataElement -> dateTimeDataElements.add(dataElement.getId()));
+                    .forEach(dataElement -> typeDataElements.add(dataElement.getId()));
             url = dataElementResponse.getBody().getPager().getNextPage();
         } while (null != url);
 
-        logger.info(LOG_PREFIX + "Received " + dateTimeDataElements.size() + " Data Elements of type DateTime");
-        return dateTimeDataElements;
+        logger.info(LOG_PREFIX + "Received " + typeDataElements.size() + " Data Elements of type: " + elementType);
+        return typeDataElements;
     }
 
     public void filterByTypeDateTime() {
-        EventUtil.setElementsOfTypeDateTime(getDataElements());
-        TEIUtil.setAttributeOfTypeDateTime(getTEAttributes());
+        EventUtil.setElementsOfTypeDateTime(getDataElements(URI_DATE_TIME_DATA_ELEMENTS));
+        TEIUtil.setAttributeOfTypeDateTime(getTEAttributes(URI_DATE_TIME_T_E_ATTRIBUTES));
+
+        EventUtil.setElementsOfTypeDateTime(getDataElements(URI_DATE_DATA_ELEMENTS));
+        TEIUtil.setAttributeOfTypeDateTime(getTEAttributes(URI_DATE_T_E_ATTRIBUTES));
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.util.StringUtils;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -47,7 +48,7 @@ public class BatchUtil {
         try {
             return outputFormat.parse(date);
         } catch (ParseException ignored) {
-
+            System.out.println(ignored);
         }
         return new Date(Long.MIN_VALUE);
     }
@@ -65,4 +66,32 @@ public class BatchUtil {
 
         return length > 0 ? value.deleteCharAt(length - 1).toString() : "";
     }
+
+    public static String getDateOnly(String dateString) {
+        return getStringFromDate(getDateFromString(dateString, DATEFORMAT_WITHOUT_TIME), DATEFORMAT_WITHOUT_TIME);
+    }
+
+    public static String getDateTime(String dateString) {
+        SimpleDateFormat dateTimeFormat = new SimpleDateFormat(DATEFORMAT_WITH_24HR_TIME);
+        SimpleDateFormat dateFormat = new SimpleDateFormat(DATEFORMAT_WITHOUT_TIME);
+        try {
+            dateTimeFormat.parse(dateString);
+            return dateString;
+        } catch (ParseException ignored) {
+            Calendar cal = Calendar.getInstance();
+            Date date = null;
+            try {
+                date = dateFormat.parse(dateString);
+                //System.out.println(date);
+                cal.setTime(date);
+                cal.set(Calendar.HOUR_OF_DAY, 0);
+                return dateTimeFormat.format(cal.getTime());
+            } catch (ParseException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+    }
+
+
 }
