@@ -20,6 +20,10 @@ public class TEIUtil {
 
     @Getter
     @Setter
+    private static List<String> attributeOfTypeDate;
+
+    @Getter
+    @Setter
     private static List<TrackedEntityInstanceInfo> trackedEntityInstanceInfos;
 
     @Getter
@@ -30,6 +34,7 @@ public class TEIUtil {
     private static Map<String, List<EnrollmentDetails>> instancesWithEnrollments = new HashMap<>();
 
     public static Date date = new Date(Long.MIN_VALUE);
+
 
     private static String jsonToString(JsonElement jsonElement) {
         if (null == jsonElement) {

@@ -26,6 +26,10 @@ public class EventUtil {
     private static List<String> elementsOfTypeDateTime;
 
     @Getter
+    @Setter
+    private static List<String> elementsOfTypeDate;
+
+    @Getter
     private static List<EventTracker> newEventTrackers = new ArrayList<>();
 
     public static List<EventTracker> eventsToSaveInTracker = new ArrayList<>();
