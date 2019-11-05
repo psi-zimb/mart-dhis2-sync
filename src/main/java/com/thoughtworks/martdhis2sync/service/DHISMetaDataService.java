@@ -75,7 +75,7 @@ public class DHISMetaDataService {
         EventUtil.setElementsOfTypeDateTime(getDataElements(URI_DATE_TIME_DATA_ELEMENTS));
         TEIUtil.setAttributeOfTypeDateTime(getTEAttributes(URI_DATE_TIME_T_E_ATTRIBUTES));
 
-        EventUtil.setElementsOfTypeDateTime(getDataElements(URI_DATE_DATA_ELEMENTS));
-        TEIUtil.setAttributeOfTypeDateTime(getTEAttributes(URI_DATE_T_E_ATTRIBUTES));
+        EventUtil.setElementsOfTypeDate(getDataElements(URI_DATE_DATA_ELEMENTS));
+        TEIUtil.setAttributeOfTypeDate(getTEAttributes(URI_DATE_T_E_ATTRIBUTES));
     }
 }

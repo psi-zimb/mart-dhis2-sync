@@ -144,13 +144,19 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
 
     private String changeFormatIfDate(String attributeId, String value) {
         logger.info("TEI Processor : changeFormatIfDate: " + attributeId + ", " + value);
-        if (TEIUtil.getAttributeOfTypeDate().contains(getUnquotedString(attributeId))) {
-            String result = getQuotedString(BatchUtil.getDateOnly(value));
+        if (TEIUtil.getAttributeOfTypeDate() != null && TEIUtil.getAttributeOfTypeDate().contains(getUnquotedString(attributeId))) {
+            String result = getQuotedString(BatchUtil.getDateOnly(getUnquotedString(value)));
             logger.info("TEI Processor : getQuotedString(Date): " + result);
             return result;
         } else {
-            if (TEIUtil.getAttributeOfTypeDateTime().contains(getUnquotedString(attributeId))) {
-                String result = getQuotedString(BatchUtil.getDateTime(value));
+            if (TEIUtil.getAttributeOfTypeDateTime() != null && TEIUtil.getAttributeOfTypeDateTime().contains(getUnquotedString(attributeId))) {
+                String result = getQuotedString(
+                        BatchUtil.getFormattedDateString(
+                                getUnquotedString(value),
+                                DATEFORMAT_WITH_24HR_TIME,
+                                DHIS_ACCEPTABLE_DATEFORMAT
+                        )
+                );
                 logger.info("TEI Processor : getQuotedString(DateTime): " + result);
                 return result;
             }

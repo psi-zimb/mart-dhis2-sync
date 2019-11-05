@@ -6,6 +6,8 @@ import com.thoughtworks.martdhis2sync.model.Event;
 import com.thoughtworks.martdhis2sync.model.EventTracker;
 import lombok.Getter;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
@@ -33,6 +35,8 @@ public class EventUtil {
     private static List<EventTracker> newEventTrackers = new ArrayList<>();
 
     public static List<EventTracker> eventsToSaveInTracker = new ArrayList<>();
+
+    private static Logger logger = LoggerFactory.getLogger(EventUtil.class.getName());
 
     public static void addExistingEventTracker(JsonObject tableRow) {
         existingEventTrackers.add(getEventTracker(tableRow));
@@ -104,13 +108,24 @@ public class EventUtil {
     }
 
     private static String changeFormatIfDate(String elementId, String value) {
-        return EventUtil.getElementsOfTypeDateTime().contains(elementId) ?
-                getFormattedDateString(
+        logger.info("Event Processor : changeFormatIfDate: " + elementId + ", " + value);
+        if (getElementsOfTypeDate() != null && getElementsOfTypeDate().contains(elementId)) {
+            String result =  BatchUtil.getDateOnly(value);
+            logger.info("Event Processor : (Date): " + result);
+            return result;
+        } else {
+            if (getElementsOfTypeDateTime() != null && getElementsOfTypeDateTime().contains(elementId)) {
+                String result = getFormattedDateString(
                         value,
                         DATEFORMAT_WITH_24HR_TIME,
                         DHIS_ACCEPTABLE_DATEFORMAT
-                )
-                : value;
+                );
+                logger.info("Event Processor : (DateTime): " + result);
+                return result;
+            }
+        }
+
+        return value;
     }
 
     public static List<Event> placeNewEventsFirst(List<Event> events) {
