@@ -18,10 +18,15 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.nio.charset.Charset;
 
@@ -143,6 +148,13 @@ public class SyncRepository {
 
             System.out.println("Request URI---> "+ uri);
             System.out.println("Request body--->\n"+ body);
+
+            final HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+            HttpClient httpClient = HttpClientBuilder.create()
+                    .setRedirectStrategy(new LaxRedirectStrategy())
+                    .build();
+            factory.setHttpClient(httpClient);
+            restTemplate.setRequestFactory(factory);
 
             responseEntity = restTemplate
                     .exchange(dhis2Url + uri, HttpMethod.POST, new HttpEntity<>(body, getHttpHeaders()), type);
