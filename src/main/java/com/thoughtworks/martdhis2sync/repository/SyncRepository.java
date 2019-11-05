@@ -119,6 +119,7 @@ public class SyncRepository {
                     new Gson().fromJson(e.getResponseBodyAsString(), TrackedEntityInstanceResponse.class),
                     e.getStatusCode());
             TrackedEntityInstanceResponse body = responseEntity.getBody();
+            logger.error("HttpClientErrorException -> " + responseEntity.getBody());
             loggerService.collateLogMessage(String.format("%s %s", body.getHttpStatusCode(), body.getMessage()));
             logger.error(LOG_PREFIX + e);
             throw e;
@@ -134,7 +135,6 @@ public class SyncRepository {
         String auth = dhisUser + ":" + dhisPassword;
         byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(Charset.forName("US-ASCII")));
         String authHeader = "Basic " + new String(encodedAuth);
-
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
         httpHeaders.set("Authorization", authHeader);
@@ -166,7 +166,9 @@ public class SyncRepository {
             responseEntity = new ResponseEntity<>(
                     new Gson().fromJson(e.getResponseBodyAsString(), type),
                     e.getStatusCode());
+            logger.error("e.getResponseBodyAsString() -> " + e.getResponseBodyAsString());
             loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
+            logger.error("HttpClientErrorException -> " + responseEntity.getBody());
             logger.error(LOG_PREFIX + e);
         } catch (HttpServerErrorException e) {
             loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
