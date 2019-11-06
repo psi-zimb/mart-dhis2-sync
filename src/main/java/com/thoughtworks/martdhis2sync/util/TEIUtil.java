@@ -35,7 +35,6 @@ public class TEIUtil {
 
     public static Date date = new Date(Long.MIN_VALUE);
 
-
     private static String jsonToString(JsonElement jsonElement) {
         if (null == jsonElement) {
             return "";
