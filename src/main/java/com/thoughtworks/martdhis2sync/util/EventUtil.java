@@ -108,10 +108,10 @@ public class EventUtil {
     }
 
     private static String changeFormatIfDate(String elementId, String value) {
-        logger.info("Event Processor : changeFormatIfDate: " + elementId + ", " + value);
+        logger.debug("Event Processor : changeFormatIfDate: " + elementId + ", " + value);
         if (getElementsOfTypeDate() != null && getElementsOfTypeDate().contains(elementId)) {
             String result =  BatchUtil.getDateOnly(value);
-            logger.info("Event Processor : (Date): " + result);
+            logger.debug("Event Processor : (Date): " + result);
             return result;
         } else {
             if (getElementsOfTypeDateTime() != null && getElementsOfTypeDateTime().contains(elementId)) {
@@ -120,7 +120,7 @@ public class EventUtil {
                         DATEFORMAT_WITH_24HR_TIME,
                         DHIS_ACCEPTABLE_DATEFORMAT
                 );
-                logger.info("Event Processor : (DateTime): " + result);
+                logger.debug("Event Processor : (DateTime): " + result);
                 return result;
             }
         }
