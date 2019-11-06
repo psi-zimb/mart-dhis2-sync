@@ -143,10 +143,10 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
     }
 
     private String changeFormatIfDate(String attributeId, String value) {
-        logger.info("TEI Processor : changeFormatIfDate: " + attributeId + ", " + value);
+        logger.debug("TEI Processor : changeFormatIfDate: " + attributeId + ", " + value);
         if (TEIUtil.getAttributeOfTypeDate() != null && TEIUtil.getAttributeOfTypeDate().contains(getUnquotedString(attributeId))) {
             String result = getQuotedString(BatchUtil.getDateOnly(getUnquotedString(value)));
-            logger.info("TEI Processor : getQuotedString(Date): " + result);
+            logger.debug("TEI Processor : getQuotedString(Date): " + result);
             return result;
         } else {
             if (TEIUtil.getAttributeOfTypeDateTime() != null && TEIUtil.getAttributeOfTypeDateTime().contains(getUnquotedString(attributeId))) {
@@ -157,7 +157,7 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
                                 DHIS_ACCEPTABLE_DATEFORMAT
                         )
                 );
-                logger.info("TEI Processor : getQuotedString(DateTime): " + result);
+                logger.debug("TEI Processor : getQuotedString(DateTime): " + result);
                 return result;
             }
         }
