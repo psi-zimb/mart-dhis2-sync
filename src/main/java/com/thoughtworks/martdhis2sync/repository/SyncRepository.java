@@ -100,13 +100,13 @@ public class SyncRepository {
     public ResponseEntity<TrackedEntityInstanceResponse> getTrackedEntityInstances(String uri) {
         ResponseEntity<TrackedEntityInstanceResponse> responseEntity = null;
         try {
-            System.out.println("Tracked Entity Request URI---> "+ uri);
+            logger.info("Tracked Entity Request URI---> "+ uri);
 
             responseEntity = restTemplate
                     .exchange(dhis2Url + uri, HttpMethod.GET,
                             new HttpEntity<>(getHttpHeaders()), TrackedEntityInstanceResponse.class);
 
-            System.out.println("Response---------->\n" + responseEntity);
+           logger.info("Response---------->\n" + responseEntity);
 
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
 
@@ -142,13 +142,13 @@ public class SyncRepository {
         ResponseEntity<T> responseEntity;
         try {
 
-            System.out.println("Request URI---> "+ uri);
-            System.out.println("Request body--->\n"+ body);
+            logger.info("Request URI---> "+ uri);
+            logger.info("Request body--->\n"+ body);
 
             responseEntity = restTemplate
                     .exchange(dhis2Url + uri, HttpMethod.POST, new HttpEntity<>(body, getHttpHeaders()), type);
 
-            System.out.println("Response---------->\n" + responseEntity);
+            logger.info("Response---------->\n" + responseEntity);
 
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
         } catch (HttpClientErrorException e) {
