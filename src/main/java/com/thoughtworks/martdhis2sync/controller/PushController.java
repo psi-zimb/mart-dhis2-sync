@@ -55,6 +55,7 @@ public class PushController {
 
     @PutMapping(value = "/pushData")
     public void pushData(@RequestBody DHISSyncRequestBody requestBody) throws HttpServerErrorException {
+        long timeinmillis = System.currentTimeMillis();
         IS_DELTA_EXISTS = false;
         loggerService.addLog(requestBody.getService(), requestBody.getUser(), requestBody.getComment());
 
@@ -91,6 +92,7 @@ public class PushController {
 //            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "SYNC FAILED");
             e.printStackTrace();
         }
+        System.out.println("Push Controller completed and took: " + (System.currentTimeMillis() - timeinmillis));
     }
 
     private void updateMarkers(DHISSyncRequestBody requestBody) {
