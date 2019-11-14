@@ -62,6 +62,7 @@ public class TEIService {
     @Autowired
     private SyncRepository syncRepository;
 
+
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static final String LOG_PREFIX = "TEI Service: ";
@@ -129,11 +130,28 @@ public class TEIService {
         if (!deltaInstanceIds.isEmpty()) {
             List<String> instanceIdsList = getInstanceIds(deltaInstanceIds);
             String program = deltaInstanceIds.get(0).get("program").toString();
-            String instanceIds = String.join(";", instanceIdsList);
-            String url = String.format(TEI_ENROLLMENTS_URI, program, instanceIds);
+            logger.info("instanceIdsList : " + instanceIdsList.size());
+            int lowerLimit = 0;
+            int upperLimit = TEI_FILTER_URI_LIMIT;
+            List<TrackedEntityInstanceInfo> result = new ArrayList<>();
+            while(lowerLimit < instanceIdsList.size()) {
+                if(upperLimit > instanceIdsList.size()) {
+                    upperLimit = instanceIdsList.size();
+                }
+                logger.info("Lower : " + lowerLimit + " Upper " + upperLimit);
+                List<String> subInstanceIds  =  instanceIdsList.subList(lowerLimit , upperLimit);
+                lowerLimit = upperLimit;
+                upperLimit += TEI_FILTER_URI_LIMIT;
 
-            ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstances = syncRepository.getTrackedEntityInstances(url);
-            TEIUtil.setInstancesWithEnrollments(getMap(trackedEntityInstances.getBody().getTrackedEntityInstances(), program));
+                String instanceIds = String.join(";", subInstanceIds);
+                String url = String.format(TEI_ENROLLMENTS_URI, program, instanceIds);
+
+                ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstances = syncRepository.getTrackedEntityInstances(url);
+                result.addAll(trackedEntityInstances.getBody().getTrackedEntityInstances());
+
+            }
+            TEIUtil.setInstancesWithEnrollments(getMap(result, program));
+            logger.info("Results Size " + result.size());
         }
     }
 
