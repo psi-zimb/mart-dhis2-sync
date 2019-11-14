@@ -7,6 +7,8 @@ import com.thoughtworks.martdhis2sync.trackerHandler.TrackersHandler;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -53,9 +55,11 @@ public class PushController {
 
     public static boolean IS_DELTA_EXISTS = false;
 
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
     @PutMapping(value = "/pushData")
     public void pushData(@RequestBody DHISSyncRequestBody requestBody) throws HttpServerErrorException {
-        long timeinmillis = System.currentTimeMillis();
+        long timeInMillis = System.currentTimeMillis();
         IS_DELTA_EXISTS = false;
         loggerService.addLog(requestBody.getService(), requestBody.getUser(), requestBody.getComment());
 
@@ -92,7 +96,7 @@ public class PushController {
 //            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "SYNC FAILED");
             e.printStackTrace();
         }
-        System.out.println("Push Controller completed and took: " + (System.currentTimeMillis() - timeinmillis));
+        logger.info("Push Controller completed and took: " + (System.currentTimeMillis() - timeInMillis)/1000 + " seconds");
     }
 
     private void updateMarkers(DHISSyncRequestBody requestBody) {
@@ -105,12 +109,12 @@ public class PushController {
     private void triggerEnrollmentsSync(DHISSyncRequestBody requestBody, LookupTable lookupTable, MappingJson mappingJson, Config config) throws Exception {
         TrackersHandler.clearTrackerLists();
 
-        System.out.println("=========================TEI sync Success=========================\n\n" +
-                "=========================Getting enrollments fro TEI=========================\n");
+        logger.info("=========================TEI sync Success=========================\n\n" +
+                "=========================Getting enrollments for TEI=========================\n");
 
         teiService.getEnrollmentsForInstances(lookupTable.getEnrollments(), lookupTable.getEvent(), requestBody.getService());
 
-        System.out.println("=========================Got enrollments for TEI=========================\n\n" +
+        logger.info("=========================Got enrollments for TEI=========================\n\n" +
                 "=========================New Completed Enrollment Sync Started=========================\n");
 
         completedEnrollmentService.triggerJobForNewCompletedEnrollments(requestBody.getService(), requestBody.getUser(),
@@ -119,7 +123,7 @@ public class PushController {
         enrollmentsToIgnore = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
         TrackersHandler.clearTrackerLists();
 
-        System.out.println("=========================New Completed Enrollment Sync Success=========================\n\n" +
+        logger.info("=========================New Completed Enrollment Sync Success=========================\n\n" +
                 "=========================Update Complete Enrollment Sync Started=========================\n");
 
         completedEnrollmentService.triggerJobForUpdatedCompletedEnrollments(requestBody.getService(), requestBody.getUser(),
@@ -128,7 +132,7 @@ public class PushController {
 
         TrackersHandler.clearTrackerLists();
 
-        System.out.println("=========================Update Complete Enrollment Sync Success=========================\n\n" +
+        logger.info("=========================Update Complete Enrollment Sync Success=========================\n\n" +
                 "=========================New Active Enrollment Sync Started=========================\n");
 
         activeEnrollmentService.triggerJobForNewActiveEnrollments(requestBody.getService(), requestBody.getUser(),
@@ -138,7 +142,7 @@ public class PushController {
         TrackersHandler.clearTrackerLists();
 
 
-        System.out.println("=========================New Active Enrollment Sync Success=========================\n\n" +
+        logger.info("=========================New Active Enrollment Sync Success=========================\n\n" +
                 "=========================Update Active Enrollment Sync Started");
         
         activeEnrollmentService.triggerJobForUpdatedActiveEnrollments(requestBody.getService(), requestBody.getUser(),
