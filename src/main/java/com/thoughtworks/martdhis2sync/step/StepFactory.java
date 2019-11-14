@@ -7,6 +7,7 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -17,9 +18,12 @@ public class StepFactory {
     @Autowired
     private StepBuilderFactory stepBuilderFactory;
 
+    @Value("${sync.batch.size}")
+    private int syncBatchSize;
+
     protected Step build(String stepName, JdbcCursorItemReader<Map<String, Object>> reader, ItemProcessor processor, ItemWriter writer) {
         return stepBuilderFactory.get(stepName)
-                .chunk(500)
+                .chunk(syncBatchSize)
                 .reader(reader)
                 .processor(processor)
                 .writer(writer)
