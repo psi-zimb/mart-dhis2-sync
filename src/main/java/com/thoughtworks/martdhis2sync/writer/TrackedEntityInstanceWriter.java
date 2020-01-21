@@ -75,7 +75,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
 
         mapIterator = TEIUtil.getPatientIdTEIUidMap().entrySet().iterator();
         newTEIUIDs.clear();
-        newTEIUIDs.putAll(TEIUtil.getTrackedEntityInstanceIDs());
+        TEIUtil.getTrackedEntityInstanceIDs().forEach((key, value) -> newTEIUIDs.put(getUnquotedString(key), getUnquotedString(value)));
         TEIUtil.resetTrackedEntityInstaceIDs();
 
         if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
@@ -92,6 +92,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
         } else {
             updateMarker();
         }
+        TEIUtil.resetPatientTEIUidMap();
     }
 
     private void processErrorResponse(List<ImportSummary> importSummaries) {
