@@ -113,11 +113,12 @@ public class TEIService {
                     uri.append(";");
                 });
             });
-
+            uri.append("&includeAllAttributes=true");
             allTEIInfos.addAll(syncRepository.getTrackedEntityInstances(url.toString() + uri).getBody().getTrackedEntityInstances());
         });
 
         TEIUtil.setTrackedEntityInstanceInfos(allTEIInfos);
+        logger.info("TEIUtil.getTrackedEntityInstanceInfos().size(): " + TEIUtil.getTrackedEntityInstanceInfos().size());
     }
 
     public void getEnrollmentsForInstances(String enrollmentTable, String eventTable, String programName) throws Exception {
