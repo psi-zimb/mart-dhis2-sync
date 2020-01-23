@@ -22,6 +22,7 @@ import static com.thoughtworks.martdhis2sync.util.BatchUtil.getQuotedString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getUnquotedString;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.hasValue;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeLastChar;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getEscapedString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -140,5 +141,15 @@ public class BatchUtilTest {
     @Test
     public void shouldGetQuotedString() {
         assertEquals("\"someString\"", getQuotedString("someString"));
+    }
+
+    @Test
+    public void shouldGetEscapedStringForBackslash() {
+        assertEquals("some\\\\Value", getEscapedString("some\\Value"));
+    }
+
+    @Test
+    public void shouldGetEscapedStringForQuote() {
+        assertEquals("some\\\"Value", getEscapedString("some\"Value"));
     }
 }

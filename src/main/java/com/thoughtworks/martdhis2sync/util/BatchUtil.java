@@ -70,5 +70,8 @@ public class BatchUtil {
         return getStringFromDate(getDateFromString(dateString, DATEFORMAT_WITHOUT_TIME), DATEFORMAT_WITHOUT_TIME);
     }
 
-
+    public static String getEscapedString(String value) {
+        return value.replace("\\","\\\\")
+                    .replace("\"","\\\"");
+    }
 }
