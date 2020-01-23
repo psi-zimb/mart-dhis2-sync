@@ -12,6 +12,7 @@ import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.responseHandler.EnrollmentResponseHandler;
 import com.thoughtworks.martdhis2sync.responseHandler.EventResponseHandler;
 import com.thoughtworks.martdhis2sync.service.JobService;
+import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.slf4j.Logger;
@@ -166,7 +167,7 @@ public class NewActiveAndCompletedEnrollmentWithEventsWriter implements ItemWrit
     private String getDataValues(Map<String, String> dataValues) {
         StringBuilder dataValuesApiBuilder = new StringBuilder();
         dataValues.forEach((key, value) -> dataValuesApiBuilder.append(
-                String.format("{\"dataElement\":\"%s\", \"value\":\"%s\"},", key, value)
+                String.format("{\"dataElement\":\"%s\", \"value\":\"%s\"},", key, BatchUtil.getEscapedString(value))
         ));
 
         return removeLastChar(dataValuesApiBuilder);
