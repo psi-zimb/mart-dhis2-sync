@@ -65,4 +65,13 @@ public class BatchUtil {
 
         return length > 0 ? value.deleteCharAt(length - 1).toString() : "";
     }
+
+    public static String getDateOnly(String dateString) {
+        return getStringFromDate(getDateFromString(dateString, DATEFORMAT_WITHOUT_TIME), DATEFORMAT_WITHOUT_TIME);
+    }
+
+    public static String getEscapedString(String value) {
+        return value.replace("\\","\\\\")
+                    .replace("\"","\\\"");
+    }
 }

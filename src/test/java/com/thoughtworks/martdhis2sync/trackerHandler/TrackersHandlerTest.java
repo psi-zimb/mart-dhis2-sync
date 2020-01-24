@@ -73,7 +73,7 @@ public class TrackersHandlerTest {
 
         EnrollmentUtil.enrollmentsToSaveInTracker.add(apiPayLoad);
 
-        trackersHandler.insertInEnrollmentTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.insertInEnrollmentTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -82,7 +82,7 @@ public class TrackersHandlerTest {
         verify(preparedStatement, times(1)).setString(3, "xhjKKwoq");
         verify(preparedStatement, times(1)).setString(4, "COMPLETED");
         verify(preparedStatement, times(1)).setString(5, "1");
-        verify(preparedStatement, times(1)).setString(6, "***REMOVED***");
+        verify(preparedStatement, times(1)).setString(6, "admin");
         verify(preparedStatement, times(1)).executeUpdate();
         verify(logger, times(1)).info(logPrefix + "Successfully inserted 1 Enrollment UIDs.");
 
@@ -93,7 +93,7 @@ public class TrackersHandlerTest {
     public void shouldLogErrorWhenInsertIsFail() throws SQLException {
         when(dataSource.getConnection()).thenThrow(new SQLException("Could not get Database connection"));
 
-        trackersHandler.insertInEnrollmentTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.insertInEnrollmentTracker("admin", logPrefix, logger);
         verify(dataSource, times(1)).getConnection();
         verify(logger, times(1)).error(logPrefix + "Exception occurred while inserting " +
                     "Program Enrollment UIDs: Could not get Database connection");
@@ -110,7 +110,7 @@ public class TrackersHandlerTest {
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(sql)).thenThrow(new SQLException("Could not prepareStatement"));
 
-        trackersHandler.insertInEnrollmentTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.insertInEnrollmentTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -143,7 +143,7 @@ public class TrackersHandlerTest {
         doThrow(new SQLException("Could not set the string")).when(preparedStatement)
                 .setString(1, apiPayLoad.getEnrollmentId());
 
-        trackersHandler.insertInEnrollmentTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.insertInEnrollmentTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -176,7 +176,7 @@ public class TrackersHandlerTest {
         doThrow(new SQLException("Could not set the string")).when(preparedStatement)
                 .setString(2, apiPayLoad.getInstanceId());
 
-        trackersHandler.insertInEnrollmentTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.insertInEnrollmentTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -209,7 +209,7 @@ public class TrackersHandlerTest {
         doThrow(new SQLException("Could not set the string")).when(preparedStatement)
                 .setString(3, apiPayLoad.getProgram());
 
-        trackersHandler.insertInEnrollmentTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.insertInEnrollmentTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -242,7 +242,7 @@ public class TrackersHandlerTest {
         doThrow(new SQLException("Could not set the string")).when(preparedStatement)
                 .setString(4, apiPayLoad.getStatus());
 
-        trackersHandler.insertInEnrollmentTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.insertInEnrollmentTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -275,7 +275,7 @@ public class TrackersHandlerTest {
         doThrow(new SQLException("Could not set the string")).when(preparedStatement)
                 .setString(5, apiPayLoad.getProgramUniqueId());
 
-        trackersHandler.insertInEnrollmentTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.insertInEnrollmentTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -306,9 +306,9 @@ public class TrackersHandlerTest {
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(sql)).thenReturn(preparedStatement);
         doThrow(new SQLException("Could not set the string")).when(preparedStatement)
-                .setString(6, "***REMOVED***");
+                .setString(6, "admin");
 
-        trackersHandler.insertInEnrollmentTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.insertInEnrollmentTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -340,7 +340,7 @@ public class TrackersHandlerTest {
         when(connection.prepareStatement(sql)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenThrow(new SQLException("Could not execute update"));
 
-        trackersHandler.insertInEnrollmentTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.insertInEnrollmentTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -349,7 +349,7 @@ public class TrackersHandlerTest {
         verify(preparedStatement, times(1)).setString(3, "xhjKKwoq");
         verify(preparedStatement, times(1)).setString(4, "COMPLETED");
         verify(preparedStatement, times(1)).setString(5, "1");
-        verify(preparedStatement, times(1)).setString(6, "***REMOVED***");
+        verify(preparedStatement, times(1)).setString(6, "admin");
         verify(preparedStatement, times(1)).executeUpdate();
         verify(logger, times(1)).error(logPrefix + "Exception occurred while inserting " +
                 "Program Enrollment UIDs: Could not execute update");
@@ -370,7 +370,7 @@ public class TrackersHandlerTest {
         when(connection.prepareStatement(sql)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
 
-        trackersHandler.insertInEventTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.insertInEventTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -381,7 +381,7 @@ public class TrackersHandlerTest {
         verify(preparedStatement, times(2)).setString(4, "dkjfErjA");
         verify(preparedStatement, times(1)).setString(5, "1");
         verify(preparedStatement, times(1)).setString(5, "2");
-        verify(preparedStatement, times(2)).setString(6, "***REMOVED***");
+        verify(preparedStatement, times(2)).setString(6, "admin");
         verify(preparedStatement, times(2)).executeUpdate();
         verify(logger, times(1)).info(logPrefix + "Successfully inserted 2 Event UIDs.");
     }
@@ -395,7 +395,7 @@ public class TrackersHandlerTest {
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(sql)).thenThrow(new SQLException("Could not prepareStatement"));
 
-        trackersHandler.insertInEventTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.insertInEventTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -407,7 +407,7 @@ public class TrackersHandlerTest {
     public void shouldNoInsertEventsIntoEventTrackerWhenGettingConnectionIsFailed() throws SQLException {
         when(dataSource.getConnection()).thenThrow(new SQLException("Could not get Database connection"));
 
-        trackersHandler.insertInEventTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.insertInEventTracker("admin", logPrefix, logger);
         verify(dataSource, times(1)).getConnection();
         verify(logger, times(1)).error(logPrefix + "Exception occurred while inserting " +
                 "Event UIDs: Could not get Database connection");
@@ -430,7 +430,7 @@ public class TrackersHandlerTest {
         when(connection.prepareStatement(sql)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenThrow(new SQLException("Could not execute update"));
 
-        trackersHandler.insertInEventTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.insertInEventTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -439,7 +439,7 @@ public class TrackersHandlerTest {
         verify(preparedStatement, times(1)).setString(3, "xhjKKwoq");
         verify(preparedStatement, times(1)).setString(4, "dkjfErjA");
         verify(preparedStatement, times(1)).setString(5, "1");
-        verify(preparedStatement, times(1)).setString(6, "***REMOVED***");
+        verify(preparedStatement, times(1)).setString(6, "admin");
         verify(preparedStatement, times(1)).executeUpdate();
         verify(logger, times(1)).error(logPrefix + "Exception occurred while inserting " +
                 "Event UIDs: Could not execute update");
@@ -461,7 +461,7 @@ public class TrackersHandlerTest {
         doThrow(new SQLException("Could not set the string")).when(preparedStatement)
                 .setString(1, "eventId1");
 
-        trackersHandler.insertInEventTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.insertInEventTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -486,7 +486,7 @@ public class TrackersHandlerTest {
         doThrow(new SQLException("Could not set the string")).when(preparedStatement)
                 .setString(2, "instanceId1");
 
-        trackersHandler.insertInEventTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.insertInEventTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -512,7 +512,7 @@ public class TrackersHandlerTest {
         doThrow(new SQLException("Could not set the string")).when(preparedStatement)
                 .setString(3, "xhjKKwoq");
 
-        trackersHandler.insertInEventTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.insertInEventTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -539,7 +539,7 @@ public class TrackersHandlerTest {
         doThrow(new SQLException("Could not set the string")).when(preparedStatement)
                 .setString(4, "dkjfErjA");
 
-        trackersHandler.insertInEventTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.insertInEventTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -565,7 +565,7 @@ public class TrackersHandlerTest {
         doThrow(new SQLException("Could not set the string")).when(preparedStatement)
                 .setString(5, "1");
 
-        trackersHandler.insertInEventTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.insertInEventTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -599,12 +599,12 @@ public class TrackersHandlerTest {
         apiPayLoads.add(apiPayLoad);
         EnrollmentUtil.enrollmentsToSaveInTracker = apiPayLoads;
 
-        trackersHandler.updateInEnrollmentTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.updateInEnrollmentTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
         verify(preparedStatement, times(1)).setString(1, "COMPLETED");
-        verify(preparedStatement, times(1)).setString(2, "***REMOVED***");
+        verify(preparedStatement, times(1)).setString(2, "admin");
         verify(preparedStatement, times(1)).setString(4, "enrId");
         verify(preparedStatement, times(1)).executeUpdate();
         verify(logger, times(1)).info(logPrefix + "Successfully updated 1 Enrollment UIDs.");
@@ -635,12 +635,12 @@ public class TrackersHandlerTest {
         when(connection.prepareStatement(sql)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenThrow(new SQLException("Could not execute update"));
 
-        trackersHandler.updateInEnrollmentTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.updateInEnrollmentTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
         verify(preparedStatement, times(1)).setString(1, "COMPLETED");
-        verify(preparedStatement, times(1)).setString(2, "***REMOVED***");
+        verify(preparedStatement, times(1)).setString(2, "admin");
         verify(preparedStatement, times(1)).setString(4, "enrId");
         verify(preparedStatement, times(1)).executeUpdate();
         verify(logger, times(1)).error(logPrefix + "Exception occurred while updating " +
@@ -651,7 +651,7 @@ public class TrackersHandlerTest {
     public void shouldNoUpdateEnrollmentsIntoEnrollmentTrackerWhenGettingConnectionIsFailed() throws SQLException {
         when(dataSource.getConnection()).thenThrow(new SQLException("Could not get Database connection"));
 
-        trackersHandler.updateInEnrollmentTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.updateInEnrollmentTracker("admin", logPrefix, logger);
         verify(dataSource, times(1)).getConnection();
         verify(logger, times(1)).error(logPrefix + "Exception occurred while updating " +
                 "Program Enrollment UIDs: Could not get Database connection");
@@ -666,7 +666,7 @@ public class TrackersHandlerTest {
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(sql)).thenThrow(new SQLException("Could not prepareStatement"));
 
-        trackersHandler.updateInEnrollmentTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.updateInEnrollmentTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -700,7 +700,7 @@ public class TrackersHandlerTest {
         doThrow(new SQLException("Could not set the string")).when(preparedStatement)
                 .setString(1, "COMPLETED");
 
-        trackersHandler.updateInEnrollmentTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.updateInEnrollmentTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -733,9 +733,9 @@ public class TrackersHandlerTest {
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(sql)).thenReturn(preparedStatement);
         doThrow(new SQLException("Could not set the string")).when(preparedStatement)
-                .setString(2, "***REMOVED***");
+                .setString(2, "admin");
 
-        trackersHandler.updateInEnrollmentTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.updateInEnrollmentTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
@@ -770,7 +770,7 @@ public class TrackersHandlerTest {
         doThrow(new SQLException("Could not set the string")).when(preparedStatement)
                 .setString(4, "enrId");
 
-        trackersHandler.updateInEnrollmentTracker("***REMOVED***", logPrefix, logger);
+        trackersHandler.updateInEnrollmentTracker("admin", logPrefix, logger);
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);

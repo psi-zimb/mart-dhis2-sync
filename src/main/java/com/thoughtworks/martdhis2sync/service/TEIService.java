@@ -4,10 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import com.thoughtworks.martdhis2sync.dao.MappingDAO;
 import com.thoughtworks.martdhis2sync.dao.PatientDAO;
-import com.thoughtworks.martdhis2sync.model.EnrollmentDetails;
-import com.thoughtworks.martdhis2sync.model.MappingJson;
-import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceInfo;
-import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceResponse;
+import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.step.TrackedEntityInstanceStep;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
@@ -19,8 +16,10 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -38,6 +37,10 @@ public class TEIService {
     private final String TEI_ENROLLMENTS_URI = "/api/trackedEntityInstances?" +
             "fields=trackedEntityInstance,enrollments[program,enrollment,enrollmentDate,completedDate,status]&" +
             "program=%s&trackedEntityInstance=%s";
+
+    private final String PATIENTS_WITH_INVALID_ORG_UNIT_QUERY = "select \"Patient_Identifier\",\"OrgUnit\" from %s it " +
+            "where \"OrgUnit\" is null or " +
+            "\"OrgUnit\" not in (select orgunit from  orgunit_tracker ot)";
 
     @Value("${country.org.unit.id.for.patient.data.duplication.check}")
     private String orgUnitID;
@@ -61,6 +64,11 @@ public class TEIService {
 
     @Autowired
     private SyncRepository syncRepository;
+
+    @Autowired
+    @Qualifier("jdbcTemplate")
+    private JdbcTemplate jdbcTemplate;
+
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -112,28 +120,46 @@ public class TEIService {
                     uri.append(";");
                 });
             });
-
+            uri.append("&includeAllAttributes=true");
             allTEIInfos.addAll(syncRepository.getTrackedEntityInstances(url.toString() + uri).getBody().getTrackedEntityInstances());
         });
 
         TEIUtil.setTrackedEntityInstanceInfos(allTEIInfos);
+        logger.info("TEIUtil.getTrackedEntityInstanceInfos().size(): " + TEIUtil.getTrackedEntityInstanceInfos().size());
     }
 
     public void getEnrollmentsForInstances(String enrollmentTable, String eventTable, String programName) throws Exception {
-        System.out.println("Enrollment Table is " + enrollmentTable);
-        System.out.println("Event Table is " + eventTable);
-        System.out.println("Program name is " + programName);
+        logger.info("Enrollment Table is " + enrollmentTable);
+        logger.info("Event Table is " + eventTable);
+        logger.info("Program name is " + programName);
 
         TEIUtil.setInstancesWithEnrollments(new HashMap<>());
         List<Map<String, Object>> deltaInstanceIds = patientDAO.getDeltaEnrollmentInstanceIds(enrollmentTable, eventTable, programName);
         if (!deltaInstanceIds.isEmpty()) {
             List<String> instanceIdsList = getInstanceIds(deltaInstanceIds);
             String program = deltaInstanceIds.get(0).get("program").toString();
-            String instanceIds = String.join(";", instanceIdsList);
-            String url = String.format(TEI_ENROLLMENTS_URI, program, instanceIds);
+            logger.info("instanceIdsList : " + instanceIdsList.size());
+            int lowerLimit = 0;
+            int upperLimit = TEI_FILTER_URI_LIMIT;
+            List<TrackedEntityInstanceInfo> result = new ArrayList<>();
+            while(lowerLimit < instanceIdsList.size()) {
+                if(upperLimit > instanceIdsList.size()) {
+                    upperLimit = instanceIdsList.size();
+                }
+                logger.info("Lower : " + lowerLimit + " Upper " + upperLimit);
+                List<String> subInstanceIds  =  instanceIdsList.subList(lowerLimit , upperLimit);
+                lowerLimit = upperLimit;
+                upperLimit += TEI_FILTER_URI_LIMIT;
 
-            ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstances = syncRepository.getTrackedEntityInstances(url);
-            TEIUtil.setInstancesWithEnrollments(getMap(trackedEntityInstances.getBody().getTrackedEntityInstances(), program));
+                String instanceIds = String.join(";", subInstanceIds);
+                String url = String.format(TEI_ENROLLMENTS_URI, program, instanceIds);
+
+                ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstances = syncRepository.getTrackedEntityInstances(url);
+                result.addAll(trackedEntityInstances.getBody().getTrackedEntityInstances());
+
+            }
+            TEIUtil.setInstancesWithEnrollments(getMap(result, program));
+            logger.info("Results Size " + result.size());
         }
     }
 
@@ -175,5 +201,16 @@ public class TEIService {
         }
 
         return result;
+    }
+
+    public Map<String,String> verifyOrgUnitsForPatients(String instanceTable) {
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(String.format(PATIENTS_WITH_INVALID_ORG_UNIT_QUERY, instanceTable));
+        Map<String,String> invalidPatients = new HashMap<>();
+        rows.forEach(row -> {
+            String patientID = (String)row.get("Patient_Identifier");
+            String orgUnit = (String)row.get("OrgUnit");
+            invalidPatients.put(patientID,orgUnit);
+        });
+        return invalidPatients;
     }
 }

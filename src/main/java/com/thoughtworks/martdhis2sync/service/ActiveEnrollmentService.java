@@ -72,7 +72,7 @@ public class ActiveEnrollmentService {
             jobService.triggerJob(service, user, jobName, steps, openLatestCompletedEnrollment);
         } catch (Exception e) {
             logger.error(LOG_PREFIX + e.getMessage());
-            throw e;
+            logger.error(e.getStackTrace().toString());
         }
     }
 }
