@@ -4,10 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import com.thoughtworks.martdhis2sync.dao.MappingDAO;
 import com.thoughtworks.martdhis2sync.dao.PatientDAO;
-import com.thoughtworks.martdhis2sync.model.EnrollmentDetails;
-import com.thoughtworks.martdhis2sync.model.MappingJson;
-import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceInfo;
-import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceResponse;
+import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.step.TrackedEntityInstanceStep;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
@@ -19,8 +16,10 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -38,6 +37,10 @@ public class TEIService {
     private final String TEI_ENROLLMENTS_URI = "/api/trackedEntityInstances?" +
             "fields=trackedEntityInstance,enrollments[program,enrollment,enrollmentDate,completedDate,status]&" +
             "program=%s&trackedEntityInstance=%s";
+
+    private final String PATIENTS_WITH_INVALID_ORG_UNIT_QUERY = "select \"Patient_Identifier\",\"OrgUnit\" from %s it " +
+            "where \"OrgUnit\" is null or " +
+            "\"OrgUnit\" not in (select orgunit from  orgunit_tracker ot)";
 
     @Value("${country.org.unit.id.for.patient.data.duplication.check}")
     private String orgUnitID;
@@ -61,6 +64,10 @@ public class TEIService {
 
     @Autowired
     private SyncRepository syncRepository;
+
+    @Autowired
+    @Qualifier("jdbcTemplate")
+    private JdbcTemplate jdbcTemplate;
 
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -194,5 +201,16 @@ public class TEIService {
         }
 
         return result;
+    }
+
+    public Map<String,String> verifyOrgUnitsForPatients(String instanceTable) {
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(String.format(PATIENTS_WITH_INVALID_ORG_UNIT_QUERY, instanceTable));
+        Map<String,String> invalidPatients = new HashMap<>();
+        rows.forEach(row -> {
+            String patientID = (String)row.get("Patient_Identifier");
+            String orgUnit = (String)row.get("OrgUnit");
+            invalidPatients.put(patientID,orgUnit);
+        });
+        return invalidPatients;
     }
 }
