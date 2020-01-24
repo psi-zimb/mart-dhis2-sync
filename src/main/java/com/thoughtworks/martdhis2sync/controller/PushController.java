@@ -75,6 +75,15 @@ public class PushController {
         EventUtil.date = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_EVENT);
 
         try {
+            Map<String,String> invalidPatients = teiService.verifyOrgUnitsForPatients(lookupTable.getInstance());
+            if(invalidPatients.size() > 0) {
+                loggerService.collateLogMessage("Invalid Org Unit specified for below patients. Update Patient Info in OpenMRS, run Bahmni MART");
+                invalidPatients.forEach((patientID,orgUnit)-> {
+                    loggerService.collateLogMessage("[Patient ID (" + patientID + ") Org Unit ID (" + orgUnit + ")] ");
+                });
+                loggerService.updateLog(requestBody.getService(), FAILED);
+                throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid Org Unit specified for below patients. Update Patient Info in OpenMRS, run Bahmni MART");
+            }
             teiService.getTrackedEntityInstances(requestBody.getService(), mappingJson);
             teiService.triggerJob(requestBody.getService(), requestBody.getUser(),
                     lookupTable.getInstance(), mappingJson.getInstance(), config.getSearchable(), config.getComparable());
