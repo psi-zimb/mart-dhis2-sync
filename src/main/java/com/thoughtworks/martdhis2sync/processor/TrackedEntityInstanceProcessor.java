@@ -8,6 +8,8 @@ import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceInfo;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -34,6 +36,9 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
 
     @Setter
     private List<String> comparableAttributes;
+
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Override
     public String process(Object tableRow) {
@@ -138,14 +143,25 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
     }
 
     private String changeFormatIfDate(String attributeId, String value) {
-        return TEIUtil.getAttributeOfTypeDateTime().contains(getUnquotedString(attributeId)) ?
-                getQuotedString(
+        logger.debug("TEI Processor : changeFormatIfDate: " + attributeId + ", " + value);
+        if (TEIUtil.getAttributeOfTypeDate() != null && TEIUtil.getAttributeOfTypeDate().contains(getUnquotedString(attributeId))) {
+            String result = getQuotedString(BatchUtil.getDateOnly(getUnquotedString(value)));
+            logger.debug("TEI Processor : getQuotedString(Date): " + result);
+            return result;
+        } else {
+            if (TEIUtil.getAttributeOfTypeDateTime() != null && TEIUtil.getAttributeOfTypeDateTime().contains(getUnquotedString(attributeId))) {
+                String result = getQuotedString(
                         BatchUtil.getFormattedDateString(
                                 getUnquotedString(value),
                                 DATEFORMAT_WITH_24HR_TIME,
                                 DHIS_ACCEPTABLE_DATEFORMAT
                         )
-                ) :
-                value;
+                );
+                logger.debug("TEI Processor : getQuotedString(DateTime): " + result);
+                return result;
+            }
+        }
+
+        return value;
     }
 }

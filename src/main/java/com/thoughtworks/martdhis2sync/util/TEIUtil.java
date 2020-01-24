@@ -20,6 +20,10 @@ public class TEIUtil {
 
     @Getter
     @Setter
+    private static List<String> attributeOfTypeDate;
+
+    @Getter
+    @Setter
     private static List<TrackedEntityInstanceInfo> trackedEntityInstanceInfos;
 
     @Getter
