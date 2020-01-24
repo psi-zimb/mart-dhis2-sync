@@ -77,12 +77,12 @@ public class PushController {
         try {
             Map<String,String> invalidPatients = teiService.verifyOrgUnitsForPatients(lookupTable.getInstance());
             if(invalidPatients.size() > 0) {
-                loggerService.collateLogMessage("Invalid Org Unit specified for below patients. Update Patient Info in OpenMRS, run Bahmni MART");
+                loggerService.collateLogMessage("Prevalidation for sync service failed. Invalid Org Unit specified for below patients. Update Patient Info in OpenMRS, run Bahmni MART");
                 invalidPatients.forEach((patientID,orgUnit)-> {
                     loggerService.collateLogMessage("[Patient ID (" + patientID + ") Org Unit ID (" + orgUnit + ")] ");
                 });
                 loggerService.updateLog(requestBody.getService(), FAILED);
-                throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid Org Unit specified for below patients. Update Patient Info in OpenMRS, run Bahmni MART");
+                throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Prevalidation for sync service failed. Invalid Org Unit specified for below patients. Update Patient Info in OpenMRS, run Bahmni MART");
             }
             teiService.getTrackedEntityInstances(requestBody.getService(), mappingJson);
             teiService.triggerJob(requestBody.getService(), requestBody.getUser(),
