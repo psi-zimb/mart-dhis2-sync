@@ -57,7 +57,7 @@ public class PushControllerTest {
 
     private PushController pushController;
     private String service = "HT Service";
-    private String user = "***REMOVED***";
+    private String user = "admin";
     private String comment = "";
     Date lastSyncedDate = new Date(Long.MIN_VALUE);
 

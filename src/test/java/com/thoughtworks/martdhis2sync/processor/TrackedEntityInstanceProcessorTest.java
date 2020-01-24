@@ -237,7 +237,7 @@ public class TrackedEntityInstanceProcessorTest {
 
         attributesOfPatient1.add(new Attribute(
                 "2018-11-26T09:24:57.158",
-                "***REMOVED***",
+                "admin",
                 "MMD_PER_NAM",
                 "UIC",
                 "2018-11-26T09:24:57.158",
@@ -248,7 +248,7 @@ public class TrackedEntityInstanceProcessorTest {
 
         attributesOfPatient1.add(new Attribute(
                 "2018-11-26T09:24:57.153",
-                "***REMOVED***",
+                "admin",
                 "",
                 "First name",
                 "2018-11-26T09:24:57.152",
@@ -259,7 +259,7 @@ public class TrackedEntityInstanceProcessorTest {
 
         attributesOfPatient1.add(new Attribute(
                 "2018-11-26T09:24:57.158",
-                "***REMOVED***",
+                "admin",
                 "MMD_PER_NAM",
                 "prepID",
                 "2018-11-26T09:24:57.158",
@@ -270,7 +270,7 @@ public class TrackedEntityInstanceProcessorTest {
 
         attributesOfPatient1.add(new Attribute(
                 "2018-11-26T09:24:57.153",
-                "***REMOVED***",
+                "admin",
                 "",
                 "patient_id",
                 "2018-11-26T09:24:57.152",
