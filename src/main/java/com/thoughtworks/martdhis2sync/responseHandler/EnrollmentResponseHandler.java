@@ -3,6 +3,7 @@ package com.thoughtworks.martdhis2sync.responseHandler;
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.model.EnrollmentImportSummary;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
+import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,7 @@ public class EnrollmentResponseHandler {
         importSummaries.forEach(importSummary -> {
             EnrollmentAPIPayLoad enrollment = payLoadIterator.next();
             enrollment.setEnrollmentId(importSummary.getReference());
+            EnrollmentUtil.instanceIDEnrollmentIDMap.put(enrollment.getInstanceId(),importSummary.getReference());
             enrollmentsToSaveInTracker.add(enrollment);
         });
     }

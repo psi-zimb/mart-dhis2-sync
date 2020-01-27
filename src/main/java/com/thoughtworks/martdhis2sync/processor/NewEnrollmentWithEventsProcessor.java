@@ -6,6 +6,7 @@ import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.model.EnrollmentDetails;
 import com.thoughtworks.martdhis2sync.model.Event;
 import com.thoughtworks.martdhis2sync.model.ProcessedTableRow;
+import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import lombok.Setter;
 import org.springframework.batch.item.ItemProcessor;
@@ -39,6 +40,10 @@ public class NewEnrollmentWithEventsProcessor extends EnrollmentWithEventProcess
                     .filter(enrollment -> EnrollmentAPIPayLoad.STATUS_ACTIVE.equals(enrollment.getStatus()))
                     .findFirst();
             enrollmentId = activeEnrollment.isPresent() ? activeEnrollment.get().getEnrollment() : "";
+        }
+
+        if("".equals(enrollmentId)) {
+            enrollmentId = EnrollmentUtil.instanceIDEnrollmentIDMap.getOrDefault(tableRowJsonObject.get("instance_id").getAsString(),"");
         }
 
         return new EnrollmentAPIPayLoad(

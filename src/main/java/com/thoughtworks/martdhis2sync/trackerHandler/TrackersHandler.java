@@ -48,25 +48,14 @@ public class TrackersHandler {
         try (Connection connection = dataSource.getConnection()) {
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 Map<String,String> teiEnrommentMapInTrackerTable = getExistingEnrollmentsInTracker();
-                logger.info("teiEnrommentMapInTrackerTable:" + teiEnrommentMapInTrackerTable);
                 updateCount = 0;
                 for (EnrollmentAPIPayLoad enrollment : EnrollmentUtil.enrollmentsToSaveInTracker) {
-                    List<EnrollmentDetails> enrollmentDetails = TEIUtil.getInstancesWithEnrollments().get(enrollment.getInstanceId());
-                    if(enrollmentDetails != null) {
-                        Optional<EnrollmentDetails> activeEnrollment = enrollmentDetails.stream()
-                                .filter(enrollmentPayLoad -> EnrollmentAPIPayLoad.STATUS_ACTIVE.equals(enrollmentPayLoad.getStatus()))
-                                .findFirst();
-                        if(activeEnrollment.isPresent()) {
-                            if(teiEnrommentMapInTrackerTable.get(enrollment.getInstanceId()) != null) {
-                                logger.info("Not inserting Enrollment ID " + enrollment.getEnrollmentId() + " for TEI " +
-                                        enrollment.getInstanceId() + " in the enrollment_tracker table");
-                                continue;
-                            }
-                        }
+                    if(teiEnrommentMapInTrackerTable.get(enrollment.getInstanceId()) != null) {
+                        logger.info("Not inserting Enrollment ID " + enrollment.getEnrollmentId() + " for TEI " +
+                                enrollment.getInstanceId() + " in the enrollment_tracker table");
+                        continue;
                     }
-                    logger.info("Inserting Enrollment ID " + enrollment.getEnrollmentId() + " for TEI " +
-                            enrollment.getInstanceId() + " in the enrollment_tracker table");
-                    teiEnrommentMapInTrackerTable.put(enrollment.getInstanceId(),enrollment.getEnrollmentId());
+                    teiEnrommentMapInTrackerTable.put(enrollment.getInstanceId(), enrollment.getEnrollmentId());
                     ps.setString(1, enrollment.getEnrollmentId());
                     ps.setString(2, enrollment.getInstanceId());
                     ps.setString(3, enrollment.getProgram());

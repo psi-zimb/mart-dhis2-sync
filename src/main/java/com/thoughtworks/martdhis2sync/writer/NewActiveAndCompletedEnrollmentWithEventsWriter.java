@@ -13,6 +13,7 @@ import com.thoughtworks.martdhis2sync.responseHandler.EnrollmentResponseHandler;
 import com.thoughtworks.martdhis2sync.responseHandler.EventResponseHandler;
 import com.thoughtworks.martdhis2sync.service.JobService;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
+import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.slf4j.Logger;
@@ -103,34 +104,18 @@ public class NewActiveAndCompletedEnrollmentWithEventsWriter implements ItemWrit
 
     private Map<String, EnrollmentAPIPayLoad> getGroupedEnrollmentPayLoad(List<? extends ProcessedTableRow> tableRows) {
         Map<String, EnrollmentAPIPayLoad> groupedEnrollments = new LinkedHashMap<>();
-        Map<String, EnrollmentAPIPayLoad> groupedEnrollmentsForUpdates = new LinkedHashMap<>();
         tableRows.forEach(row -> {
-            EnrollmentAPIPayLoad payload = row.getPayLoad();
-            if("".equals(payload.getEnrollmentId())) {
-                if (groupedEnrollments.containsKey(row.getProgramUniqueId())) {
-                    EnrollmentAPIPayLoad enrollmentAPIPayLoad = groupedEnrollments.get(row.getProgramUniqueId());
-                    List<Event> events = row.getPayLoad().getEvents();
-                    if (events.size() > 0) {
-                        enrollmentAPIPayLoad.getEvents().add(events.get(0));
-                    }
-                } else {
-                    groupedEnrollments.put(row.getProgramUniqueId(), row.getPayLoad());
+            if (groupedEnrollments.containsKey(row.getProgramUniqueId())) {
+                EnrollmentAPIPayLoad enrollmentAPIPayLoad = groupedEnrollments.get(row.getProgramUniqueId());
+                List<Event> events = row.getPayLoad().getEvents();
+                if (events.size() > 0) {
+                    enrollmentAPIPayLoad.getEvents().add(events.get(0));
                 }
             } else {
-                if (groupedEnrollmentsForUpdates.containsKey(row.getProgramUniqueId())) {
-                    EnrollmentAPIPayLoad enrollmentAPIPayLoad = groupedEnrollmentsForUpdates.get(row.getProgramUniqueId());
-                    List<Event> events = row.getPayLoad().getEvents();
-                    if (events.size() > 0) {
-                        enrollmentAPIPayLoad.getEvents().add(events.get(0));
-                    }
-                } else {
-                    groupedEnrollmentsForUpdates.put(row.getProgramUniqueId(), row.getPayLoad());
-                }
+                groupedEnrollments.put(row.getProgramUniqueId(), row.getPayLoad());
             }
         });
-        logger.info("groupedEnrollments: " + groupedEnrollments);
-        logger.info("groupedEnrollmentsUpdates: " + groupedEnrollmentsForUpdates);
-        groupedEnrollments.putAll(groupedEnrollmentsForUpdates);
+
         return groupedEnrollments;
     }
 
@@ -192,7 +177,7 @@ public class NewActiveAndCompletedEnrollmentWithEventsWriter implements ItemWrit
     private String getEnrollmentId(EnrollmentAPIPayLoad enrollment) {
         List<EnrollmentDetails> enrollmentDetails = TEIUtil.getInstancesWithEnrollments().get(enrollment.getInstanceId());
         if (null == enrollmentDetails || enrollmentDetails.isEmpty()) {
-            return "";
+            return EnrollmentUtil.instanceIDEnrollmentIDMap.getOrDefault(enrollment.getInstanceId(),"");
         }
         String activeEnrollmentId = getActiveEnrollmentId(enrollmentDetails);
 
