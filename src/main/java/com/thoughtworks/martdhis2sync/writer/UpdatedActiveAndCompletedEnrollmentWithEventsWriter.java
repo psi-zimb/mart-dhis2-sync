@@ -212,6 +212,8 @@ public class UpdatedActiveAndCompletedEnrollmentWithEventsWriter implements Item
     }
 
     private String getActiveEnrollmentId(List<EnrollmentDetails> enrollmentDetails) {
+        if(enrollmentDetails == null)
+            return "";
         Optional<EnrollmentDetails> activeEnrollment = enrollmentDetails.stream()
                 .filter(enrollment -> EnrollmentAPIPayLoad.STATUS_ACTIVE.equals(enrollment.getStatus()))
                 .findFirst();

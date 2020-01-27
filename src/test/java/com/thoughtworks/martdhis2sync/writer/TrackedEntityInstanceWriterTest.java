@@ -96,7 +96,7 @@ public class TrackedEntityInstanceWriterTest {
         setValuesForMemberFields(writer, "syncRepository", syncRepository);
         setValuesForMemberFields(writer, "markerUtil", markerUtil);
         setValuesForMemberFields(writer, "programName", "HTS Service");
-        setValuesForMemberFields(writer, "user", "administrator");
+        setValuesForMemberFields(writer, "user", "***REMOVED***istrator");
         setValuesForMemberFields(writer, "isSyncFailure", isSyncFailure);
         setValuesForMemberFields(writer, "loggerService", loggerService);
 

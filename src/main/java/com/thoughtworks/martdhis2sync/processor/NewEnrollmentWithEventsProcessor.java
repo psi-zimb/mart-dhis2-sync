@@ -3,13 +3,16 @@ package com.thoughtworks.martdhis2sync.processor;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
+import com.thoughtworks.martdhis2sync.model.EnrollmentDetails;
 import com.thoughtworks.martdhis2sync.model.Event;
 import com.thoughtworks.martdhis2sync.model.ProcessedTableRow;
+import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import lombok.Setter;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITHOUT_TIME;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
@@ -29,8 +32,17 @@ public class NewEnrollmentWithEventsProcessor extends EnrollmentWithEventProcess
     }
 
     EnrollmentAPIPayLoad getEnrollmentAPIPayLoad(JsonObject tableRowJsonObject, List<Event> events) {
+        List<EnrollmentDetails> enrollmentDetails= TEIUtil.getInstancesWithEnrollments().get(tableRowJsonObject.get("instance_id").getAsString());
+        String enrollmentId = "";
+        if(enrollmentDetails != null) {
+            Optional<EnrollmentDetails> activeEnrollment = enrollmentDetails.stream()
+                    .filter(enrollment -> EnrollmentAPIPayLoad.STATUS_ACTIVE.equals(enrollment.getStatus()))
+                    .findFirst();
+            enrollmentId = activeEnrollment.isPresent() ? activeEnrollment.get().getEnrollment() : "";
+        }
+
         return new EnrollmentAPIPayLoad(
-               "",
+               enrollmentId,
                tableRowJsonObject.get("instance_id").getAsString(),
                tableRowJsonObject.get("enrolled_program").getAsString(),
                tableRowJsonObject.get("orgunit_id").getAsString(),

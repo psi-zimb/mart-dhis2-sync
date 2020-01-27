@@ -170,7 +170,7 @@ public class TEIService {
                 instancesMap.put(trackedEntityInstance.getTrackedEntityInstance(), filterProgramsBy(currentProgram, trackedEntityInstance.getEnrollments()));
             }
         });
-
+        logger.info("instancesMap " + instancesMap);
         return instancesMap;
     }
 

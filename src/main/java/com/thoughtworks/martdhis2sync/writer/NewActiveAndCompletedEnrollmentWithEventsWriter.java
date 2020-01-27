@@ -102,19 +102,35 @@ public class NewActiveAndCompletedEnrollmentWithEventsWriter implements ItemWrit
     }
 
     private Map<String, EnrollmentAPIPayLoad> getGroupedEnrollmentPayLoad(List<? extends ProcessedTableRow> tableRows) {
-        Map<String, EnrollmentAPIPayLoad> groupedEnrollments = new HashMap<>();
+        Map<String, EnrollmentAPIPayLoad> groupedEnrollments = new LinkedHashMap<>();
+        Map<String, EnrollmentAPIPayLoad> groupedEnrollmentsForUpdates = new LinkedHashMap<>();
         tableRows.forEach(row -> {
-            if (groupedEnrollments.containsKey(row.getProgramUniqueId())) {
-                EnrollmentAPIPayLoad enrollmentAPIPayLoad = groupedEnrollments.get(row.getProgramUniqueId());
-                List<Event> events = row.getPayLoad().getEvents();
-                if (events.size() > 0) {
-                    enrollmentAPIPayLoad.getEvents().add(events.get(0));
+            EnrollmentAPIPayLoad payload = row.getPayLoad();
+            if("".equals(payload.getEnrollmentId())) {
+                if (groupedEnrollments.containsKey(row.getProgramUniqueId())) {
+                    EnrollmentAPIPayLoad enrollmentAPIPayLoad = groupedEnrollments.get(row.getProgramUniqueId());
+                    List<Event> events = row.getPayLoad().getEvents();
+                    if (events.size() > 0) {
+                        enrollmentAPIPayLoad.getEvents().add(events.get(0));
+                    }
+                } else {
+                    groupedEnrollments.put(row.getProgramUniqueId(), row.getPayLoad());
                 }
             } else {
-                groupedEnrollments.put(row.getProgramUniqueId(), row.getPayLoad());
+                if (groupedEnrollmentsForUpdates.containsKey(row.getProgramUniqueId())) {
+                    EnrollmentAPIPayLoad enrollmentAPIPayLoad = groupedEnrollmentsForUpdates.get(row.getProgramUniqueId());
+                    List<Event> events = row.getPayLoad().getEvents();
+                    if (events.size() > 0) {
+                        enrollmentAPIPayLoad.getEvents().add(events.get(0));
+                    }
+                } else {
+                    groupedEnrollmentsForUpdates.put(row.getProgramUniqueId(), row.getPayLoad());
+                }
             }
         });
-
+        logger.info("groupedEnrollments: " + groupedEnrollments);
+        logger.info("groupedEnrollmentsUpdates: " + groupedEnrollmentsForUpdates);
+        groupedEnrollments.putAll(groupedEnrollmentsForUpdates);
         return groupedEnrollments;
     }
 
@@ -203,6 +219,8 @@ public class NewActiveAndCompletedEnrollmentWithEventsWriter implements ItemWrit
     }
 
     private String getActiveEnrollmentId(List<EnrollmentDetails> enrollmentDetails) {
+        if(enrollmentDetails == null)
+            return "";
         Optional<EnrollmentDetails> activeEnrollment = enrollmentDetails.stream()
                 .filter(enrollment -> EnrollmentAPIPayLoad.STATUS_ACTIVE.equals(enrollment.getStatus()))
                 .findFirst();

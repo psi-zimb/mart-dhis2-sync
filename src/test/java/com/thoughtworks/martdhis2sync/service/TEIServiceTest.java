@@ -320,7 +320,7 @@ public class TEIServiceTest {
 
         attributesOfPatient1.add(new Attribute(
                 "2018-11-26T09:24:57.158",
-                "admin",
+                "***REMOVED***",
                 "MMD_PER_NAM",
                 "First name",
                 "2018-11-26T09:24:57.158",
@@ -331,7 +331,7 @@ public class TEIServiceTest {
 
         attributesOfPatient1.add(new Attribute(
                 "2018-11-26T09:24:57.153",
-                "admin",
+                "***REMOVED***",
                 "",
                 "Last name",
                 "2018-11-26T09:24:57.152",
@@ -359,7 +359,7 @@ public class TEIServiceTest {
 
         attributesOfPatient2.add(new Attribute(
                 "2018-11-26T09:24:57.158",
-                "admin",
+                "***REMOVED***",
                 "MMD_PER_NAM",
                 "First name",
                 "2018-11-26T09:24:57.158",
@@ -370,7 +370,7 @@ public class TEIServiceTest {
 
         attributesOfPatient2.add(new Attribute(
                 "2018-11-26T09:24:57.153",
-                "admin",
+                "***REMOVED***",
                 "",
                 "Last name",
                 "2018-11-26T09:24:57.152",
