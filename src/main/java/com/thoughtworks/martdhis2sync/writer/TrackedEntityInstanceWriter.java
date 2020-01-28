@@ -165,7 +165,8 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     }
 
     private void updateMarker() {
-        markerUtil.updateMarkerEntry(programName, CATEGORY_INSTANCE,
-                BatchUtil.getStringFromDate(TEIUtil.date, BatchUtil.DATEFORMAT_WITH_24HR_TIME));
+        String teiDate = BatchUtil.getStringFromDate(TEIUtil.date, BatchUtil.DATEFORMAT_WITH_24HR_TIME);
+        logger.info("updating marker with date : " + teiDate);
+        markerUtil.updateMarkerEntry(programName, CATEGORY_INSTANCE, teiDate);
     }
 }
