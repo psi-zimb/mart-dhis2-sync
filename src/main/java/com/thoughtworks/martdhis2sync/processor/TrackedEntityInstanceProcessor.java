@@ -134,7 +134,7 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
                     )
             ).collect(Collectors.toList());
 
-            if (matchedInstances.size() == 1) {
+            if (matchedInstances.size() >= 1) {
                 uid = matchedInstances.get(0).getTrackedEntityInstance();
                 tableRowJsonObject.addProperty("instance_id", uid);
                 TEIUtil.setTrackedEntityInstanceIDs(tableRowJsonObject);
