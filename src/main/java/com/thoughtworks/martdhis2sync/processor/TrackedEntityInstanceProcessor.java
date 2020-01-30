@@ -124,17 +124,17 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
                     trackedEntityInstance.getAttributes().stream().filter(attribute ->
                             searchableKeySet.contains(attribute.getAttribute())
                     ).allMatch(attribute ->
-                            searchableMappings.get(attribute.getAttribute()).toUpperCase().equals(attribute.getValue().toUpperCase())
+                            searchableMappings.get(attribute.getAttribute()).equalsIgnoreCase(attribute.getValue())
                     )
             ).filter(trackedEntityInstance ->
                     trackedEntityInstance.getAttributes().stream().filter(attribute ->
                             comparableKeySet.contains(attribute.getAttribute())
                     ).allMatch(attribute ->
-                            comparableMappings.get(attribute.getAttribute()).toUpperCase().equals(attribute.getValue().toUpperCase())
+                            comparableMappings.get(attribute.getAttribute()).equalsIgnoreCase(attribute.getValue())
                     )
             ).collect(Collectors.toList());
 
-            if (matchedInstances.size() >= 1) {
+            if (matchedInstances.size() == 1) {
                 uid = matchedInstances.get(0).getTrackedEntityInstance();
                 tableRowJsonObject.addProperty("instance_id", uid);
                 TEIUtil.setTrackedEntityInstanceIDs(tableRowJsonObject);

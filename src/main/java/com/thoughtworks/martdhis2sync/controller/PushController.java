@@ -75,6 +75,7 @@ public class PushController {
         EventUtil.date = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_EVENT);
 
         try {
+            loggerService.clearLog();
             EnrollmentUtil.instanceIDEnrollmentIDMap.clear();
             Map<String,String> invalidPatients = teiService.verifyOrgUnitsForPatients(lookupTable.getInstance());
             if(invalidPatients.size() > 0) {

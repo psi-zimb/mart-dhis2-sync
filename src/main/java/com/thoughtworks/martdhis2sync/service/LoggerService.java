@@ -39,4 +39,8 @@ public class LoggerService {
     public void collateLogMessage(String message) {
         logMessage.add(message);
     }
+
+    public void clearLog() {
+        logMessage.clear();
+    }
 }
