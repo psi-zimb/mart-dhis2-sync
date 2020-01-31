@@ -16,9 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpServerErrorException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.thoughtworks.martdhis2sync.service.LoggerService.*;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
@@ -70,6 +68,7 @@ public class PushController {
         LookupTable lookupTable = gson.fromJson(mapping.get("lookup_table").toString(), LookupTable.class);
         MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
         Config config = gson.fromJson(mapping.get("config").toString(), Config.class);
+        Date teiLastSyncDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_INSTANCE);
         EnrollmentUtil.date = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_ENROLLMENT);
         EventUtil.date = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_EVENT);
 
@@ -77,9 +76,7 @@ public class PushController {
             loggerService.clearLog();
             EnrollmentUtil.instanceIDEnrollmentIDMap.clear();
             Map<String,String> invalidPatients = teiService.verifyOrgUnitsForPatients(
-                                                    lookupTable.getInstance(),
-                                                    markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_INSTANCE)
-                                                    );
+                                                    lookupTable, Arrays.asList(teiLastSyncDate, EnrollmentUtil.date, EventUtil.date));
             if(invalidPatients.size() > 0) {
                 loggerService.collateLogMessage("Pre-validation for sync service failed. Invalid Org Unit specified for below patients. Update patient's clinical info in Bahmni, run Bahmni MART");
                 invalidPatients.forEach((patientID,orgUnit)-> {

@@ -36,7 +36,7 @@ public class TEIService {
             "fields=trackedEntityInstance,enrollments[program,enrollment,enrollmentDate,completedDate,status]&" +
             "program=%s&trackedEntityInstance=%s";
 
-    private final String PATIENTS_WITH_INVALID_ORG_UNIT_QUERY =
+    private final String RECORDS_WITH_INVALID_ORG_UNIT_QUERY =
             "select \"Patient_Identifier\", \"OrgUnit\" from %s it " +
                     "where (\"OrgUnit\" is null or \"OrgUnit\" not in (select orgunit from  orgunit_tracker ot))" +
                     " and  date_created > %s";
@@ -202,9 +202,20 @@ public class TEIService {
         return result;
     }
 
-    public Map<String,String> verifyOrgUnitsForPatients(String instanceTable, Date lastSyncedDate) {
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(String.format(PATIENTS_WITH_INVALID_ORG_UNIT_QUERY, instanceTable,
-                                            BatchUtil.getStringFromDate(lastSyncedDate, DATEFORMAT_WITH_24HR_TIME)));
+    public Map<String, String> verifyOrgUnitsForPatients(LookupTable lookupTable,
+                                                         List<Date> lastSyncedDates) {
+        List<Map<String, Object>> rows = new ArrayList<>();
+        String lastDate = null;
+
+        lastDate = lastSyncedDates.get(0) == null ? null : BatchUtil.getStringFromDate(lastSyncedDates.get(0), DATEFORMAT_WITH_24HR_TIME);
+        rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY, lookupTable.getInstance(), lastDate)));
+
+        lastDate = lastSyncedDates.get(1) == null ? null : BatchUtil.getStringFromDate(lastSyncedDates.get(0), DATEFORMAT_WITH_24HR_TIME);
+        rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY, lookupTable.getEnrollments(), lastDate)));
+
+        lastDate = lastSyncedDates.get(2) == null ? null : BatchUtil.getStringFromDate(lastSyncedDates.get(0), DATEFORMAT_WITH_24HR_TIME);
+        rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY, lookupTable.getEvent(), lastDate)));
+
         Map<String,String> invalidPatients = new HashMap<>();
         rows.forEach(row -> {
             String patientID = (String)row.get("Patient_Identifier");
