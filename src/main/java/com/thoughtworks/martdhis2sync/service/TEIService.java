@@ -28,7 +28,7 @@ import java.io.SyncFailedException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
+import static com.thoughtworks.martdhis2sync.util.MarkerUtil.*;
 
 @Component
 public class TEIService {
@@ -38,8 +38,9 @@ public class TEIService {
 
     private final String RECORDS_WITH_INVALID_ORG_UNIT_QUERY =
             "select \"Patient_Identifier\", \"OrgUnit\" from %s it " +
-                    "where (\"OrgUnit\" is null or \"OrgUnit\" not in (select orgunit from  orgunit_tracker ot))" +
-                    " and  date_created > %s";
+                    "where (\"OrgUnit\" is null or \"OrgUnit\" not in (select orgunit from orgunit_tracker ot))" +
+                    " and date_created::TIMESTAMP > " +
+                    "COALESCE((SELECT last_synced_date FROM marker WHERE category='%s' AND program_name='%s'), '-infinity');";
 
     @Value("${country.org.unit.id.for.patient.data.duplication.check}")
     private String orgUnitID;
@@ -202,19 +203,14 @@ public class TEIService {
         return result;
     }
 
-    public Map<String, String> verifyOrgUnitsForPatients(LookupTable lookupTable,
-                                                         List<Date> lastSyncedDates) {
+    public Map<String, String> verifyOrgUnitsForPatients(LookupTable lookupTable, String serviceName) {
         List<Map<String, Object>> rows = new ArrayList<>();
-        String lastDate = null;
-
-        lastDate = lastSyncedDates.get(0) == null ? null : BatchUtil.getStringFromDate(lastSyncedDates.get(0), DATEFORMAT_WITH_24HR_TIME);
-        rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY, lookupTable.getInstance(), lastDate)));
-
-        lastDate = lastSyncedDates.get(1) == null ? null : BatchUtil.getStringFromDate(lastSyncedDates.get(0), DATEFORMAT_WITH_24HR_TIME);
-        rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY, lookupTable.getEnrollments(), lastDate)));
-
-        lastDate = lastSyncedDates.get(2) == null ? null : BatchUtil.getStringFromDate(lastSyncedDates.get(0), DATEFORMAT_WITH_24HR_TIME);
-        rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY, lookupTable.getEvent(), lastDate)));
+        rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY,
+                lookupTable.getInstance(), CATEGORY_INSTANCE, serviceName)));
+        rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY,
+                lookupTable.getEnrollments(), CATEGORY_ENROLLMENT, serviceName)));
+        rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY,
+                lookupTable.getEvent(), CATEGORY_EVENT, serviceName)));
 
         Map<String,String> invalidPatients = new HashMap<>();
         rows.forEach(row -> {
