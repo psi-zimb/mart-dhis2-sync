@@ -23,8 +23,7 @@ import java.util.Map;
 import static com.thoughtworks.martdhis2sync.service.LoggerService.*;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getStringFromDate;
-import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_ENROLLMENT;
-import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_EVENT;
+import static com.thoughtworks.martdhis2sync.util.MarkerUtil.*;
 
 
 @RestController
@@ -77,7 +76,10 @@ public class PushController {
         try {
             loggerService.clearLog();
             EnrollmentUtil.instanceIDEnrollmentIDMap.clear();
-            Map<String,String> invalidPatients = teiService.verifyOrgUnitsForPatients(lookupTable.getInstance());
+            Map<String,String> invalidPatients = teiService.verifyOrgUnitsForPatients(
+                                                    lookupTable.getInstance(),
+                                                    markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_INSTANCE)
+                                                    );
             if(invalidPatients.size() > 0) {
                 loggerService.collateLogMessage("Pre-validation for sync service failed. Invalid Org Unit specified for below patients. Update patient's clinical info in Bahmni, run Bahmni MART");
                 invalidPatients.forEach((patientID,orgUnit)-> {

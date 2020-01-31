@@ -7,6 +7,7 @@ import com.thoughtworks.martdhis2sync.dao.PatientDAO;
 import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.step.TrackedEntityInstanceStep;
+import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,13 +25,10 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.SyncFailedException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
 
 @Component
 public class TEIService {
@@ -38,9 +36,10 @@ public class TEIService {
             "fields=trackedEntityInstance,enrollments[program,enrollment,enrollmentDate,completedDate,status]&" +
             "program=%s&trackedEntityInstance=%s";
 
-    private final String PATIENTS_WITH_INVALID_ORG_UNIT_QUERY = "select \"Patient_Identifier\",\"OrgUnit\" from %s it " +
-            "where \"OrgUnit\" is null or " +
-            "\"OrgUnit\" not in (select orgunit from  orgunit_tracker ot)";
+    private final String PATIENTS_WITH_INVALID_ORG_UNIT_QUERY =
+            "select \"Patient_Identifier\", \"OrgUnit\" from %s it " +
+                    "where (\"OrgUnit\" is null or \"OrgUnit\" not in (select orgunit from  orgunit_tracker ot))" +
+                    " and  date_created > %s";
 
     @Value("${country.org.unit.id.for.patient.data.duplication.check}")
     private String orgUnitID;
@@ -203,8 +202,9 @@ public class TEIService {
         return result;
     }
 
-    public Map<String,String> verifyOrgUnitsForPatients(String instanceTable) {
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(String.format(PATIENTS_WITH_INVALID_ORG_UNIT_QUERY, instanceTable));
+    public Map<String,String> verifyOrgUnitsForPatients(String instanceTable, Date lastSyncedDate) {
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(String.format(PATIENTS_WITH_INVALID_ORG_UNIT_QUERY, instanceTable,
+                                            BatchUtil.getStringFromDate(lastSyncedDate, DATEFORMAT_WITH_24HR_TIME)));
         Map<String,String> invalidPatients = new HashMap<>();
         rows.forEach(row -> {
             String patientID = (String)row.get("Patient_Identifier");
