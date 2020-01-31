@@ -38,4 +38,5 @@ FROM (SELECT enrTable.*
                                          AND eventsTable.program = evntTracker.program
                                          AND eventsTable.program_stage = evntTracker.program_stage
 WHERE (enrollmentsTable.status = 'ACTIVE' OR eventsTable.event_program_status = 'ACTIVE')
-                                            AND enrolTracker.instance_id IS NOT NULL %s;
+                                            AND enrolTracker.instance_id IS NOT NULL %s
+                                            order by enrollmentsTable.date_created;

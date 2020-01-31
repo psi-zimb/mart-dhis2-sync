@@ -6,4 +6,5 @@ FROM %s lt
   LEFT join orgunit_tracker o ON  lt."OrgUnit" = o.orgUnit
   WHERE lt.date_created::TIMESTAMP > COALESCE((SELECT last_synced_date
                                     FROM marker
-                                    WHERE category='instance' AND program_name='%s'), '-infinity');
+                                    WHERE category='instance' AND program_name='%s'), '-infinity')
+                                    order by lt.date_created;

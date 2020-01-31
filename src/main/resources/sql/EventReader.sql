@@ -13,4 +13,5 @@ LEFT JOIN event_tracker ON insTracker.instance_id = event_tracker.instance_id
   AND event.event_unique_id::text = event_tracker.event_unique_id AND event.program = event_tracker.program AND event.program_stage = event_tracker.program_stage
 WHERE event.date_created::TIMESTAMP > COALESCE((SELECT last_synced_date
   FROM marker
-  WHERE category='event' AND program_name='%s'), '-infinity');
+  WHERE category='event' AND program_name='%s'), '-infinity')
+  order by event.date_created;

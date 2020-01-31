@@ -22,3 +22,4 @@ INNER JOIN instance_tracker insTracker ON COALESCE(eventsTable."Patient_Identifi
 LEFT JOIN enrollment_tracker enrolTracker ON COALESCE(enrollmentsTable.program, eventsTable.program) = enrolTracker.program
                                           AND enrolTracker.instance_id = insTracker.instance_id
                                           AND enrolTracker.program_unique_id = COALESCE(enrollmentsTable.program_unique_id, eventsTable.event_program_unique_id) :: TEXT
+                                          order by enrollmentsTable.date_created;
