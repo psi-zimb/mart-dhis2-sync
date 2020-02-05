@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -57,9 +58,12 @@ public class NewCompletedEnrollmentTasklet implements Tasklet {
         if (EnrollmentUtil.enrollmentsToSaveInTracker.isEmpty()) {
             return RepeatStatus.FINISHED;
         }
-        String apiBody = getApiBody();
-        ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponse = syncRepository.sendEnrollmentData(URI, apiBody);
-        processResponseEntity(enrollmentResponse);
+        List<EnrollmentAPIPayLoad> completedEnrollments = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
+        for(EnrollmentAPIPayLoad enrollment : completedEnrollments) {
+            String apiBody = getApiBody(enrollment);
+            ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponse = syncRepository.sendEnrollmentData(URI, apiBody);
+            processResponseEntity(enrollmentResponse);
+        }
         updateTrackers(user);
         return RepeatStatus.FINISHED;
     }
@@ -73,23 +77,19 @@ public class NewCompletedEnrollmentTasklet implements Tasklet {
         }
     }
 
-    private String getApiBody() {
+    private String getApiBody(EnrollmentAPIPayLoad enrollment) {
         StringBuilder body = new StringBuilder();
-        EnrollmentUtil.enrollmentsToSaveInTracker.forEach(enrollment -> {
-            body
-                    .append(String.format(
-                            ENROLLMENT_API_FORMAT,
-                            enrollment.getEnrollmentId(),
-                            enrollment.getInstanceId(),
-                            enrollment.getOrgUnit(),
-                            enrollment.getProgram(),
-                            enrollment.getProgramStartDate(),
-                            enrollment.getIncidentDate(),
-                            enrollment.getStatus().toUpperCase()
-                    ))
-                    .append(",");
-        });
-
+        body.append(String.format(
+                        ENROLLMENT_API_FORMAT,
+                        enrollment.getEnrollmentId(),
+                        enrollment.getInstanceId(),
+                        enrollment.getOrgUnit(),
+                        enrollment.getProgram(),
+                        enrollment.getProgramStartDate(),
+                        enrollment.getIncidentDate(),
+                        enrollment.getStatus().toUpperCase()
+                ))
+                .append(",");
         return String.format("{\"enrollments\":[%s]}", removeLastChar(body));
     }
 
