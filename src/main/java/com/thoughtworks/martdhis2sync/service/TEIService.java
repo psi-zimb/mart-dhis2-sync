@@ -24,12 +24,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.SyncFailedException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -121,7 +116,10 @@ public class TEIService {
                 });
             });
             uri.append("&includeAllAttributes=true");
-            allTEIInfos.addAll(syncRepository.getTrackedEntityInstances(url.toString() + uri).getBody().getTrackedEntityInstances());
+            ResponseEntity<TrackedEntityInstanceResponse> response = syncRepository.getTrackedEntityInstances(url.toString() + uri);
+            if(response != null && response.getBody() != null) {
+                allTEIInfos.addAll(response.getBody().getTrackedEntityInstances());
+            }
         });
 
         TEIUtil.setTrackedEntityInstanceInfos(allTEIInfos);

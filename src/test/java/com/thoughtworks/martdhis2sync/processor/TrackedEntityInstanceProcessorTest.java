@@ -118,13 +118,13 @@ public class TrackedEntityInstanceProcessorTest {
         getUnquotedString("\"" + dateCreated + "\"");
         verifyStatic();
         getDateFromString(dateCreated, DATEFORMAT_WITH_24HR_TIME);
-        verifyStatic(times(4));
+        verifyStatic(times(8));
         TEIUtil.getAttributeOfTypeDateTime();
         verifyStatic(times(1));
         BatchUtil.getQuotedString(dhisAcceptableDate);
-        verifyStatic(times(1));
+        verifyStatic(times(2));
         BatchUtil.getUnquotedString("\"rOb34aQLSyC\"");
-        verifyStatic(times(1));
+        verifyStatic(times(2));
         BatchUtil.getUnquotedString("\"aQLSyCrOb34\"");
         verifyStatic(times(2));
         BatchUtil.getUnquotedString("\"" + dateCreated + "\"");
@@ -154,13 +154,13 @@ public class TrackedEntityInstanceProcessorTest {
         getUnquotedString("\"" + dateCreated + "\"");
         verifyStatic();
         getDateFromString(dateCreated, DATEFORMAT_WITH_24HR_TIME);
-        verifyStatic(times(4));
+        verifyStatic(times(8));
         TEIUtil.getAttributeOfTypeDateTime();
         verifyStatic(times(1));
         BatchUtil.getQuotedString(dhisAcceptableDate);
-        verifyStatic(times(1));
+        verifyStatic(times(2));
         BatchUtil.getUnquotedString("\"rOb34aQLSyC\"");
-        verifyStatic(times(1));
+        verifyStatic(times(2));
         BatchUtil.getUnquotedString("\"aQLSyCrOb34\"");
         verifyStatic(times(2));
         BatchUtil.getUnquotedString("\"" + dateCreated + "\"");
@@ -184,18 +184,25 @@ public class TrackedEntityInstanceProcessorTest {
 
         verifyStatic();
         TEIUtil.setPatientIds(tableRowObject);
+
         verifyStatic(times(2));
         getUnquotedString("\"" + dateCreated + "\"");
+
         verifyStatic();
         getDateFromString(dateCreated, DATEFORMAT_WITH_24HR_TIME);
-        verifyStatic(times(4));
+
+        verifyStatic(times(8));
         TEIUtil.getAttributeOfTypeDateTime();
+
         verifyStatic(times(1));
         BatchUtil.getQuotedString(dhisAcceptableDate);
-        verifyStatic(times(1));
+
+        verifyStatic(times(2));
         BatchUtil.getUnquotedString("\"rOb34aQLSyC\"");
-        verifyStatic(times(1));
+
+        verifyStatic(times(2));
         BatchUtil.getUnquotedString("\"aQLSyCrOb34\"");
+
         verifyStatic(times(2));
         BatchUtil.getUnquotedString("\"" + dateCreated + "\"");
 
@@ -205,18 +212,25 @@ public class TrackedEntityInstanceProcessorTest {
     private void mockVerify() {
         verifyStatic();
         TEIUtil.setPatientIds(getTableRowObject());
+
         verifyStatic(times(2));
         getUnquotedString("\"" + dateCreated + "\"");
+
         verifyStatic();
         getDateFromString(dateCreated, DATEFORMAT_WITH_24HR_TIME);
-        verifyStatic(times(4));
+
+        verifyStatic(times(8));
         TEIUtil.getAttributeOfTypeDateTime();
+
         verifyStatic(times(1));
         BatchUtil.getQuotedString(dhisAcceptableDate);
-        verifyStatic(times(1));
+
+        verifyStatic(times(2));
         BatchUtil.getUnquotedString("\"rOb34aQLSyC\"");
-        verifyStatic(times(1));
+
+        verifyStatic(times(2));
         BatchUtil.getUnquotedString("\"aQLSyCrOb34\"");
+
         verifyStatic(times(2));
         BatchUtil.getUnquotedString("\"" + dateCreated + "\"");
     }

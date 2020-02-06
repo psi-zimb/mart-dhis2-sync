@@ -60,14 +60,16 @@ public class StepFactoryTest {
     public void setUp() throws Exception {
         stepFactory = new StepFactory();
         setValuesForMemberFields(stepFactory, "stepBuilderFactory", stepBuilderFactory);
+        setValuesForMemberFields(stepFactory, "syncBatchSize", 20);
     }
 
     @Test
     public void shouldReturnStep() {
         String stepName = "Step Name";
+        int syncBatchSize = 20;
 
         when(stepBuilderFactory.get(stepName)).thenReturn(stepBuilder);
-        when(stepBuilder.chunk(500)).thenReturn(simpleStepBuilder);
+        when(stepBuilder.chunk(syncBatchSize)).thenReturn(simpleStepBuilder);
         when(simpleStepBuilder.reader(jdbcCursorItemReader)).thenReturn(simpleStepBuilder);
         when(simpleStepBuilder.processor(processor)).thenReturn(simpleStepBuilder);
         when(simpleStepBuilder.writer(writer)).thenReturn(simpleStepBuilder);
@@ -76,7 +78,7 @@ public class StepFactoryTest {
         stepFactory.build(stepName, jdbcCursorItemReader, processor, writer);
 
         verify(stepBuilderFactory, times(1)).get(stepName);
-        verify(stepBuilder, times(1)).chunk(500);
+        verify(stepBuilder, times(1)).chunk(20);
         verify(simpleStepBuilder, times(1)).reader(jdbcCursorItemReader);
         verify(simpleStepBuilder, times(1)).processor(processor);
         verify(simpleStepBuilder, times(1)).writer(writer);

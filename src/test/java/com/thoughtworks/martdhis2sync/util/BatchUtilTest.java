@@ -67,7 +67,8 @@ public class BatchUtilTest {
 
     @Test
     public void shouldReturnMinDateValueWhenParseThrowsException() throws Exception {
-        String expected = "Sun Dec 02 22:17:04 IST 292269055";
+        //String expected = "Sun Dec 02 22:17:04 IST 292269055";
+        String expected = "Sun Dec 02 16:47:04 UTC 292269055";
 
         Date actual = getDateFromString("some", DATEFORMAT_WITH_24HR_TIME);
 

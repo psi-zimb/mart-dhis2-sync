@@ -16,6 +16,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.http.HttpStatus;
@@ -70,6 +71,9 @@ public class TEIServiceTest {
     @Mock
     private TrackedEntityInstanceResponse response;
 
+    @Mock
+    private JdbcTemplate jdbcTemplate;
+
     public static final String TRACKED_ENTITY_INSTANCE_URI = "/api/trackedEntityInstances?pageSize=10000";
     private String ORG_UNIT_ID = "DiszpKrYNg8";
     private int TEI_FILTER_URI_LIMIT = 5;
@@ -88,7 +92,7 @@ public class TEIServiceTest {
         setValuesForMemberFields(teiService, "syncRepository", syncRepository);
         setValuesForMemberFields(teiService, "orgUnitID", ORG_UNIT_ID);
         setValuesForMemberFields(teiService, "TEI_FILTER_URI_LIMIT", TEI_FILTER_URI_LIMIT);
-
+        setValuesForMemberFields(teiService, "jdbcTemplate", jdbcTemplate);
         steps.add(step);
 
         TEIUtil.setInstancesWithEnrollments(new HashMap<>());
@@ -239,7 +243,7 @@ public class TEIServiceTest {
     public void shouldGetTrackedEntityInstanceFromDHIS() throws IOException {
         String program = "HIV Testing Service";
         String queryParams = "&filter=HF8Tu4tg:IN:NINETU190995MT;JKAPTA170994MT;";
-        String uri = TRACKED_ENTITY_INSTANCE_URI + "&ou=" + ORG_UNIT_ID + "&ouMode=DESCENDANTS" + queryParams;
+        String uri = TRACKED_ENTITY_INSTANCE_URI + "&ou=" + ORG_UNIT_ID + "&ouMode=DESCENDANTS" + queryParams + "&includeAllAttributes=true";
         Map<String, Object> searchableMapping = new HashMap<>();
 
         trackedEntityInstanceResponse = ResponseEntity.ok(new TrackedEntityInstanceResponse(getTrackedEntityInstances(), "", 200));
@@ -291,6 +295,7 @@ public class TEIServiceTest {
         String lastFourUICs = "E8WXHJPWUG;UIBXG5IM3O;ZQT65ZLHRL;54KE7VC6AL;";
         String queryParams = "&filter=HF8Tu4tg:IN:";
         String uriWithoutSearchValues = TRACKED_ENTITY_INSTANCE_URI + "&ou=" + ORG_UNIT_ID + "&ouMode=DESCENDANTS";
+        String postFix = "&includeAllAttributes=true";
 
         trackedEntityInstanceResponse = ResponseEntity.ok(new TrackedEntityInstanceResponse(getTrackedEntityInstances(), "", 200));
 
@@ -307,8 +312,9 @@ public class TEIServiceTest {
         teiService.getTrackedEntityInstances(program, mappingJson);
 
         verify(mappingDAO, times(1)).getSearchableFields(program);
-        verify(syncRepository, times(1)).getTrackedEntityInstances(uriWithoutSearchValues + queryParams + firstFiveUICs);
-        verify(syncRepository, times(1)).getTrackedEntityInstances(uriWithoutSearchValues + queryParams + lastFourUICs);
+
+        verify(syncRepository, times(1)).getTrackedEntityInstances(uriWithoutSearchValues + queryParams + firstFiveUICs + postFix);
+        verify(syncRepository, times(1)).getTrackedEntityInstances(uriWithoutSearchValues + queryParams + lastFourUICs + postFix);
         verifyStatic(times(1));
         TEIUtil.setTrackedEntityInstanceInfos(getTrackedEntityInstances());
     }

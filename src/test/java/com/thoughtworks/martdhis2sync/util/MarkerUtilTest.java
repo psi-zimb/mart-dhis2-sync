@@ -51,7 +51,8 @@ public class MarkerUtilTest {
 
     @Test
     public void shouldReturnMinDateValueWhenSqlResponseIsNull() {
-        String expected = "Sun Dec 02 22:17:04 IST 292269055";
+        //String expected = "Sun Dec 02 22:17:04 IST 292269055";
+        String expected = "Sun Dec 02 16:47:04 UTC 292269055";
         String programName = "HTS Service";
         String category = CATEGORY_INSTANCE;
         Map<String, Object> syncedDate = new HashMap<>();
@@ -68,7 +69,8 @@ public class MarkerUtilTest {
 
     @Test
     public void shouldReturnDateObjectFromSqlResponse() {
-        String expected = "Sun Dec 02 22:17:04 IST 2018";
+        //String expected = "Sun Dec 02 22:17:04 IST 2018";
+        String expected = "Sun Dec 02 22:17:04 UTC 2018";
         String programName = "HTS Service";
         String category = CATEGORY_INSTANCE;
         Map<String, Object> syncedDate = new HashMap<>();
@@ -79,7 +81,7 @@ public class MarkerUtilTest {
         when(jdbcTemplate.queryForList(sql)).thenReturn(Collections.singletonList(syncedDate));
 
         Date lastSyncedDate = markerUtil.getLastSyncedDate(programName, category);
-
+        System.out.println(lastSyncedDate.toString());
         Assert.assertEquals(expected, lastSyncedDate.toString());
     }
 }

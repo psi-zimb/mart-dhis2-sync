@@ -98,8 +98,8 @@ public class DHISMetaDataServiceTest {
 
         verify(syncRepository, times(1)).getDataElements(dhis2Url + DATA_ELEMENT);
         verify(syncRepository, times(1)).getTrackedEntityAttributes(dhis2Url + TRACKED_ENTITY_ATTRIBUTE);
-        verify(logger, times(1)).info("DHIS2 Metadata Service: Received 0 Tracked Entity Attributes of type DateTime");
-        verify(logger, times(1)).info("DHIS2 Metadata Service: Received 0 Data Elements of type DateTime");
+        verify(logger, times(1)).info("DHIS2 Metadata Service: Received 0 Data Elements of type: /api/dataElements?pageSize=1000&filter=valueType:eq:DATETIME");
+        verify(logger, times(1)).info("DHIS2 Metadata Service: Received 0 Tracked Entity Attributes of type: /api/trackedEntityAttributes?pageSize=1000&filter=valueType:eq:DATETIME");
 
         verifyStatic(times(1));
         EventUtil.setElementsOfTypeDateTime(new ArrayList<>());
@@ -127,8 +127,8 @@ public class DHISMetaDataServiceTest {
         verify(syncRepository, times(1)).getDataElements(dhis2Url + DATA_ELEMENT);
         verify(syncRepository, times(1)).getTrackedEntityAttributes(dhis2Url + TRACKED_ENTITY_ATTRIBUTE);
         verify(syncRepository, times(1)).getDataElements(dhis2Url + dataElementsSecondPage);
-        verify(logger, times(1)).info("DHIS2 Metadata Service: Received 3 Data Elements of type DateTime");
-        verify(logger, times(1)).info("DHIS2 Metadata Service: Received 2 Tracked Entity Attributes of type DateTime");
+        verify(logger, times(1)).info("DHIS2 Metadata Service: Received 3 Data Elements of type: /api/dataElements?pageSize=1000&filter=valueType:eq:DATETIME");
+        verify(logger, times(1)).info("DHIS2 Metadata Service: Received 2 Tracked Entity Attributes of type: /api/trackedEntityAttributes?pageSize=1000&filter=valueType:eq:DATETIME");
 
         verifyStatic(times(1));
         EventUtil.setElementsOfTypeDateTime(Arrays.asList("asfasdfs", "asfasdfs", "newDataElement"));
@@ -157,8 +157,8 @@ public class DHISMetaDataServiceTest {
         verify(syncRepository, times(1)).getDataElements(dhis2Url + DATA_ELEMENT);
         verify(syncRepository, times(1)).getTrackedEntityAttributes(dhis2Url + TRACKED_ENTITY_ATTRIBUTE);
         verify(syncRepository, times(1)).getTrackedEntityAttributes(dhis2Url + attributesSecondPage);
-        verify(logger, times(1)).info("DHIS2 Metadata Service: Received 3 Tracked Entity Attributes of type DateTime");
-        verify(logger, times(1)).info("DHIS2 Metadata Service: Received 2 Data Elements of type DateTime");
+        verify(logger, times(1)).info("DHIS2 Metadata Service: Received 2 Data Elements of type: /api/dataElements?pageSize=1000&filter=valueType:eq:DATETIME");
+        verify(logger, times(1)).info("DHIS2 Metadata Service: Received 3 Tracked Entity Attributes of type: /api/trackedEntityAttributes?pageSize=1000&filter=valueType:eq:DATETIME");
 
         verifyStatic(times(1));
         EventUtil.setElementsOfTypeDateTime(Arrays.asList("asfasdfs", "asfasdfs"));

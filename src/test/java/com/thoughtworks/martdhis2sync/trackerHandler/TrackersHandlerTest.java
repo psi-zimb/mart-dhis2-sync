@@ -25,6 +25,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.when;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.slf4j.Logger;
 
 @RunWith(PowerMockRunner.class)
 public class TrackersHandlerTest {
@@ -41,6 +43,9 @@ public class TrackersHandlerTest {
     @Mock
     private Logger logger;
 
+    @Mock
+    private JdbcTemplate jdbcTemplate;
+
     private TrackersHandler trackersHandler;
     private String logPrefix = "Test Class: ";
 
@@ -49,6 +54,7 @@ public class TrackersHandlerTest {
         trackersHandler = new TrackersHandler();
 
         setValuesForMemberFields(trackersHandler, "dataSource", dataSource);
+        setValuesForMemberFields(trackersHandler, "jdbcTemplate", jdbcTemplate);
     }
 
     @Test
@@ -77,6 +83,7 @@ public class TrackersHandlerTest {
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
+        verify(jdbcTemplate, times(1)).queryForList("select instance_id, enrollment_id from enrollment_tracker");
         verify(preparedStatement, times(1)).setString(1, "enrId");
         verify(preparedStatement, times(1)).setString(2, "instanceId");
         verify(preparedStatement, times(1)).setString(3, "xhjKKwoq");
@@ -109,6 +116,8 @@ public class TrackersHandlerTest {
 
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(sql)).thenThrow(new SQLException("Could not prepareStatement"));
+
+        when(preparedStatement.executeUpdate()).thenReturn(1);
 
         trackersHandler.insertInEnrollmentTracker("***REMOVED***", logPrefix, logger);
 
@@ -344,6 +353,7 @@ public class TrackersHandlerTest {
 
         verify(dataSource, times(1)).getConnection();
         verify(connection, times(1)).prepareStatement(sql);
+        verify(jdbcTemplate, times(1)).queryForList("select instance_id, enrollment_id from enrollment_tracker");
         verify(preparedStatement, times(1)).setString(1, "enrId");
         verify(preparedStatement, times(1)).setString(2, "instanceId");
         verify(preparedStatement, times(1)).setString(3, "xhjKKwoq");
