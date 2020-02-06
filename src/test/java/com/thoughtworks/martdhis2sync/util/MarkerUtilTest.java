@@ -1,5 +1,6 @@
 package com.thoughtworks.martdhis2sync.util;
 
+import com.thoughtworks.martdhis2sync.writer.TrackedEntityInstanceWriterTest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,8 +52,8 @@ public class MarkerUtilTest {
 
     @Test
     public void shouldReturnMinDateValueWhenSqlResponseIsNull() {
-        //String expected = "Sun Dec 02 22:17:04 IST 292269055";
-        String expected = "Sun Dec 02 16:47:04 UTC 292269055";
+        String expectedIST = "Sun Dec 02 22:17:04 IST 292269055";
+        String expectedUTC = "Sun Dec 02 16:47:04 UTC 292269055";
         String programName = "HTS Service";
         String category = CATEGORY_INSTANCE;
         Map<String, Object> syncedDate = new HashMap<>();
@@ -64,13 +65,19 @@ public class MarkerUtilTest {
 
         Date lastSyncedDate = markerUtil.getLastSyncedDate(programName, category);
 
-        Assert.assertEquals(expected, lastSyncedDate.toString());
+        if(lastSyncedDate.toString().contains("UTC")) {
+            Assert.assertEquals(expectedUTC, lastSyncedDate.toString());
+        }
+        if(lastSyncedDate.toString().contains("IST")) {
+            Assert.assertEquals(expectedIST, lastSyncedDate.toString());
+        }
+
     }
 
     @Test
     public void shouldReturnDateObjectFromSqlResponse() {
-        //String expected = "Sun Dec 02 22:17:04 IST 2018";
-        String expected = "Sun Dec 02 22:17:04 UTC 2018";
+        String expectedIST = "Sun Dec 02 22:17:04 IST 2018";
+        String expectedUTC = "Sun Dec 02 22:17:04 UTC 2018";
         String programName = "HTS Service";
         String category = CATEGORY_INSTANCE;
         Map<String, Object> syncedDate = new HashMap<>();
@@ -82,6 +89,12 @@ public class MarkerUtilTest {
 
         Date lastSyncedDate = markerUtil.getLastSyncedDate(programName, category);
         System.out.println(lastSyncedDate.toString());
-        Assert.assertEquals(expected, lastSyncedDate.toString());
+
+        if(lastSyncedDate.toString().contains("UTC")) {
+            Assert.assertEquals(expectedUTC, lastSyncedDate.toString());
+        }
+        if(lastSyncedDate.toString().contains("IST")) {
+            Assert.assertEquals(expectedIST, lastSyncedDate.toString());
+        }
     }
 }
