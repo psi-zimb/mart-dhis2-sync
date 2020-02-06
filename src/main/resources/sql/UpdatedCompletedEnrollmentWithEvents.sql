@@ -38,4 +38,5 @@ FROM (SELECT enrTable.*
                                          AND eventsTable.program = evntTracker.program
                                          AND eventsTable.program_stage = evntTracker.program_stage
 WHERE (enrollmentsTable.status = 'COMPLETED' OR enrollmentsTable.status = 'CANCELLED' OR eventsTable.event_program_status = 'COMPLETED' OR eventsTable.event_program_status = 'CANCELLED')
-                                            AND enrolTracker.instance_id IS NOT NULL %s;
+                                            AND enrolTracker.instance_id IS NOT NULL %s
+                                            order by enrollmentsTable.date_created;

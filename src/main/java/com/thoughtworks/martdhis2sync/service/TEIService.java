@@ -7,6 +7,7 @@ import com.thoughtworks.martdhis2sync.dao.PatientDAO;
 import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.step.TrackedEntityInstanceStep;
+import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,15 +28,19 @@ import java.io.SyncFailedException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.thoughtworks.martdhis2sync.util.MarkerUtil.*;
+
 @Component
 public class TEIService {
     private final String TEI_ENROLLMENTS_URI = "/api/trackedEntityInstances?" +
             "fields=trackedEntityInstance,enrollments[program,enrollment,enrollmentDate,completedDate,status]&" +
             "program=%s&trackedEntityInstance=%s";
 
-    private final String PATIENTS_WITH_INVALID_ORG_UNIT_QUERY = "select \"Patient_Identifier\",\"OrgUnit\" from %s it " +
-            "where \"OrgUnit\" is null or " +
-            "\"OrgUnit\" not in (select orgunit from  orgunit_tracker ot)";
+    private final String RECORDS_WITH_INVALID_ORG_UNIT_QUERY =
+            "select \"Patient_Identifier\", \"OrgUnit\" from %s it " +
+                    "where (\"OrgUnit\" is null or \"OrgUnit\" not in (select orgunit from orgunit_tracker ot))" +
+                    " and date_created::TIMESTAMP > " +
+                    "COALESCE((SELECT last_synced_date FROM marker WHERE category='%s' AND program_name='%s'), '-infinity');";
 
     @Value("${country.org.unit.id.for.patient.data.duplication.check}")
     private String orgUnitID;
@@ -201,8 +206,15 @@ public class TEIService {
         return result;
     }
 
-    public Map<String,String> verifyOrgUnitsForPatients(String instanceTable) {
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(String.format(PATIENTS_WITH_INVALID_ORG_UNIT_QUERY, instanceTable));
+    public Map<String, String> verifyOrgUnitsForPatients(LookupTable lookupTable, String serviceName) {
+        List<Map<String, Object>> rows = new ArrayList<>();
+        rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY,
+                lookupTable.getInstance(), CATEGORY_INSTANCE, serviceName)));
+        rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY,
+                lookupTable.getEnrollments(), CATEGORY_ENROLLMENT, serviceName)));
+        rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY,
+                lookupTable.getEvent(), CATEGORY_EVENT, serviceName)));
+
         Map<String,String> invalidPatients = new HashMap<>();
         rows.forEach(row -> {
             String patientID = (String)row.get("Patient_Identifier");

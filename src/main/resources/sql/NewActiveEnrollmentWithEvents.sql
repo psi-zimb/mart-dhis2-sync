@@ -20,4 +20,5 @@ WHERE enrTable.date_created :: TIMESTAMP > COALESCE((SELECT last_synced_date FRO
                                                                                            AND program_name = '%s'),
                                                     '-infinity')
   AND enrTracker.instance_id IS NULL
-  AND enrTable.status = 'ACTIVE';
+  AND enrTable.status = 'ACTIVE' order by enrTable.date_created;
+

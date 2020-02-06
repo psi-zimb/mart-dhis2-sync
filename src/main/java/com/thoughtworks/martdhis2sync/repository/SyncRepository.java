@@ -7,6 +7,7 @@ import com.thoughtworks.martdhis2sync.model.DataElementResponse;
 import com.thoughtworks.martdhis2sync.model.OrgUnitResponse;
 import com.thoughtworks.martdhis2sync.model.TrackedEntityAttributeResponse;
 import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceResponse;
+import com.thoughtworks.martdhis2sync.service.JobService;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.slf4j.Logger;
@@ -162,6 +163,10 @@ public class SyncRepository {
         } catch (HttpServerErrorException e) {
             loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
             logger.error(LOG_PREFIX + e);
+            throw e;
+        } catch (Exception e) {
+            loggerService.collateLogMessage(String.format("Exception message : %s %nCaused by : %s", e.getMessage(), e.getCause()));
+            JobService.setIS_JOB_FAILED(true);
             throw e;
         }
         return responseEntity;
