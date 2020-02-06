@@ -4,6 +4,7 @@ import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.responseHandler.EnrollmentResponseHandler;
 import com.thoughtworks.martdhis2sync.responseHandler.EventResponseHandler;
+import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,6 +51,9 @@ public class NewActiveAndCompletedEnrollmentWithEventsWriterTest {
     private EventResponseHandler eventResponseHandler;
 
     private NewActiveAndCompletedEnrollmentWithEventsWriter writer;
+
+    @Mock
+    private MarkerUtil markerUtil;
 
     private String uri = "/api/enrollments?strategy=CREATE_AND_UPDATE";
 
@@ -112,6 +116,7 @@ public class NewActiveAndCompletedEnrollmentWithEventsWriterTest {
         setValuesForMemberFields(writer, "enrollmentResponseHandler", enrollmentResponseHandler);
         setValuesForMemberFields(writer, "eventResponseHandler", eventResponseHandler);
         setValuesForMemberFields(writer, "openLatestCompletedEnrollment", "no");
+        setValuesForMemberFields(writer, "markerUtil", markerUtil);
 
         when(responseEntity.getBody()).thenReturn(syncResponse);
         when(syncResponse.getResponse()).thenReturn(response);

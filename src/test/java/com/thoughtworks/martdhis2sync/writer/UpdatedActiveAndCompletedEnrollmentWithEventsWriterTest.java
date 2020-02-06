@@ -15,6 +15,7 @@ import com.thoughtworks.martdhis2sync.responseHandler.EnrollmentResponseHandler;
 import com.thoughtworks.martdhis2sync.responseHandler.EventResponseHandler;
 import com.thoughtworks.martdhis2sync.service.JobService;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
+import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,6 +74,9 @@ public class UpdatedActiveAndCompletedEnrollmentWithEventsWriterTest {
 
     @Mock
     private LoggerService loggerService;
+
+    @Mock
+    private MarkerUtil markerUtil;
 
     private UpdatedActiveAndCompletedEnrollmentWithEventsWriter writer;
 
@@ -137,6 +141,7 @@ public class UpdatedActiveAndCompletedEnrollmentWithEventsWriterTest {
         setValuesForMemberFields(writer, "enrollmentResponseHandler", enrollmentResponseHandler);
         setValuesForMemberFields(writer, "eventResponseHandler", eventResponseHandler);
         setValuesForMemberFields(writer, "loggerService", loggerService);
+        setValuesForMemberFields(writer, "markerUtil", markerUtil);
 
         when(responseEntity.getBody()).thenReturn(syncResponse);
         when(syncResponse.getResponse()).thenReturn(response);
