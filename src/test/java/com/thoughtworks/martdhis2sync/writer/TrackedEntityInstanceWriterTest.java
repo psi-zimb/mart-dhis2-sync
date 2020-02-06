@@ -242,7 +242,7 @@ public class TrackedEntityInstanceWriterTest {
         try {
             writer.write(list);
         } catch (Exception e) {
-            assertEquals(e.getClass(), SQLException.class);
+            assertEquals(e.getClass(), Exception.class);
         }
 
         verify(syncRepository, times(1)).sendData(uri, requestBody);
