@@ -15,11 +15,15 @@ import com.thoughtworks.martdhis2sync.responseHandler.EventResponseHandler;
 import com.thoughtworks.martdhis2sync.service.JobService;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
+import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
+import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -39,6 +43,7 @@ import static com.thoughtworks.martdhis2sync.util.EventUtil.getEventTrackers;
 import static com.thoughtworks.martdhis2sync.util.EventUtil.placeNewEventsFirst;
 
 @Component
+@StepScope
 public class UpdatedActiveAndCompletedEnrollmentWithEventsWriter implements ItemWriter<ProcessedTableRow> {
 
     private static final String URI = "/api/enrollments?strategy=CREATE_AND_UPDATE";
@@ -54,6 +59,12 @@ public class UpdatedActiveAndCompletedEnrollmentWithEventsWriter implements Item
 
     @Autowired
     private LoggerService loggerService;
+
+    @Value("#{jobParameters['service']}")
+    private String programName;
+
+    @Autowired
+    private MarkerUtil markerUtil;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private static final String LOG_PREFIX = "UPDATE COMPLETED ENROLLMENT WITH EVENTS SYNC: ";
@@ -94,6 +105,7 @@ public class UpdatedActiveAndCompletedEnrollmentWithEventsWriter implements Item
             if (!JobService.isIS_JOB_FAILED()) {
                 ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponse = syncRepository.sendEnrollmentData(URI, apiBody);
                 processResponseEntity(enrollmentResponse, payLoads);
+                EnrollmentUtil.updateMarker(markerUtil, programName, logger);
             }
         } catch (Exception e){
             JobService.setIS_JOB_FAILED(true);

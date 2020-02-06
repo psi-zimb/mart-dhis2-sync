@@ -90,7 +90,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
                 }
             }
             updateTracker();
-        }catch(Exception e){
+        } catch(Exception e){
             isSyncFailure = true;
         }
         if (isSyncFailure) {

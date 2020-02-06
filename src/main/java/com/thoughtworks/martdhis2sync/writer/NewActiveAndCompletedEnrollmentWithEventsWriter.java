@@ -12,10 +12,7 @@ import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.responseHandler.EnrollmentResponseHandler;
 import com.thoughtworks.martdhis2sync.responseHandler.EventResponseHandler;
 import com.thoughtworks.martdhis2sync.service.JobService;
-import com.thoughtworks.martdhis2sync.util.BatchUtil;
-import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
-import com.thoughtworks.martdhis2sync.util.EventUtil;
-import com.thoughtworks.martdhis2sync.util.TEIUtil;
+import com.thoughtworks.martdhis2sync.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -47,6 +44,12 @@ public class NewActiveAndCompletedEnrollmentWithEventsWriter implements ItemWrit
 
     @Value("#{jobParameters['openLatestCompletedEnrollment']}")
     private String openLatestCompletedEnrollment;
+
+    @Value("#{jobParameters['service']}")
+    private String programName;
+
+    @Autowired
+    private MarkerUtil markerUtil;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private static final String LOG_PREFIX = "NEW COMPLETED ENROLLMENT WITH EVENTS SYNC: ";
@@ -88,7 +91,8 @@ public class NewActiveAndCompletedEnrollmentWithEventsWriter implements ItemWrit
             String apiBody = getAPIBody(groupedEnrollmentPayLoad);
             ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponse = syncRepository.sendEnrollmentData(URI, apiBody);
             processResponseEntity(enrollmentResponse, payLoads);
-            }catch (Exception e){
+            EnrollmentUtil.updateMarker(markerUtil, programName, logger);
+        } catch (Exception e){
                     JobService.setIS_JOB_FAILED(true);
                     throw new Exception();
         }

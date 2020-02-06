@@ -68,7 +68,6 @@ public class PushController {
         LookupTable lookupTable = gson.fromJson(mapping.get("lookup_table").toString(), LookupTable.class);
         MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
         Config config = gson.fromJson(mapping.get("config").toString(), Config.class);
-        Date teiLastSyncDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_INSTANCE);
         EnrollmentUtil.date = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_ENROLLMENT);
         EventUtil.date = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_EVENT);
 
@@ -153,7 +152,7 @@ public class PushController {
 
         logger.info("=========================New Active Enrollment Sync Success=========================\n\n" +
                 "=========================Update Active Enrollment Sync Started");
-        
+
         activeEnrollmentService.triggerJobForUpdatedActiveEnrollments(requestBody.getService(), requestBody.getUser(),
                 lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), enrollmentsToIgnore,
                 config.getOpenLatestCompletedEnrollment());

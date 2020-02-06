@@ -1,11 +1,13 @@
 package com.thoughtworks.martdhis2sync.util;
 
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
+import org.slf4j.Logger;
 
 import java.util.*;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
+import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_ENROLLMENT;
 
 public class EnrollmentUtil {
 
@@ -20,5 +22,11 @@ public class EnrollmentUtil {
         if (date.compareTo(bahmniDateCreated) < 1) {
             date = bahmniDateCreated;
         }
+    }
+
+    public static void updateMarker(MarkerUtil markerUtil, String programName, Logger logger) {
+        String enrollmentDate = BatchUtil.getStringFromDate(date, BatchUtil.DATEFORMAT_WITH_24HR_TIME);
+        logger.info("Updating Enrollment marker with date : " + enrollmentDate);
+        markerUtil.updateMarkerEntry(programName, CATEGORY_ENROLLMENT, enrollmentDate);
     }
 }
