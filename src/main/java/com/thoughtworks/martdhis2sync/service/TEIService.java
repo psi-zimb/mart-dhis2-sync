@@ -121,7 +121,10 @@ public class TEIService {
                 });
             });
             uri.append("&includeAllAttributes=true");
-            allTEIInfos.addAll(syncRepository.getTrackedEntityInstances(url.toString() + uri).getBody().getTrackedEntityInstances());
+            ResponseEntity<TrackedEntityInstanceResponse> response = syncRepository.getTrackedEntityInstances(url.toString() + uri);
+            if(response != null && response.getBody() != null) {
+                allTEIInfos.addAll(response.getBody().getTrackedEntityInstances());
+            }
         });
 
         TEIUtil.setTrackedEntityInstanceInfos(allTEIInfos);

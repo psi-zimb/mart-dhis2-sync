@@ -87,6 +87,6 @@ public class TrackedEntityInstanceStepTest {
         verify(processor, times(1)).setSearchableAttributes(searchableAttributes);
         verify(processor, times(1)).setComparableAttributes(comparableAttributes);
 
-        assertEquals("Sun Dec 02 22:17:04 IST 292269055", TEIUtil.date.toString());
+        assertEquals("Sun Dec 02 16:47:04 UTC 292269055", TEIUtil.date.toString());
     }
 }
