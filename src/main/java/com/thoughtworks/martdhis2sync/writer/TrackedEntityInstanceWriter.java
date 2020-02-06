@@ -66,27 +66,33 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     @Override
     public void write(List list) throws Exception {
         PushController.IS_DELTA_EXISTS = true;
-        StringBuilder instanceApiFormat = new StringBuilder("{\"trackedEntityInstances\":[");
-        list.forEach(item -> instanceApiFormat.append(item).append(","));
-        instanceApiFormat.replace(instanceApiFormat.length() - 1, instanceApiFormat.length(), "]}");
+        try {
+            StringBuilder instanceApiFormat = new StringBuilder("{\"trackedEntityInstances\":[");
 
-        isSyncFailure = false;
-        ResponseEntity<DHISSyncResponse> responseEntity = syncRepository.sendData(URI, instanceApiFormat.toString());
+            list.forEach(item -> instanceApiFormat.append(item).append(","));
+            instanceApiFormat.replace(instanceApiFormat.length() - 1, instanceApiFormat.length(), "]}");
 
-        mapIterator = TEIUtil.getPatientIdTEIUidMap().entrySet().iterator();
-        newTEIUIDs.clear();
-        TEIUtil.getTrackedEntityInstanceIDs().forEach((key, value) -> newTEIUIDs.put(getUnquotedString(key), getUnquotedString(value)));
-        TEIUtil.resetTrackedEntityInstaceIDs();
+            isSyncFailure = false;
+            ResponseEntity<DHISSyncResponse> responseEntity = syncRepository.sendData(URI, instanceApiFormat.toString());
 
-        if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
-            processResponse(responseEntity.getBody().getResponse().getImportSummaries());
-        } else {
-            isSyncFailure = true;
-            if (!StringUtils.isEmpty(responseEntity) && !StringUtils.isEmpty(responseEntity.getBody())) {
-                processErrorResponse(responseEntity.getBody().getResponse().getImportSummaries());
+            mapIterator = TEIUtil.getPatientIdTEIUidMap().entrySet().iterator();
+            newTEIUIDs.clear();
+
+            TEIUtil.getTrackedEntityInstanceIDs().forEach((key, value) -> newTEIUIDs.put(getUnquotedString(key), getUnquotedString(value)));
+            TEIUtil.resetTrackedEntityInstaceIDs();
+
+            if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+                processResponse(responseEntity.getBody().getResponse().getImportSummaries());
+            } else {
+                isSyncFailure = true;
+                if (!StringUtils.isEmpty(responseEntity) && !StringUtils.isEmpty(responseEntity.getBody())) {
+                    processErrorResponse(responseEntity.getBody().getResponse().getImportSummaries());
+                }
             }
+            updateTracker();
+        }catch(Exception e){
+            isSyncFailure = true;
         }
-        updateTracker();
         if (isSyncFailure) {
             throw new Exception();
         } else {
