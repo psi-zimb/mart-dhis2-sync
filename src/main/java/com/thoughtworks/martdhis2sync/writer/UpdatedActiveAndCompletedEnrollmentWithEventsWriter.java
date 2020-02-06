@@ -85,14 +85,19 @@ public class UpdatedActiveAndCompletedEnrollmentWithEventsWriter implements Item
 
     @Override
     public void write(List<? extends ProcessedTableRow> tableRows) throws Exception {
-        PushController.IS_DELTA_EXISTS = true;
-        eventTrackers.clear();
-        Map<String, EnrollmentAPIPayLoad> groupedEnrollmentPayLoad = getGroupedEnrollmentPayLoad(tableRows);
-        Collection<EnrollmentAPIPayLoad> payLoads = groupedEnrollmentPayLoad.values();
-        String apiBody = getAPIBody(groupedEnrollmentPayLoad);
-        if (!JobService.isIS_JOB_FAILED()) {
-            ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponse = syncRepository.sendEnrollmentData(URI, apiBody);
-            processResponseEntity(enrollmentResponse, payLoads);
+        try {
+            PushController.IS_DELTA_EXISTS = true;
+            eventTrackers.clear();
+            Map<String, EnrollmentAPIPayLoad> groupedEnrollmentPayLoad = getGroupedEnrollmentPayLoad(tableRows);
+            Collection<EnrollmentAPIPayLoad> payLoads = groupedEnrollmentPayLoad.values();
+            String apiBody = getAPIBody(groupedEnrollmentPayLoad);
+            if (!JobService.isIS_JOB_FAILED()) {
+                ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponse = syncRepository.sendEnrollmentData(URI, apiBody);
+                processResponseEntity(enrollmentResponse, payLoads);
+            }
+        } catch (Exception e){
+            JobService.setIS_JOB_FAILED(true);
+            throw new Exception();
         }
     }
 
