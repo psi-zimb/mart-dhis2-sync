@@ -36,7 +36,7 @@ public class DHISMetaDataService {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private String url;
 
-    private List<String> getTEAttributes(String elementType) {
+    private List<String> getTEAttributes(String elementType) throws Exception {
         List<String> trackedEntityAttributes = new LinkedList<>();
         url = dhis2Url + elementType;
         do {
@@ -54,7 +54,7 @@ public class DHISMetaDataService {
         return trackedEntityAttributes;
     }
 
-    private List<String> getDataElements(String elementType) {
+    private List<String> getDataElements(String elementType) throws Exception {
         List<String> typeDataElements = new LinkedList<>();
         url = dhis2Url + elementType;
         do {
@@ -71,7 +71,7 @@ public class DHISMetaDataService {
         return typeDataElements;
     }
 
-    public void filterByTypeDateTime() {
+    public void filterByTypeDateTime() throws Exception {
         EventUtil.setElementsOfTypeDateTime(getDataElements(URI_DATE_TIME_DATA_ELEMENTS));
         TEIUtil.setAttributeOfTypeDateTime(getTEAttributes(URI_DATE_TIME_T_E_ATTRIBUTES));
 

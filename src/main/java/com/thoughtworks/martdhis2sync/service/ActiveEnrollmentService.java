@@ -72,7 +72,7 @@ public class ActiveEnrollmentService {
             jobService.triggerJob(service, user, jobName, steps, openLatestCompletedEnrollment);
         } catch (Exception e) {
             logger.error(LOG_PREFIX + e.getMessage());
-            logger.error(e.getStackTrace().toString());
+            throw new SyncFailedException(jobName.toUpperCase() + " FAILED");
         }
     }
 }

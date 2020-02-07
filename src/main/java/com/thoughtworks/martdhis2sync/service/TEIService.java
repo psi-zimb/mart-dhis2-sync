@@ -89,7 +89,7 @@ public class TEIService {
         }
     }
 
-    public void getTrackedEntityInstances(String mappingName, MappingJson mappingJson) throws IOException {
+    public void getTrackedEntityInstances(String mappingName, MappingJson mappingJson) throws Exception {
         List<TrackedEntityInstanceInfo> allTEIInfos = new ArrayList<>();
         StringBuilder url = new StringBuilder();
 
@@ -108,7 +108,7 @@ public class TEIService {
             return;
         }
 
-        separateSearchFieldsBasedOnFilterLimit(searchableFields).forEach(searchableFieldGroup -> {
+        for (List<Map<String, Object>> searchableFieldGroup : separateSearchFieldsBasedOnFilterLimit(searchableFields)) {
             StringBuilder uri = new StringBuilder();
             searchableFieldGroup.get(0).keySet().forEach(filter -> {
                 uri.append("&filter=");
@@ -122,10 +122,10 @@ public class TEIService {
             });
             uri.append("&includeAllAttributes=true");
             ResponseEntity<TrackedEntityInstanceResponse> response = syncRepository.getTrackedEntityInstances(url.toString() + uri);
-            if(response != null && response.getBody() != null) {
+            if (response != null && response.getBody() != null) {
                 allTEIInfos.addAll(response.getBody().getTrackedEntityInstances());
             }
-        });
+        }
 
         TEIUtil.setTrackedEntityInstanceInfos(allTEIInfos);
         logger.info("TEIUtil.getTrackedEntityInstanceInfos().size(): " + TEIUtil.getTrackedEntityInstanceInfos().size());

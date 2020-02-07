@@ -4,6 +4,7 @@ import com.thoughtworks.martdhis2sync.controller.PushController;
 import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
 import com.thoughtworks.martdhis2sync.model.ImportSummary;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
+import com.thoughtworks.martdhis2sync.service.JobService;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
@@ -73,8 +74,14 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
             instanceApiFormat.replace(instanceApiFormat.length() - 1, instanceApiFormat.length(), "]}");
 
             isSyncFailure = false;
-            ResponseEntity<DHISSyncResponse> responseEntity = syncRepository.sendData(URI, instanceApiFormat.toString());
-
+            ResponseEntity<DHISSyncResponse> responseEntity = null;
+            try {
+                responseEntity = syncRepository.sendData(URI, instanceApiFormat.toString());
+            } catch (Exception e) {
+                isSyncFailure = true;
+                JobService.setIS_JOB_FAILED(true);
+                throw new Exception();
+            }
             mapIterator = TEIUtil.getPatientIdTEIUidMap().entrySet().iterator();
             newTEIUIDs.clear();
 

@@ -55,7 +55,7 @@ public class PushController {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @PutMapping(value = "/pushData")
-    public void pushData(@RequestBody DHISSyncRequestBody requestBody) throws HttpServerErrorException {
+    public void pushData(@RequestBody DHISSyncRequestBody requestBody) throws Exception {
         long timeInMillis = System.currentTimeMillis();
         IS_DELTA_EXISTS = false;
         loggerService.addLog(requestBody.getService(), requestBody.getUser(), requestBody.getComment());
@@ -101,8 +101,6 @@ public class PushController {
             throw e;
         } catch (Exception e) {
             loggerService.updateLog(requestBody.getService(), FAILED);
-//            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "SYNC FAILED");
-            e.printStackTrace();
         }
         logger.info("Push Controller completed and took: " + (System.currentTimeMillis() - timeInMillis)/1000 + " seconds");
     }

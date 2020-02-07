@@ -53,7 +53,7 @@ public class NewCompletedEnrollmentTasklet implements Tasklet {
             "}";
 
     @Override
-    public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
+    public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
         String user = chunkContext.getStepContext().getJobParameters().get("user").toString();
         if (EnrollmentUtil.enrollmentsToSaveInTracker.isEmpty()) {
             return RepeatStatus.FINISHED;
@@ -61,7 +61,13 @@ public class NewCompletedEnrollmentTasklet implements Tasklet {
         List<EnrollmentAPIPayLoad> completedEnrollments = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
         for(EnrollmentAPIPayLoad enrollment : completedEnrollments) {
             String apiBody = getApiBody(enrollment);
-            ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponse = syncRepository.sendEnrollmentData(URI, apiBody);
+            ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponse = null;
+            try {
+                enrollmentResponse = syncRepository.sendEnrollmentData(URI, apiBody);
+            } catch (Exception e) {
+                JobService.setIS_JOB_FAILED(true);
+                throw new Exception();
+            }
             processResponseEntity(enrollmentResponse);
         }
         updateTrackers(user);

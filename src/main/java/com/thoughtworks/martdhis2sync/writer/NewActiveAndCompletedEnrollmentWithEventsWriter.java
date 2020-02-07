@@ -83,19 +83,21 @@ public class NewActiveAndCompletedEnrollmentWithEventsWriter implements ItemWrit
 
     @Override
     public void write(List<? extends ProcessedTableRow> tableRows) throws Exception {
+        PushController.IS_DELTA_EXISTS = true;
+        eventTrackers.clear();
+        Map<String, EnrollmentAPIPayLoad> groupedEnrollmentPayLoad = getGroupedEnrollmentPayLoad(tableRows);
+        Collection<EnrollmentAPIPayLoad> payLoads = groupedEnrollmentPayLoad.values();
+        String apiBody = getAPIBody(groupedEnrollmentPayLoad);
+        ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponse;
         try {
-            PushController.IS_DELTA_EXISTS = true;
-            eventTrackers.clear();
-            Map<String, EnrollmentAPIPayLoad> groupedEnrollmentPayLoad = getGroupedEnrollmentPayLoad(tableRows);
-            Collection<EnrollmentAPIPayLoad> payLoads = groupedEnrollmentPayLoad.values();
-            String apiBody = getAPIBody(groupedEnrollmentPayLoad);
-            ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponse = syncRepository.sendEnrollmentData(URI, apiBody);
-            processResponseEntity(enrollmentResponse, payLoads);
-            EnrollmentUtil.updateMarker(markerUtil, programName, logger);
-        } catch (Exception e){
-                    JobService.setIS_JOB_FAILED(true);
-                    throw new Exception();
+            enrollmentResponse = syncRepository.sendEnrollmentData(URI, apiBody);
+
+        } catch (Exception e) {
+            JobService.setIS_JOB_FAILED(true);
+            throw new Exception();
         }
+        processResponseEntity(enrollmentResponse, payLoads);
+        EnrollmentUtil.updateMarker(markerUtil, programName, logger);
     }
 
     private void processResponseEntity(ResponseEntity<DHISEnrollmentSyncResponse> responseEntity, Collection<EnrollmentAPIPayLoad> payLoads) throws Exception {

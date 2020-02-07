@@ -49,11 +49,11 @@ public class SyncRepository {
 
     private static final String LOG_PREFIX = "SyncRepository: ";
 
-    public ResponseEntity<DHISSyncResponse> sendData(String uri, String body) {
+    public ResponseEntity<DHISSyncResponse> sendData(String uri, String body) throws Exception {
         return sync(uri, body, DHISSyncResponse.class);
     }
 
-    public ResponseEntity<DHISEnrollmentSyncResponse> sendEnrollmentData(String uri, String body) {
+    public ResponseEntity<DHISEnrollmentSyncResponse> sendEnrollmentData(String uri, String body) throws Exception {
         return sync(uri, body, DHISEnrollmentSyncResponse.class);
     }
 
@@ -70,7 +70,7 @@ public class SyncRepository {
         return responseEntity;
     }
 
-    public ResponseEntity<DataElementResponse> getDataElements(String url) {
+    public ResponseEntity<DataElementResponse> getDataElements(String url) throws Exception {
         ResponseEntity<DataElementResponse> responseEntity = null;
         try {
             responseEntity = restTemplate
@@ -80,11 +80,12 @@ public class SyncRepository {
 
         }catch (Exception e){
             logger.error(LOG_PREFIX + e);
+            throw e;
         }
         return responseEntity;
     }
 
-    public ResponseEntity<TrackedEntityAttributeResponse> getTrackedEntityAttributes(String url) {
+    public ResponseEntity<TrackedEntityAttributeResponse> getTrackedEntityAttributes(String url) throws Exception {
         ResponseEntity<TrackedEntityAttributeResponse> responseEntity = null;
         try {
             responseEntity = restTemplate
@@ -94,11 +95,12 @@ public class SyncRepository {
 
         }catch (Exception e){
             logger.error(LOG_PREFIX + e);
+            throw e;
         }
         return responseEntity;
     }
 
-    public ResponseEntity<TrackedEntityInstanceResponse> getTrackedEntityInstances(String uri) {
+    public ResponseEntity<TrackedEntityInstanceResponse> getTrackedEntityInstances(String uri) throws Exception {
         ResponseEntity<TrackedEntityInstanceResponse> responseEntity = null;
         try {
             logger.info("Tracked Entity Request URI---> "+ uri);
@@ -107,10 +109,9 @@ public class SyncRepository {
                     .exchange(dhis2Url + uri, HttpMethod.GET,
                             new HttpEntity<>(getHttpHeaders()), TrackedEntityInstanceResponse.class);
 
-           logger.info("Response---------->\n" + responseEntity);
-
+            logger.info("Response---------->\n" + responseEntity);
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
-
+            return responseEntity;
         } catch (HttpClientErrorException e) {
             responseEntity = new ResponseEntity<>(
                     new Gson().fromJson(e.getResponseBodyAsString(), TrackedEntityInstanceResponse.class),
@@ -124,8 +125,10 @@ public class SyncRepository {
             loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
             logger.error(LOG_PREFIX + e);
             throw e;
+        } catch (Exception e) {
+            loggerService.collateLogMessage(String.format("Exception message : %s %nCaused by : %s", e.getMessage(), e.getCause()));
+            throw e;
         }
-        return responseEntity;
     }
 
     private HttpHeaders getHttpHeaders() {
@@ -139,7 +142,7 @@ public class SyncRepository {
         return httpHeaders;
     }
 
-    private <T> ResponseEntity<T> sync(String uri, String body, Class<T> type) {
+    private <T> ResponseEntity<T> sync(String uri, String body, Class<T> type) throws Exception {
         ResponseEntity<T> responseEntity;
         try {
 
@@ -166,7 +169,6 @@ public class SyncRepository {
             throw e;
         } catch (Exception e) {
             loggerService.collateLogMessage(String.format("Exception message : %s %nCaused by : %s", e.getMessage(), e.getCause()));
-            JobService.setIS_JOB_FAILED(true);
             throw e;
         }
         return responseEntity;
