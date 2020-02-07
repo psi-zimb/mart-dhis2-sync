@@ -50,7 +50,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.management.*")
 @PrepareForTest(JobService.class)
-public class UpdatedActiveAndCompletedEnrollmentWithEventsWriterTest {
+public class UpdatedEnrollmentWithEventsWriterTest {
     @Mock
     private SyncRepository syncRepository;
 
@@ -78,7 +78,7 @@ public class UpdatedActiveAndCompletedEnrollmentWithEventsWriterTest {
     @Mock
     private MarkerUtil markerUtil;
 
-    private UpdatedActiveAndCompletedEnrollmentWithEventsWriter writer;
+    private UpdatedEnrollmentWithEventsWriter writer;
 
     private String uri = "/api/enrollments?strategy=CREATE_AND_UPDATE";
 
@@ -134,7 +134,7 @@ public class UpdatedActiveAndCompletedEnrollmentWithEventsWriterTest {
         enrollmentAPIPayLoads.add(payLoad2);
         enrollmentAPIPayLoads.add(payLoad3);
         processedTableRows = Arrays.asList(processedTableRow1, processedTableRow2, processedTableRow3);
-        writer = new UpdatedActiveAndCompletedEnrollmentWithEventsWriter();
+        writer = new UpdatedEnrollmentWithEventsWriter();
 
         setValuesForMemberFields(writer, "syncRepository", syncRepository);
         setValuesForMemberFields(writer, "logger", logger);

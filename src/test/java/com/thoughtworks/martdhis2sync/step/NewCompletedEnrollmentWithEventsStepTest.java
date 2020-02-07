@@ -2,7 +2,8 @@ package com.thoughtworks.martdhis2sync.step;
 
 import com.thoughtworks.martdhis2sync.processor.NewEnrollmentWithEventsProcessor;
 import com.thoughtworks.martdhis2sync.reader.MappingReader;
-import com.thoughtworks.martdhis2sync.writer.NewActiveAndCompletedEnrollmentWithEventsWriter;
+import com.thoughtworks.martdhis2sync.writer.NewCompletedEnrollmentWithEventsWriter;
+import com.thoughtworks.martdhis2sync.writer.NewEnrollmentWithEventsWriter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,7 +39,7 @@ public class NewCompletedEnrollmentWithEventsStepTest {
     private NewEnrollmentWithEventsProcessor processor;
 
     @Mock
-    private NewActiveAndCompletedEnrollmentWithEventsWriter writer;
+    private NewCompletedEnrollmentWithEventsWriter writer;
 
     @Mock
     private TaskletStep step;

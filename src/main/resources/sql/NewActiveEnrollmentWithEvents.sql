@@ -7,7 +7,8 @@ SELECT enrTable.incident_date,
        enrTable."Patient_Identifier" AS enrolled_patient_identifier,
        evnTable.*,
        orgTracker.id               AS orgunit_id,
-       insTracker.instance_id
+       insTracker.instance_id,
+       'new_active_enrollment' AS enrollment_type
 FROM %s enrTable
        LEFT JOIN %s evnTable ON evnTable."Patient_Identifier" = enrTable."Patient_Identifier" AND
                                                       evnTable.enrollment_date = enrTable.enrollment_date
@@ -16,7 +17,7 @@ FROM %s enrTable
        LEFT JOIN enrollment_tracker enrTracker
          ON enrTable.program = enrTracker.program AND enrTracker.instance_id = insTracker.instance_id
               AND enrTracker.program_unique_id = enrTable.program_unique_id :: text
-WHERE enrTable.date_created :: TIMESTAMP > COALESCE((SELECT last_synced_date FROM marker WHERE category = 'enrollment'
+WHERE enrTable.date_created :: TIMESTAMP > COALESCE((SELECT last_synced_date FROM marker WHERE category = 'new_active_enrollment'
                                                                                            AND program_name = '%s'),
                                                     '-infinity')
   AND enrTracker.instance_id IS NULL

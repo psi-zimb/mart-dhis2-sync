@@ -50,7 +50,7 @@ public class NewActiveAndCompletedEnrollmentWithEventsWriterTest {
     @Mock
     private EventResponseHandler eventResponseHandler;
 
-    private NewActiveAndCompletedEnrollmentWithEventsWriter writer;
+    private NewCompletedEnrollmentWithEventsWriter writer;
 
     @Mock
     private MarkerUtil markerUtil;
@@ -109,7 +109,7 @@ public class NewActiveAndCompletedEnrollmentWithEventsWriterTest {
         enrollmentAPIPayLoads.add(payLoad2);
         enrollmentAPIPayLoads.add(payLoad3);
         processedTableRows = Arrays.asList(processedTableRow1, processedTableRow2, processedTableRow3);
-        writer = new NewActiveAndCompletedEnrollmentWithEventsWriter();
+        writer = new NewCompletedEnrollmentWithEventsWriter();
 
         setValuesForMemberFields(writer, "syncRepository", syncRepository);
         setValuesForMemberFields(writer, "logger", logger);

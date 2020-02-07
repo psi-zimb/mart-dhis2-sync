@@ -7,7 +7,6 @@ import com.thoughtworks.martdhis2sync.dao.PatientDAO;
 import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.step.TrackedEntityInstanceStep;
-import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -211,7 +210,13 @@ public class TEIService {
         rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY,
                 lookupTable.getInstance(), CATEGORY_INSTANCE, serviceName)));
         rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY,
-                lookupTable.getEnrollments(), CATEGORY_ENROLLMENT, serviceName)));
+                lookupTable.getEnrollments(), CATEGORY_NEW_ACTIVE_ENROLLMENT, serviceName)));
+        rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY,
+                lookupTable.getEnrollments(), CATEGORY_NEW_COMPLETED_ENROLLMENT, serviceName)));
+        rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY,
+                lookupTable.getEnrollments(), CATEGORY_UPDATED_ACTIVE_ENROLLMENT, serviceName)));
+        rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY,
+                lookupTable.getEnrollments(), CATEGORY_UPDATED_COMPLETED_ENROLLMENT, serviceName)));
         rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY,
                 lookupTable.getEvent(), CATEGORY_EVENT, serviceName)));
 

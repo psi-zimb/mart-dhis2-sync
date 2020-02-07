@@ -20,7 +20,7 @@ import static com.thoughtworks.martdhis2sync.util.EventUtil.updateLatestEventDat
 @Component
 public abstract class EnrollmentWithEventProcessor {
 
-    public ProcessedTableRow process(Object tableRow, Object mappingObj) {
+    public ProcessedTableRow process(Object tableRow, Object mappingObj) throws Exception {
         Gson gson = new GsonBuilder().setDateFormat(DATEFORMAT_WITH_24HR_TIME).create();
         JsonElement tableRowJsonElement = gson.toJsonTree(tableRow);
         JsonElement mappingObjJsonElement = gson.toJsonTree(mappingObj);
@@ -30,8 +30,9 @@ public abstract class EnrollmentWithEventProcessor {
 
         JsonElement eventDateCreated = tableRowJsonObject.get("date_created");
         JsonElement enrollmentDateCreated = tableRowJsonObject.get("enrollment_date_created");
+        JsonElement enrollmentType = tableRowJsonObject.get("enrollment_type");
         updateLatestEventDateCreated(hasValue(eventDateCreated) ? eventDateCreated.getAsString() : "");
-        updateLatestEnrollmentDateCreated(hasValue(enrollmentDateCreated) ? enrollmentDateCreated.getAsString() : "");
+        updateLatestEnrollmentDateCreated((hasValue(enrollmentDateCreated) ? enrollmentDateCreated.getAsString() : ""), (enrollmentType != null ? enrollmentType.getAsString() : ""));
 
         Event event = getEvent(tableRowJsonObject, mappingJsonObject);
         List<Event> events = new LinkedList<>();

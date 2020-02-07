@@ -10,12 +10,13 @@ SELECT
   orgTracker.id                         AS orgunit_id,
   insTracker.instance_id,
   enrolTracker.enrollment_id,
-  evntTracker.event_id
+  evntTracker.event_id,
+  'updated_active_enrollment' AS enrollment_type
 FROM (SELECT enrTable.*
       FROM %s enrTable
         INNER JOIN marker enrollment_marker
           ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')
-             AND category = 'enrollment' AND program_name = '%s') AS enrollmentsTable
+             AND category = 'updated_active_enrollment' AND program_name = '%s') AS enrollmentsTable
   FULL OUTER JOIN (SELECT evnTable.*,
                    enrollments.program_unique_id AS event_program_unique_id,
                    enrollments.status            AS event_program_status,

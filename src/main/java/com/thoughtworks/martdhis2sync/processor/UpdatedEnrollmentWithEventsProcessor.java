@@ -22,7 +22,7 @@ public class UpdatedEnrollmentWithEventsProcessor extends EnrollmentWithEventPro
     private Object mappingObj;
 
     @Override
-    public ProcessedTableRow process(Object tableRow) {
+    public ProcessedTableRow process(Object tableRow) throws Exception {
         return super.process(tableRow, mappingObj);
     }
 

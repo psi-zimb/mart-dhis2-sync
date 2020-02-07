@@ -5,6 +5,7 @@ import com.thoughtworks.martdhis2sync.step.NewCompletedEnrollmentStep;
 import com.thoughtworks.martdhis2sync.step.NewCompletedEnrollmentWithEventsStep;
 import com.thoughtworks.martdhis2sync.step.UpdatedCompletedEnrollmentStep;
 import com.thoughtworks.martdhis2sync.step.UpdatedCompletedEnrollmentWithEventsStep;
+import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobParametersInvalidException;
@@ -42,6 +43,7 @@ public class CompletedEnrollmentService {
     private static final String LOG_PREFIX = "Completed Enrollments: ";
     private static final String JOB_NEW_COMPLETED_ENROLLMENTS = "New Completed Enrollments";
     private static final String JOB_UPDATED_COMPLETED_ENROLLMENTS = "Updated Completed Enrollments";
+
 
     public void triggerJobForNewCompletedEnrollments(String service, String user, String enrLookupTable,
                                                      String evnLookupTable, Object mappingObj, String openLatestCompletedEnrollment)

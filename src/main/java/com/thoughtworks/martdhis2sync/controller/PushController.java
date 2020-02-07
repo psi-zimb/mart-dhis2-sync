@@ -68,7 +68,12 @@ public class PushController {
         LookupTable lookupTable = gson.fromJson(mapping.get("lookup_table").toString(), LookupTable.class);
         MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
         Config config = gson.fromJson(mapping.get("config").toString(), Config.class);
-        EnrollmentUtil.date = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_ENROLLMENT);
+        EnrollmentUtil.newActiveDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_NEW_ACTIVE_ENROLLMENT);
+        EnrollmentUtil.newCompletedDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_NEW_COMPLETED_ENROLLMENT);
+
+        EnrollmentUtil.updatedActiveDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_UPDATED_ACTIVE_ENROLLMENT);
+        EnrollmentUtil.updatedCompletedDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_UPDATED_COMPLETED_ENROLLMENT);
+
         EventUtil.date = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_EVENT);
 
         try {
@@ -93,7 +98,7 @@ public class PushController {
                 loggerService.updateLog(requestBody.getService(), SUCCESS);
                 throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "NO DATA TO SYNC");
             } else {
-                updateMarkers(requestBody);
+                updateEventMarker(requestBody);
             }
             loggerService.updateLog(requestBody.getService(), SUCCESS);
         } catch (HttpServerErrorException e) {
@@ -105,9 +110,7 @@ public class PushController {
         logger.info("Push Controller completed and took: " + (System.currentTimeMillis() - timeInMillis)/1000 + " seconds");
     }
 
-    private void updateMarkers(DHISSyncRequestBody requestBody) {
-        markerUtil.updateMarkerEntry(requestBody.getService(), CATEGORY_ENROLLMENT,
-                getStringFromDate(EnrollmentUtil.date, DATEFORMAT_WITH_24HR_TIME));
+    private void updateEventMarker(DHISSyncRequestBody requestBody) {
         markerUtil.updateMarkerEntry(requestBody.getService(), CATEGORY_EVENT,
                 getStringFromDate(EventUtil.date, DATEFORMAT_WITH_24HR_TIME));
     }

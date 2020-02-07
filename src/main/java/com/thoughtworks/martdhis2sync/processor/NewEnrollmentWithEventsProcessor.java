@@ -28,7 +28,7 @@ public class NewEnrollmentWithEventsProcessor extends EnrollmentWithEventProcess
     private Object mappingObj;
 
     @Override
-    public ProcessedTableRow process(Object tableRow) {
+    public ProcessedTableRow process(Object tableRow) throws Exception {
         return super.process(tableRow, mappingObj);
     }
 

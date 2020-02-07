@@ -30,7 +30,7 @@ import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeLastChar;
 
 @Component
 @StepScope
-public class NewActiveAndCompletedEnrollmentWithEventsWriter implements ItemWriter<ProcessedTableRow> {
+public class NewEnrollmentWithEventsWriter {
     private static final String URI = "/api/enrollments?strategy=CREATE_AND_UPDATE";
 
     @Autowired
@@ -46,10 +46,10 @@ public class NewActiveAndCompletedEnrollmentWithEventsWriter implements ItemWrit
     private String openLatestCompletedEnrollment;
 
     @Value("#{jobParameters['service']}")
-    private String programName;
+    protected String programName;
 
     @Autowired
-    private MarkerUtil markerUtil;
+    protected MarkerUtil markerUtil;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private static final String LOG_PREFIX = "NEW COMPLETED ENROLLMENT WITH EVENTS SYNC: ";
@@ -80,25 +80,6 @@ public class NewActiveAndCompletedEnrollmentWithEventsWriter implements ItemWrit
                 "\"status\":\"%s\", " +
                 "\"events\":[%s]" +
             "}";
-
-    @Override
-    public void write(List<? extends ProcessedTableRow> tableRows) throws Exception {
-        PushController.IS_DELTA_EXISTS = true;
-        eventTrackers.clear();
-        Map<String, EnrollmentAPIPayLoad> groupedEnrollmentPayLoad = getGroupedEnrollmentPayLoad(tableRows);
-        Collection<EnrollmentAPIPayLoad> payLoads = groupedEnrollmentPayLoad.values();
-        String apiBody = getAPIBody(groupedEnrollmentPayLoad);
-        ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponse;
-        try {
-            enrollmentResponse = syncRepository.sendEnrollmentData(URI, apiBody);
-
-        } catch (Exception e) {
-            JobService.setIS_JOB_FAILED(true);
-            throw new Exception();
-        }
-        processResponseEntity(enrollmentResponse, payLoads);
-        EnrollmentUtil.updateMarker(markerUtil, programName, logger);
-    }
 
     private void processResponseEntity(ResponseEntity<DHISEnrollmentSyncResponse> responseEntity, Collection<EnrollmentAPIPayLoad> payLoads) throws Exception {
         Iterator<EnrollmentAPIPayLoad> iterator = payLoads.iterator();
@@ -222,5 +203,22 @@ public class NewActiveAndCompletedEnrollmentWithEventsWriter implements ItemWrit
                 .findFirst();
 
         return activeEnrollment.isPresent() ? activeEnrollment.get().getEnrollment() : "";
+    }
+
+    protected void processWrite(List<? extends ProcessedTableRow> tableRows) throws Exception {
+        PushController.IS_DELTA_EXISTS = true;
+        eventTrackers.clear();
+        Map<String, EnrollmentAPIPayLoad> groupedEnrollmentPayLoad = getGroupedEnrollmentPayLoad(tableRows);
+        Collection<EnrollmentAPIPayLoad> payLoads = groupedEnrollmentPayLoad.values();
+        String apiBody = getAPIBody(groupedEnrollmentPayLoad);
+        ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponse;
+        try {
+            enrollmentResponse = syncRepository.sendEnrollmentData(URI, apiBody);
+
+        } catch (Exception e) {
+            JobService.setIS_JOB_FAILED(true);
+            throw new Exception();
+        }
+        processResponseEntity(enrollmentResponse, payLoads);
     }
 }
