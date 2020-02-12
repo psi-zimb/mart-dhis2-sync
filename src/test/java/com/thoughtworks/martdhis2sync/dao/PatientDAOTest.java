@@ -70,7 +70,7 @@ public class PatientDAOTest {
                 "      FROM %s enrTable\n" +
                 "      INNER JOIN marker enrollment_marker\n" +
                 "          ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
-                "          AND category = 'enrollment' AND program_name = '%s'\n" +
+                "          AND category = 'updated_completed_enrollment' AND program_name = '%s'\n" +
                 "     ) AS enrollmentsTable\n" +
                 "FULL OUTER JOIN (SELECT evnTable.*,\n" +
                 "                   enrollments.program_unique_id AS event_program_unique_id,\n" +
@@ -97,7 +97,7 @@ public class PatientDAOTest {
                 "      FROM enrollment_table enrTable\n" +
                 "      INNER JOIN marker enrollment_marker\n" +
                 "          ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
-                "          AND category = 'enrollment' AND program_name = 'hts'\n" +
+                "          AND category = 'updated_completed_enrollment' AND program_name = 'hts'\n" +
                 "     ) AS enrollmentsTable\n" +
                 "FULL OUTER JOIN (SELECT evnTable.*,\n" +
                 "                   enrollments.program_unique_id AS event_program_unique_id,\n" +

@@ -111,7 +111,7 @@ public class MappingReaderTest {
     }
 
     @Test
-    public void shouldReturnReaderForProgramEnrollment() throws Exception {
+    public void shouldReturnReaderForNewCompletedProgramEnrollment() throws Exception {
         String lookupTable = "programs";
 
         String sql = String.format("SELECT mappedTable. *, insTracker.instance_id, orgTracker.id as orgunit_id,\n" +
@@ -127,7 +127,7 @@ public class MappingReaderTest {
                         "    AND enrTracker.program_unique_id = mappedTable.program_unique_id\n" +
                         "  WHERE mappedTable.date_created > COALESCE((SELECT last_synced_date\n" +
                         "                                    FROM marker\n" +
-                        "                                    WHERE category='enrollment' AND program_name='%s'), '-infinity');\n",
+                        "                                    WHERE category='new_completed_enrollment' AND program_name='%s'), '-infinity');\n",
                         lookupTable, programName);
 
         whenNew(JdbcCursorItemReader.class).withNoArguments().thenReturn(jdbcCursorItemReader);
@@ -205,7 +205,7 @@ public class MappingReaderTest {
                         "       LEFT JOIN enrollment_tracker enrTracker\n" +
                         "         ON enrTable.program = enrTracker.program AND enrTracker.instance_id = insTracker.instance_id\n" +
                         "              AND enrTracker.program_unique_id = enrTable.program_unique_id :: text\n" +
-                        "WHERE enrTable.date_created :: TIMESTAMP > COALESCE((SELECT last_synced_date FROM marker WHERE category = 'enrollment'\n" +
+                        "WHERE enrTable.date_created :: TIMESTAMP > COALESCE((SELECT last_synced_date FROM marker WHERE category = 'new_completed_enrollment'\n" +
                         "                                                                                           AND program_name = '%s'),\n" +
                         "                                                    '-infinity')\n" +
                         "  AND enrTable.status = 'COMPLETED'\n" +
@@ -260,7 +260,7 @@ public class MappingReaderTest {
                 "      FROM %s enrTable\n" +
                 "        INNER JOIN marker enrollment_marker\n" +
                 "          ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
-                "             AND category = 'enrollment' AND program_name = '%s') AS enrollmentsTable\n" +
+                "             AND category = 'updated_completed_enrollment' AND program_name = '%s') AS enrollmentsTable\n" +
                 "  FULL OUTER JOIN (SELECT evnTable.*, enrollments.program_unique_id AS event_program_unique_id\n" +
                 "                   FROM %s evnTable\n" +
                 "                     INNER JOIN %s enrollments ON evnTable.\"Patient_Identifier\" = enrollments.\"Patient_Identifier\"\n" +
@@ -299,7 +299,7 @@ public class MappingReaderTest {
                 "      FROM enrollment enrTable\n" +
                 "        INNER JOIN marker enrollment_marker\n" +
                 "          ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
-                "             AND category = 'enrollment' AND program_name = 'HTS Service') AS enrollmentsTable\n" +
+                "             AND category = 'updated_completed_enrollment' AND program_name = 'HTS Service') AS enrollmentsTable\n" +
                 "  FULL OUTER JOIN (SELECT evnTable.*, enrollments.program_unique_id AS event_program_unique_id\n" +
                 "                   FROM event evnTable\n" +
                 "                     INNER JOIN enrollment enrollments ON evnTable.\"Patient_Identifier\" = enrollments.\"Patient_Identifier\"\n" +
@@ -360,7 +360,7 @@ public class MappingReaderTest {
                 "      FROM %s enrTable\n" +
                 "        INNER JOIN marker enrollment_marker\n" +
                 "          ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
-                "             AND category = 'enrollment' AND program_name = '%s') AS enrollmentsTable\n" +
+                "             AND category = 'updated_completed_enrollment' AND program_name = '%s') AS enrollmentsTable\n" +
                 "  FULL OUTER JOIN (SELECT evnTable.*, enrollments.program_unique_id AS event_program_unique_id\n" +
                 "                   FROM %s evnTable\n" +
                 "                     INNER JOIN %s enrollments ON evnTable.\"Patient_Identifier\" = enrollments.\"Patient_Identifier\"\n" +
@@ -399,7 +399,7 @@ public class MappingReaderTest {
                 "      FROM enrollment enrTable\n" +
                 "        INNER JOIN marker enrollment_marker\n" +
                 "          ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
-                "             AND category = 'enrollment' AND program_name = 'HTS Service') AS enrollmentsTable\n" +
+                "             AND category = 'updated_completed_enrollment' AND program_name = 'HTS Service') AS enrollmentsTable\n" +
                 "  FULL OUTER JOIN (SELECT evnTable.*, enrollments.program_unique_id AS event_program_unique_id\n" +
                 "                   FROM event evnTable\n" +
                 "                     INNER JOIN enrollment enrollments ON evnTable.\"Patient_Identifier\" = enrollments.\"Patient_Identifier\"\n" +
@@ -460,7 +460,7 @@ public class MappingReaderTest {
                         "       LEFT JOIN enrollment_tracker enrTracker\n" +
                         "         ON enrTable.program = enrTracker.program AND enrTracker.instance_id = insTracker.instance_id\n" +
                         "              AND enrTracker.program_unique_id = enrTable.program_unique_id :: text\n" +
-                        "WHERE enrTable.date_created :: TIMESTAMP > COALESCE((SELECT last_synced_date FROM marker WHERE category = 'enrollment'\n" +
+                        "WHERE enrTable.date_created :: TIMESTAMP > COALESCE((SELECT last_synced_date FROM marker WHERE category = 'new_active_enrollment'\n" +
                         "                                                                                           AND program_name = '%s'),\n" +
                         "                                                    '-infinity')\n" +
                         "  AND enrTracker.instance_id IS NULL\n" +
@@ -515,7 +515,7 @@ public class MappingReaderTest {
                 "      FROM %s enrTable\n" +
                 "        INNER JOIN marker enrollment_marker\n" +
                 "          ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
-                "             AND category = 'enrollment' AND program_name = '%s') AS enrollmentsTable\n" +
+                "             AND category = 'updated_active_enrollment' AND program_name = '%s') AS enrollmentsTable\n" +
                 "  FULL OUTER JOIN (SELECT evnTable.*,\n" +
                 "                   enrollments.program_unique_id AS event_program_unique_id,\n" +
                 "                   enrollments.status            AS event_program_status,\n" +
@@ -557,7 +557,7 @@ public class MappingReaderTest {
                 "      FROM enrollment enrTable\n" +
                 "        INNER JOIN marker enrollment_marker\n" +
                 "          ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
-                "             AND category = 'enrollment' AND program_name = 'HTS Service') AS enrollmentsTable\n" +
+                "             AND category = 'updated_active_enrollment' AND program_name = 'HTS Service') AS enrollmentsTable\n" +
                 "  FULL OUTER JOIN (SELECT evnTable.*,\n" +
                 "                   enrollments.program_unique_id AS event_program_unique_id,\n" +
                 "                   enrollments.status            AS event_program_status,\n" +
