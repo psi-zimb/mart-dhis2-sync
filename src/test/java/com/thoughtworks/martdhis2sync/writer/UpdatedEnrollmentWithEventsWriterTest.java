@@ -36,7 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
+import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForSuperClassMemberFields;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_ERROR;
 import static com.thoughtworks.martdhis2sync.model.ImportSummary.IMPORT_SUMMARY_RESPONSE_SUCCESS;
 import static org.mockito.Matchers.any;
@@ -78,7 +78,7 @@ public class UpdatedEnrollmentWithEventsWriterTest {
     @Mock
     private MarkerUtil markerUtil;
 
-    private UpdatedEnrollmentWithEventsWriter writer;
+    private UpdatedCompletedEnrollmentWithEventsWriter writer;
 
     private String uri = "/api/enrollments?strategy=CREATE_AND_UPDATE";
 
@@ -134,14 +134,14 @@ public class UpdatedEnrollmentWithEventsWriterTest {
         enrollmentAPIPayLoads.add(payLoad2);
         enrollmentAPIPayLoads.add(payLoad3);
         processedTableRows = Arrays.asList(processedTableRow1, processedTableRow2, processedTableRow3);
-        writer = new UpdatedEnrollmentWithEventsWriter();
+        writer = new UpdatedCompletedEnrollmentWithEventsWriter();
 
-        setValuesForMemberFields(writer, "syncRepository", syncRepository);
-        setValuesForMemberFields(writer, "logger", logger);
-        setValuesForMemberFields(writer, "enrollmentResponseHandler", enrollmentResponseHandler);
-        setValuesForMemberFields(writer, "eventResponseHandler", eventResponseHandler);
-        setValuesForMemberFields(writer, "loggerService", loggerService);
-        setValuesForMemberFields(writer, "markerUtil", markerUtil);
+        setValuesForSuperClassMemberFields(writer, "syncRepository", syncRepository);
+        setValuesForSuperClassMemberFields(writer, "logger", logger);
+        setValuesForSuperClassMemberFields(writer, "enrollmentResponseHandler", enrollmentResponseHandler);
+        setValuesForSuperClassMemberFields(writer, "eventResponseHandler", eventResponseHandler);
+        setValuesForSuperClassMemberFields(writer, "loggerService", loggerService);
+        setValuesForSuperClassMemberFields(writer, "markerUtil", markerUtil);
 
         when(responseEntity.getBody()).thenReturn(syncResponse);
         when(syncResponse.getResponse()).thenReturn(response);

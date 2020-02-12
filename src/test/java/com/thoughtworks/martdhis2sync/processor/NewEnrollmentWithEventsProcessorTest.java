@@ -7,6 +7,7 @@ import com.thoughtworks.martdhis2sync.model.ProcessedTableRow;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
+import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,14 +70,14 @@ public class NewEnrollmentWithEventsProcessorTest {
     }
 
     @Test
-    public void shouldReturnEnrollmentApiRequestBodyForAPatient() throws ParseException {
+    public void shouldReturnEnrollmentApiRequestBodyForAPatient() throws Exception {
         JsonObject tableRowObject = getTableRowObjectWithEvent();
         JsonObject mappingJsonObj = getMappingJsonObj();
 
         doNothing().when(EventUtil.class);
         EventUtil.updateLatestEventDateCreated(eventDateCreated);
         doNothing().when(EnrollmentUtil.class);
-        EnrollmentUtil.updateLatestEnrollmentDateCreated(enrollmentDateCreated);
+        EnrollmentUtil.updateLatestEnrollmentDateCreated(enrollmentDateCreated, MarkerUtil.CATEGORY_NEW_COMPLETED_ENROLLMENT);
         when(EventUtil.getDataValues(tableRowObject, mappingJsonObj)).thenReturn(dataValues);
 
         processor.setMappingObj(mappingJsonObj);
@@ -92,14 +93,14 @@ public class NewEnrollmentWithEventsProcessorTest {
     }
 
     @Test
-    public void shouldReturnEnrollmentApiRequestBodyWithEmptyEventList() throws ParseException {
+    public void shouldReturnEnrollmentApiRequestBodyWithEmptyEventList() throws Exception {
         JsonObject tableRowObject = getTableRowObjectWithoutEvent();
         JsonObject mappingJsonObj = getMappingJsonObj();
 
         doNothing().when(EventUtil.class);
         EventUtil.updateLatestEventDateCreated("");
         doNothing().when(EnrollmentUtil.class);
-        EnrollmentUtil.updateLatestEnrollmentDateCreated(enrollmentDateCreated);
+        EnrollmentUtil.updateLatestEnrollmentDateCreated(enrollmentDateCreated, MarkerUtil.CATEGORY_UPDATED_ACTIVE_ENROLLMENT);
         when(EventUtil.getDataValues(tableRowObject, mappingJsonObj)).thenReturn(dataValues);
 
         processor.setMappingObj(mappingJsonObj);
@@ -126,7 +127,7 @@ public class NewEnrollmentWithEventsProcessorTest {
     }
 
     @Test
-    public void shouldReturnEventWithDefaultStatusWhenTheValueIsEmpty() throws ParseException {
+    public void shouldReturnEventWithDefaultStatusWhenTheValueIsEmpty() throws Exception {
         JsonObject tableRowObject = getTableRowObjectWithEvent();
         tableRowObject.remove("status");
         JsonObject mappingJsonObj = getMappingJsonObj();
@@ -134,7 +135,7 @@ public class NewEnrollmentWithEventsProcessorTest {
         doNothing().when(EventUtil.class);
         EventUtil.updateLatestEventDateCreated(eventDateCreated);
         doNothing().when(EnrollmentUtil.class);
-        EnrollmentUtil.updateLatestEnrollmentDateCreated(enrollmentDateCreated);
+        EnrollmentUtil.updateLatestEnrollmentDateCreated(enrollmentDateCreated, MarkerUtil.CATEGORY_UPDATED_ACTIVE_ENROLLMENT);
         when(EventUtil.getDataValues(tableRowObject, mappingJsonObj)).thenReturn(dataValues);
 
         processor.setMappingObj(mappingJsonObj);

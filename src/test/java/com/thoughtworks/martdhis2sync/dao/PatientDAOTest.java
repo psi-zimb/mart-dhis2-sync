@@ -34,9 +34,9 @@ public class PatientDAOTest {
     private Resource resource;
 
     private PatientDAO patientDAO;
-    private String enrollmentTable = "enrollment_table";
+    private String enrollmentTable = "hts_program_enrollment_table";
     private String programName = "hts";
-    private String eventTable = "event_table";
+    private String eventTable = "hts_program_event_table";
 
     @Before
     public void setUp() throws Exception {
@@ -66,15 +66,34 @@ public class PatientDAOTest {
         String sql = "SELECT\n" +
                 "  COALESCE(enrollmentsTable.program, eventsTable.program)   AS program,\n" +
                 "  insTracker.instance_id\n" +
-                "FROM (SELECT enrTable.*\n" +
-                "      FROM %s enrTable\n" +
-                "      INNER JOIN marker enrollment_marker\n" +
-                "          ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
-                "          AND category = 'updated_completed_enrollment' AND program_name = '%s'\n" +
+                "FROM (\n" +
+                "        (SELECT enrTable.*\n" +
+                "          FROM %s enrTable\n" +
+                "          INNER JOIN marker enrollment_marker\n" +
+                "              ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
+                "              AND category = 'new_completed_enrollment' AND program_name = '%s'\n" +
+                "         ) UNION\n" +
+                "         (SELECT enrTable.*\n" +
+                "          FROM %s enrTable\n" +
+                "          INNER JOIN marker enrollment_marker\n" +
+                "              ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
+                "              AND category = 'updated_completed_enrollment' AND program_name = '%s'\n" +
+                "         ) UNION\n" +
+                "         (SELECT enrTable.*\n" +
+                "          FROM %s enrTable\n" +
+                "          INNER JOIN marker enrollment_marker\n" +
+                "              ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
+                "              AND category = 'new_active_enrollment' AND program_name = '%s'\n" +
+                "         ) UNION\n" +
+                "         (SELECT enrTable.*\n" +
+                "          FROM %s enrTable\n" +
+                "          INNER JOIN marker enrollment_marker\n" +
+                "              ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
+                "              AND category = 'updated_active_enrollment' AND program_name = '%s'\n" +
+                "         )\n" +
                 "     ) AS enrollmentsTable\n" +
                 "FULL OUTER JOIN (SELECT evnTable.*,\n" +
-                "                   enrollments.program_unique_id AS event_program_unique_id,\n" +
-                "                   enrollments.status            AS event_program_status\n" +
+                "                   enrollments.program_unique_id AS event_program_unique_id\n" +
                 "                   FROM %s evnTable\n" +
                 "                   INNER JOIN %s enrollments ON evnTable.\"Patient_Identifier\" = enrollments.\"Patient_Identifier\"\n" +
                 "                              AND evnTable.enrollment_date = COALESCE(enrollments.enrollment_date, evnTable.enrollment_date)\n" +
@@ -88,22 +107,40 @@ public class PatientDAOTest {
                 "LEFT JOIN enrollment_tracker enrolTracker ON COALESCE(enrollmentsTable.program, eventsTable.program) = enrolTracker.program\n" +
                 "                                          AND enrolTracker.instance_id = insTracker.instance_id\n" +
                 "                                          AND enrolTracker.program_unique_id = COALESCE(enrollmentsTable.program_unique_id, eventsTable.event_program_unique_id) :: TEXT\n" +
-                "WHERE (enrollmentsTable.status = 'COMPLETED' OR enrollmentsTable.status = 'CANCELLED' OR\n" +
-                "eventsTable.event_program_status = 'COMPLETED' OR eventsTable.event_program_status = 'CANCELLED')\n";
+                "                                          order by enrollmentsTable.date_created;";
         String formattedSql = "SELECT\n" +
                 "  COALESCE(enrollmentsTable.program, eventsTable.program)   AS program,\n" +
                 "  insTracker.instance_id\n" +
-                "FROM (SELECT enrTable.*\n" +
-                "      FROM enrollment_table enrTable\n" +
-                "      INNER JOIN marker enrollment_marker\n" +
-                "          ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
-                "          AND category = 'updated_completed_enrollment' AND program_name = 'hts'\n" +
+                "FROM (\n" +
+                "        (SELECT enrTable.*\n" +
+                "          FROM hts_program_enrollment_table enrTable\n" +
+                "          INNER JOIN marker enrollment_marker\n" +
+                "              ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
+                "              AND category = 'new_completed_enrollment' AND program_name = 'hts'\n" +
+                "         ) UNION\n" +
+                "         (SELECT enrTable.*\n" +
+                "          FROM hts_program_enrollment_table enrTable\n" +
+                "          INNER JOIN marker enrollment_marker\n" +
+                "              ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
+                "              AND category = 'updated_completed_enrollment' AND program_name = 'hts'\n" +
+                "         ) UNION\n" +
+                "         (SELECT enrTable.*\n" +
+                "          FROM hts_program_enrollment_table enrTable\n" +
+                "          INNER JOIN marker enrollment_marker\n" +
+                "              ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
+                "              AND category = 'new_active_enrollment' AND program_name = 'hts'\n" +
+                "         ) UNION\n" +
+                "         (SELECT enrTable.*\n" +
+                "          FROM hts_program_enrollment_table enrTable\n" +
+                "          INNER JOIN marker enrollment_marker\n" +
+                "              ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
+                "              AND category = 'updated_active_enrollment' AND program_name = 'hts'\n" +
+                "         )\n" +
                 "     ) AS enrollmentsTable\n" +
                 "FULL OUTER JOIN (SELECT evnTable.*,\n" +
-                "                   enrollments.program_unique_id AS event_program_unique_id,\n" +
-                "                   enrollments.status            AS event_program_status\n" +
-                "                   FROM event_table evnTable\n" +
-                "                   INNER JOIN enrollment_table enrollments ON evnTable.\"Patient_Identifier\" = enrollments.\"Patient_Identifier\"\n" +
+                "                   enrollments.program_unique_id AS event_program_unique_id\n" +
+                "                   FROM hts_program_event_table evnTable\n" +
+                "                   INNER JOIN hts_program_enrollment_table enrollments ON evnTable.\"Patient_Identifier\" = enrollments.\"Patient_Identifier\"\n" +
                 "                              AND evnTable.enrollment_date = COALESCE(enrollments.enrollment_date, evnTable.enrollment_date)\n" +
                 "                   INNER JOIN marker event_marker\n" +
                 "                       ON evnTable.date_created :: TIMESTAMP > COALESCE(event_marker.last_synced_date, '-infinity')\n" +
@@ -115,8 +152,7 @@ public class PatientDAOTest {
                 "LEFT JOIN enrollment_tracker enrolTracker ON COALESCE(enrollmentsTable.program, eventsTable.program) = enrolTracker.program\n" +
                 "                                          AND enrolTracker.instance_id = insTracker.instance_id\n" +
                 "                                          AND enrolTracker.program_unique_id = COALESCE(enrollmentsTable.program_unique_id, eventsTable.event_program_unique_id) :: TEXT\n" +
-                "WHERE (enrollmentsTable.status = 'COMPLETED' OR enrollmentsTable.status = 'CANCELLED' OR\n" +
-                "eventsTable.event_program_status = 'COMPLETED' OR eventsTable.event_program_status = 'CANCELLED')\n";
+                "                                          order by enrollmentsTable.date_created;";
         Map<String, Object> instance1= new HashMap<>();
         instance1.put("instance_id", "instance1");
         Map<String, Object> instance2= new HashMap<>();

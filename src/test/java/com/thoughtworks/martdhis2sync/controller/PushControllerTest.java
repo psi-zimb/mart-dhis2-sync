@@ -184,7 +184,10 @@ public class PushControllerTest {
             verify(mappingService, times(1)).getMapping(service);
             verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
             verify(completedEnrollmentService, times(1)).triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
-            verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "new_active_enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "new_completed_enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "updated_active_enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "updated_completed_enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
             verifyStatic(times(4));
             TrackersHandler.clearTrackerLists();
@@ -222,7 +225,10 @@ public class PushControllerTest {
                     .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
             verify(activeEnrollmentService, times(0))
                     .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
-            verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "new_active_enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "new_completed_enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "updated_active_enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "updated_completed_enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
             verifyStatic(times(1));
             assertEquals("500 SYNC FAILED", e.getMessage());
@@ -257,7 +263,10 @@ public class PushControllerTest {
                     .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
             verify(activeEnrollmentService, times(0))
                     .triggerJobForUpdatedActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString());
-            verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "new_active_enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "new_completed_enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "updated_active_enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "updated_completed_enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
             verifyStatic(times(3));
             assertEquals("500 SYNC FAILED", e.getMessage());

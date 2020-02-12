@@ -122,7 +122,7 @@ public class NewCompletedEnrollmentTaskletTest {
     }
 
     @Test
-    public void shouldUpdateTrackersAfterSync() {
+    public void shouldUpdateTrackersAfterSync() throws Exception {
         String requestBody = "{" +
                 "\"enrollments\":[" +
                 getEnrollment(payLoad1) +

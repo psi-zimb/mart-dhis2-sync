@@ -34,16 +34,16 @@ public class NewEnrollmentWithEventsWriter {
     private static final String URI = "/api/enrollments?strategy=CREATE_AND_UPDATE";
 
     @Autowired
-    private SyncRepository syncRepository;
+    protected SyncRepository syncRepository;
 
     @Autowired
-    private EnrollmentResponseHandler enrollmentResponseHandler;
+    protected EnrollmentResponseHandler enrollmentResponseHandler;
 
     @Autowired
-    private EventResponseHandler eventResponseHandler;
+    protected EventResponseHandler eventResponseHandler;
 
     @Value("#{jobParameters['openLatestCompletedEnrollment']}")
-    private String openLatestCompletedEnrollment;
+    protected String openLatestCompletedEnrollment;
 
     @Value("#{jobParameters['service']}")
     protected String programName;
@@ -51,7 +51,7 @@ public class NewEnrollmentWithEventsWriter {
     @Autowired
     protected MarkerUtil markerUtil;
 
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected Logger logger = LoggerFactory.getLogger(this.getClass());
     private static final String LOG_PREFIX = "NEW COMPLETED ENROLLMENT WITH EVENTS SYNC: ";
     private static final String YES = "yes";
     private static final String NO = "no";

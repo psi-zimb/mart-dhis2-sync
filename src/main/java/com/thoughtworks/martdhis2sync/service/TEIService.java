@@ -137,6 +137,8 @@ public class TEIService {
 
         TEIUtil.setInstancesWithEnrollments(new HashMap<>());
         List<Map<String, Object>> deltaInstanceIds = patientDAO.getDeltaEnrollmentInstanceIds(enrollmentTable, eventTable, programName);
+        logger.info("Delta Instance Ids: " + (deltaInstanceIds != null ? deltaInstanceIds.size() : "null"));
+
         if (!deltaInstanceIds.isEmpty()) {
             List<String> instanceIdsList = getInstanceIds(deltaInstanceIds);
             String program = deltaInstanceIds.get(0).get("program").toString();

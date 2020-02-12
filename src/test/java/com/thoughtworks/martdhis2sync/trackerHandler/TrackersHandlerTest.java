@@ -91,7 +91,7 @@ public class TrackersHandlerTest {
         verify(preparedStatement, times(1)).setString(5, "1");
         verify(preparedStatement, times(1)).setString(6, "***REMOVED***");
         verify(preparedStatement, times(1)).executeUpdate();
-        verify(logger, times(1)).info(logPrefix + "Successfully inserted 1 Enrollment UIDs.");
+        verify(logger, times(1)).info(logPrefix + "Successfully inserted 1 Enrollment UIDs. And already existing count: 0");
 
         EnrollmentUtil.enrollmentsToSaveInTracker.clear();
     }
@@ -617,7 +617,7 @@ public class TrackersHandlerTest {
         verify(preparedStatement, times(1)).setString(2, "***REMOVED***");
         verify(preparedStatement, times(1)).setString(4, "enrId");
         verify(preparedStatement, times(1)).executeUpdate();
-        verify(logger, times(1)).info(logPrefix + "Successfully updated 1 Enrollment UIDs.");
+        verify(logger, times(1)).info("Updating status to COMPLETED for enrollment ID enrId in the enrollment_tracker table");
     }
 
     @Test

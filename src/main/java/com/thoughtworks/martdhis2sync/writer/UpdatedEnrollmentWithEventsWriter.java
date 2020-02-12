@@ -49,16 +49,16 @@ public class UpdatedEnrollmentWithEventsWriter {
     private static final String URI = "/api/enrollments?strategy=CREATE_AND_UPDATE";
 
     @Autowired
-    private SyncRepository syncRepository;
+    protected SyncRepository syncRepository;
 
     @Autowired
-    private EnrollmentResponseHandler enrollmentResponseHandler;
+    protected EnrollmentResponseHandler enrollmentResponseHandler;
 
     @Autowired
-    private EventResponseHandler eventResponseHandler;
+    protected EventResponseHandler eventResponseHandler;
 
     @Autowired
-    private LoggerService loggerService;
+    protected LoggerService loggerService;
 
     @Value("#{jobParameters['service']}")
     protected String programName;
@@ -66,10 +66,10 @@ public class UpdatedEnrollmentWithEventsWriter {
     @Autowired
     protected MarkerUtil markerUtil;
 
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected Logger logger = LoggerFactory.getLogger(this.getClass());
     private static final String LOG_PREFIX = "UPDATE COMPLETED ENROLLMENT WITH EVENTS SYNC: ";
 
-    private List<EventTracker> eventTrackers = new ArrayList<>();
+    protected List<EventTracker> eventTrackers = new ArrayList<>();
 
     private static final String EVENT_API_FORMAT = "{" +
             "\"event\":\"%s\", " +
@@ -114,26 +114,27 @@ public class UpdatedEnrollmentWithEventsWriter {
         processResponseEntity(enrollmentResponse, payLoads);
     }
 
-
-
     private void processResponseEntity(ResponseEntity<DHISEnrollmentSyncResponse> responseEntity, Collection<EnrollmentAPIPayLoad> payLoads) throws Exception {
         Iterator<EnrollmentAPIPayLoad> iterator = payLoads.iterator();
-        EnrollmentResponse response = responseEntity.getBody().getResponse();
-        List<EnrollmentImportSummary> enrollmentImportSummaries = response == null ?
-                Collections.emptyList()
-                : response.getImportSummaries();
-        if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
-            enrollmentResponseHandler.processImportSummaries(enrollmentImportSummaries, iterator);
-            eventResponseHandler.process(payLoads, enrollmentImportSummaries, eventTrackers, logger, LOG_PREFIX);
-        } else {
-            JobService.setIS_JOB_FAILED(true);
-            String message = responseEntity.getBody().getMessage();
-            if (!StringUtils.isEmpty(message)) {
-                logger.error(LOG_PREFIX + message);
-                loggerService.collateLogMessage(String.format("%s", message));
-            } else {
-                enrollmentResponseHandler.processErrorResponse(enrollmentImportSummaries, iterator, logger, LOG_PREFIX);
+        List<EnrollmentImportSummary> enrollmentImportSummaries = null;
+        if(responseEntity != null) {
+            EnrollmentResponse response = responseEntity.getBody().getResponse();
+            enrollmentImportSummaries = response == null ?
+                    Collections.emptyList()
+                    : response.getImportSummaries();
+            if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+                enrollmentResponseHandler.processImportSummaries(enrollmentImportSummaries, iterator);
                 eventResponseHandler.process(payLoads, enrollmentImportSummaries, eventTrackers, logger, LOG_PREFIX);
+            } else {
+                JobService.setIS_JOB_FAILED(true);
+                String message = responseEntity.getBody().getMessage();
+                if (!StringUtils.isEmpty(message)) {
+                    logger.error(LOG_PREFIX + message);
+                    loggerService.collateLogMessage(String.format("%s", message));
+                } else {
+                    enrollmentResponseHandler.processErrorResponse(enrollmentImportSummaries, iterator, logger, LOG_PREFIX);
+                    eventResponseHandler.process(payLoads, enrollmentImportSummaries, eventTrackers, logger, LOG_PREFIX);
+                }
             }
         }
     }

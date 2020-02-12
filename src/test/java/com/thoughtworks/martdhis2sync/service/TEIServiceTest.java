@@ -240,7 +240,7 @@ public class TEIServiceTest {
     }
 
     @Test
-    public void shouldGetTrackedEntityInstanceFromDHIS() throws IOException {
+    public void shouldGetTrackedEntityInstanceFromDHIS() throws Exception {
         String program = "HIV Testing Service";
         String queryParams = "&filter=HF8Tu4tg:IN:NINETU190995MT;JKAPTA170994MT;";
         String uri = TRACKED_ENTITY_INSTANCE_URI + "&ou=" + ORG_UNIT_ID + "&ouMode=DESCENDANTS" + queryParams + "&includeAllAttributes=true";
@@ -268,7 +268,7 @@ public class TEIServiceTest {
     }
 
     @Test
-    public void shouldNotGetTrackedEntityInstanceIfSearchblesIsEmpty() throws IOException {
+    public void shouldNotGetTrackedEntityInstanceIfSearchblesIsEmpty() throws Exception {
         String program = "HIV Testing Service";
 
         MappingJson mappingJson = new MappingJson();
@@ -289,7 +289,7 @@ public class TEIServiceTest {
     }
 
     @Test
-    public void shouldSearchForFiveHundredTEIsAtATimeAndMakeTheCallMultipleTimesAccordingly() throws IOException {
+    public void shouldSearchForFiveHundredTEIsAtATimeAndMakeTheCallMultipleTimesAccordingly() throws Exception {
         String program = "HIV Testing Service";
         String firstFiveUICs = "I14NM8TQ8A;K195G5NR3Q;XHPW96RN9H;5M7SEGZ1Q3;CR4XHTG1O7;";
         String lastFourUICs = "E8WXHJPWUG;UIBXG5IM3O;ZQT65ZLHRL;54KE7VC6AL;";

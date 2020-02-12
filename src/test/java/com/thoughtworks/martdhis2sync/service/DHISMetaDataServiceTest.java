@@ -71,7 +71,7 @@ public class DHISMetaDataServiceTest {
     }
 
     @Test
-    public void shouldGetDateTimeAttributesAndDataElementsInfoFromDHIS() {
+    public void shouldGetDateTimeAttributesAndDataElementsInfoFromDHIS() throws Exception {
         dataElementResponseResponse = ResponseEntity.ok(new DataElementResponse(new Pager(), dataElements));
         trackedEntityAttributeResponse = ResponseEntity.ok(new TrackedEntityAttributeResponse(new Pager(), trackedEntityAttributes));
 
@@ -90,7 +90,7 @@ public class DHISMetaDataServiceTest {
     }
 
     @Test
-    public void shouldHaveEmptyListWhenDHISDoesNotHaveAnyDateTimeAttributesAndDataElements() {
+    public void shouldHaveEmptyListWhenDHISDoesNotHaveAnyDateTimeAttributesAndDataElements() throws Exception {
         when(syncRepository.getDataElements(dhis2Url + DATA_ELEMENT)).thenReturn(null);
         when(syncRepository.getTrackedEntityAttributes(dhis2Url + TRACKED_ENTITY_ATTRIBUTE)).thenReturn(null);
 
@@ -108,7 +108,7 @@ public class DHISMetaDataServiceTest {
     }
 
     @Test
-    public void shouldMakeCallToDHISAgainIfTheNextPageIsNotNullForDataElements() {
+    public void shouldMakeCallToDHISAgainIfTheNextPageIsNotNullForDataElements() throws Exception {
         List<DataElement> secondPageDataElements = new LinkedList<>();
         secondPageDataElements.add(new DataElement("newDataElement", "dateofbirth"));
         String dataElementsSecondPage = "/api/dataElements?pageSize=1000&filter=valueType:eq:DATETIME&page=2";
@@ -138,7 +138,7 @@ public class DHISMetaDataServiceTest {
 
 
     @Test
-    public void shouldMakeCallToDHISAgainIfTheNextPageIsNotNullForAttributes() {
+    public void shouldMakeCallToDHISAgainIfTheNextPageIsNotNullForAttributes() throws Exception {
         List<TrackedEntityAttribute> secondPageTrackedEntityAttributes = new LinkedList<>();
         secondPageTrackedEntityAttributes.add(new TrackedEntityAttribute("newAttr", "dateOfRegister"));
         String attributesSecondPage = "/api/trackedEntityAttributes?pageSize=1000&filter=valueType:eq:DATETIME&page=2";

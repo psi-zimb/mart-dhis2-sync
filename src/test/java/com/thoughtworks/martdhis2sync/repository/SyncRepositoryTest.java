@@ -96,7 +96,7 @@ public class SyncRepositoryTest {
     }
 
     @Test
-    public void shouldReturnResponseEntityAndCallLoggerInfo() {
+    public void shouldReturnResponseEntityAndCallLoggerInfo() throws Exception {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
                 .thenReturn(responseEntity);
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
@@ -112,7 +112,7 @@ public class SyncRepositoryTest {
     }
 
     @Test
-    public void shouldReturnResponseEntityAndCallLoggerErrorAndLoggerServiceToCollateMessage() {
+    public void shouldReturnResponseEntityAndCallLoggerErrorAndLoggerServiceToCollateMessage() throws Exception {
         String response = "{" +
                 "\"httpStatus\":\"Conflict\", " +
                 "\"httpStatusCode\":\"409\", " +
@@ -153,7 +153,7 @@ public class SyncRepositoryTest {
     }
 
     @Test
-    public void shouldThrowExceptionAndCallLoggerErrorAndLoggerServiceToCollateMessage() {
+    public void shouldThrowExceptionAndCallLoggerErrorAndLoggerServiceToCollateMessage() throws Exception {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
                 .thenThrow(new HttpServerErrorException(HttpStatus.CONFLICT, "CONFLICT"));
         doNothing().when(logger).error("SyncRepository: org.springframework.web.client.HttpServerErrorException: 409 CONFLICT");
@@ -185,7 +185,7 @@ public class SyncRepositoryTest {
     }
 
     @Test
-    public void shouldGetDataElementsInfoAndLog() {
+    public void shouldGetDataElementsInfoAndLog() throws Exception {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
                 .thenReturn(dataElementResponse);
         when(dataElementResponse.getStatusCode()).thenReturn(HttpStatus.OK);
@@ -201,7 +201,7 @@ public class SyncRepositoryTest {
     }
 
     @Test
-    public void shouldGetTEAttributesInfoAndLog() {
+    public void shouldGetTEAttributesInfoAndLog() throws Exception {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
                 .thenReturn(trackedEntityAttributeResposne);
         when(trackedEntityAttributeResposne.getStatusCode()).thenReturn(HttpStatus.OK);
@@ -221,16 +221,18 @@ public class SyncRepositoryTest {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
 
-        ResponseEntity<TrackedEntityAttributeResponse> trackedEntityAttributes = syncRepository.getTrackedEntityAttributes("");
-
-        verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
-        verify(logger, times(1)).error("SyncRepository: org.springframework.web.client.HttpServerErrorException: 500 INTERNAL_SERVER_ERROR");
-
+        ResponseEntity<TrackedEntityAttributeResponse> trackedEntityAttributes = null;
+        try {
+            trackedEntityAttributes = syncRepository.getTrackedEntityAttributes("");
+        } catch (Exception e) {
+            verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
+            verify(logger, times(1)).error("SyncRepository: org.springframework.web.client.HttpServerErrorException: 500 INTERNAL_SERVER_ERROR");
+        }
         assertNull(trackedEntityAttributes);
     }
 
     @Test
-    public void shouldGetTEIsInfoAndLog() {
+    public void shouldGetTEIsInfoAndLog() throws Exception {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
                 .thenReturn(trackedEntityInstanceResponse);
         when(trackedEntityInstanceResponse.getStatusCode()).thenReturn(HttpStatus.OK);
@@ -290,7 +292,9 @@ public class SyncRepositoryTest {
             syncRepository.getDataElements("");
         } catch (RestClientException r) {
             verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
-            verify(logger, times(1)).info("SyncRepository: org.springframework.web.client.HttpServerErrorException: 409 CONFLICT");
+            verify(logger, times(1)).error("SyncRepository: restClientException");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -309,7 +313,7 @@ public class SyncRepositoryTest {
     }
 
     @Test
-    public void shouldReturnResponseEntityAndLogTheInfoOnEnrollmentSyncWithEvents() {
+    public void shouldReturnResponseEntityAndLogTheInfoOnEnrollmentSyncWithEvents() throws Exception {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
                 .thenReturn(enrollmentResponseEntity);
         when(enrollmentResponseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
@@ -325,7 +329,7 @@ public class SyncRepositoryTest {
     }
 
     @Test
-    public void shouldReturnResponseEntityAndLogTheErrorForEnrollmentWithEventSync() {
+    public void shouldReturnResponseEntityAndLogTheErrorForEnrollmentWithEventSync() throws Exception {
         String response = "{" +
                 "\"httpStatus\":\"Conflict\", " +
                 "\"httpStatusCode\":\"409\", " +
@@ -378,6 +382,8 @@ public class SyncRepositoryTest {
             verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
             verify(logger, times(1)).error("SyncRepository: org.springframework.web.client.HttpServerErrorException: 409 CONFLICT");
             verify(loggerService, times(1)).collateLogMessage("409 CONFLICT");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

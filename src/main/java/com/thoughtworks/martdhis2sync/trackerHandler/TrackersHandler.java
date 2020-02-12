@@ -44,15 +44,18 @@ public class TrackersHandler {
         String sql = "INSERT INTO public.enrollment_tracker(" +
                 "enrollment_id, instance_id, program, status, program_unique_id, created_by, date_created)" +
                 "values (?, ?, ?, ?, ?, ?, ?)";
-        int updateCount;
+        int newlyInsertedCnt;
+        int alreadyExistingCnt;
         try (Connection connection = dataSource.getConnection()) {
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 Map<String,String> teiEnrommentMapInTrackerTable = getExistingEnrollmentsInTracker();
-                updateCount = 0;
+                newlyInsertedCnt = 0;
+                alreadyExistingCnt = 0;
                 for (EnrollmentAPIPayLoad enrollment : EnrollmentUtil.enrollmentsToSaveInTracker) {
                     if(teiEnrommentMapInTrackerTable.get(enrollment.getInstanceId()) != null) {
                         logger.info("Not inserting Enrollment ID " + enrollment.getEnrollmentId() + " for TEI " +
                                 enrollment.getInstanceId() + " in the enrollment_tracker table");
+                        alreadyExistingCnt++;
                         continue;
                     }
                     teiEnrommentMapInTrackerTable.put(enrollment.getInstanceId(), enrollment.getEnrollmentId());
@@ -63,10 +66,10 @@ public class TrackersHandler {
                     ps.setString(5, enrollment.getProgramUniqueId());
                     ps.setString(6, user);
                     ps.setTimestamp(7, Timestamp.valueOf(BatchUtil.GetUTCDateTimeAsString()));
-                    updateCount += ps.executeUpdate();
+                    newlyInsertedCnt += ps.executeUpdate();
                 }
             }
-            logger.info(logPrefix + "Successfully inserted " + updateCount + " Enrollment UIDs.");
+            logger.info(logPrefix + "Successfully inserted " + newlyInsertedCnt + " Enrollment UIDs. And already existing count: " + alreadyExistingCnt);
         } catch (SQLException e) {
             logger.error(logPrefix + "Exception occurred while inserting Program Enrollment UIDs: " + e.getMessage());
             e.printStackTrace();

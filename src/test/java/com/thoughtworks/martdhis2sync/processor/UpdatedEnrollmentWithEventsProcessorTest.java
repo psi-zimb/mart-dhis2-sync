@@ -7,13 +7,12 @@ import com.thoughtworks.martdhis2sync.model.ProcessedTableRow;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import com.thoughtworks.martdhis2sync.util.EventUtil;
+import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.text.ParseException;
 import java.util.*;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITHOUT_TIME;
@@ -70,7 +69,7 @@ public class UpdatedEnrollmentWithEventsProcessorTest {
     }
 
     @Test
-    public void shouldReturnEnrollmentApiRequestBodyForATEIWhenEventIdPresent() throws ParseException {
+    public void shouldReturnEnrollmentApiRequestBodyForATEIWhenEventIdPresent() throws Exception {
         JsonObject tableRowObject = getTableRowObjectWithEvent();
         JsonObject mappingJsonObj = getMappingJsonObj();
 
@@ -79,7 +78,7 @@ public class UpdatedEnrollmentWithEventsProcessorTest {
         doNothing().when(EventUtil.class);
         EventUtil.updateLatestEventDateCreated(eventDateCreated);
         doNothing().when(EnrollmentUtil.class);
-        EnrollmentUtil.updateLatestEnrollmentDateCreated(enrollmentDateCreated);
+        EnrollmentUtil.updateLatestEnrollmentDateCreated(enrollmentDateCreated, MarkerUtil.CATEGORY_UPDATED_COMPLETED_ENROLLMENT);
         when(EventUtil.getDataValues(tableRowObject, mappingJsonObj)).thenReturn(dataValues);
 
         processor.setMappingObj(mappingJsonObj);
@@ -95,7 +94,7 @@ public class UpdatedEnrollmentWithEventsProcessorTest {
     }
 
     @Test
-    public void shouldReturnEnrollmentApiRequestBodyWhenEventIdAbsent() throws ParseException {
+    public void shouldReturnEnrollmentApiRequestBodyWhenEventIdAbsent() throws Exception {
         JsonObject tableRowObject = getTableRowObjectWithEvent();
         JsonObject mappingJsonObj = getMappingJsonObj();
 
@@ -104,7 +103,7 @@ public class UpdatedEnrollmentWithEventsProcessorTest {
         doNothing().when(EventUtil.class);
         EventUtil.updateLatestEventDateCreated(eventDateCreated);
         doNothing().when(EnrollmentUtil.class);
-        EnrollmentUtil.updateLatestEnrollmentDateCreated(enrollmentDateCreated);
+        EnrollmentUtil.updateLatestEnrollmentDateCreated(enrollmentDateCreated, MarkerUtil.CATEGORY_UPDATED_COMPLETED_ENROLLMENT);
         when(EventUtil.getDataValues(tableRowObject, mappingJsonObj)).thenReturn(dataValues);
 
         processor.setMappingObj(mappingJsonObj);
@@ -120,14 +119,14 @@ public class UpdatedEnrollmentWithEventsProcessorTest {
     }
 
     @Test
-    public void shouldReturnEnrollmentApiRequestBodyWithEmptyEventsList() throws ParseException {
+    public void shouldReturnEnrollmentApiRequestBodyWithEmptyEventsList() throws Exception {
         JsonObject tableRowObject = getTableRowObjectWithoutEvent();
         JsonObject mappingJsonObj = getMappingJsonObj();
 
         doNothing().when(EventUtil.class);
         EventUtil.updateLatestEventDateCreated(eventDateCreated);
         doNothing().when(EnrollmentUtil.class);
-        EnrollmentUtil.updateLatestEnrollmentDateCreated(enrollmentDateCreated);
+        EnrollmentUtil.updateLatestEnrollmentDateCreated(enrollmentDateCreated, MarkerUtil.CATEGORY_UPDATED_COMPLETED_ENROLLMENT);
         when(EventUtil.getDataValues(tableRowObject, mappingJsonObj)).thenReturn(dataValues);
         when(hasValue(getTableRowObjectWithEvent().get("enrolled_program"))).thenReturn(true);
 
@@ -144,7 +143,7 @@ public class UpdatedEnrollmentWithEventsProcessorTest {
     }
 
     @Test
-    public void shouldReturnEnrollmentApiRequestBodyWhenOnlyEventAreThere() throws ParseException {
+    public void shouldReturnEnrollmentApiRequestBodyWhenOnlyEventAreThere() throws Exception {
         JsonObject tableRowObject = new JsonObject();
         tableRowObject.addProperty("event_program_incident_date", enrDate);
         tableRowObject.addProperty("event_program_unique_id", "1");
@@ -168,7 +167,7 @@ public class UpdatedEnrollmentWithEventsProcessorTest {
         doNothing().when(EventUtil.class);
         EventUtil.updateLatestEventDateCreated(eventDateCreated);
         doNothing().when(EnrollmentUtil.class);
-        EnrollmentUtil.updateLatestEnrollmentDateCreated(enrollmentDateCreated);
+        EnrollmentUtil.updateLatestEnrollmentDateCreated(enrollmentDateCreated, MarkerUtil.CATEGORY_UPDATED_COMPLETED_ENROLLMENT);
         when(EventUtil.getDataValues(tableRowObject, mappingJsonObj)).thenReturn(dataValues);
         when(hasValue(getTableRowObjectWithEvent().get("enrolled_program"))).thenReturn(true);
         when(hasValue(getTableRowObjectWithEvent().get("enrollment_status"))).thenReturn(false);
