@@ -40,7 +40,7 @@ public class OrgUnitService {
 
     private static final String URI_ORG_UNIT = "/api/organisationUnits/";
 
-    private static final String QUERY_PARAMS = "includeDescendants=true";
+    private static final String QUERY_PARAMS = "includeDescendants=true&pageSize=20000";
 
     private List<OrgUnit> orgUnits = new ArrayList<>();
 
