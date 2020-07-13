@@ -24,6 +24,7 @@ FROM (SELECT enrTable.*
                    FROM %s evnTable
                      INNER JOIN %s enrollments ON evnTable."Patient_Identifier" = enrollments."Patient_Identifier"
                               AND evnTable.enrollment_date = COALESCE(enrollments.enrollment_date, evnTable.enrollment_date)
+                              AND evnTable.patient_program_id = enrollments.program_unique_id
                      INNER JOIN marker event_marker
                        ON evnTable.date_created :: TIMESTAMP > COALESCE(event_marker.last_synced_date, '-infinity')
                           AND category = 'event' AND program_name = '%s') AS eventsTable
