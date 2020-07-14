@@ -52,7 +52,7 @@ public class OrgUnitServiceTest {
     private String dhis2Url = "http://play.dhis2.org";
     private String URI_ORG_UNIT = "/api/organisationUnits/";
     private String ROOT_ORG_UNIT = "SxgCPPeiq3c";
-    private String QUERY_PARAMS = "?includeDescendants=true";
+    private String QUERY_PARAMS = "?includeDescendants=true&pageSize=20000";
     private String URLToGetOrgUnits = dhis2Url + URI_ORG_UNIT + ROOT_ORG_UNIT + QUERY_PARAMS;
 
     @Before
