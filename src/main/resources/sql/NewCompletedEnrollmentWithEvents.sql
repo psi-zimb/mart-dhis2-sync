@@ -14,7 +14,7 @@ FROM %s enrTable
                                                       evnTable.enrollment_date = enrTable.enrollment_date AND
                                                       evnTable.patient_program_id = enrTable.program_unique_id
        INNER JOIN instance_tracker insTracker ON insTracker.patient_id = enrTable."Patient_Identifier"
-       INNER JOIN orgunit_tracker orgTracker ON orgTracker.orgUnit = enrTable."OrgUnit"
+       INNER JOIN orgunit_tracker orgTracker ON  COALESCE(evnTable."OrgUnit", enrTable."OrgUnit") = orgTracker.orgUnit
        LEFT JOIN enrollment_tracker enrTracker
          ON enrTable.program = enrTracker.program AND enrTracker.instance_id = insTracker.instance_id
               AND enrTracker.program_unique_id = enrTable.program_unique_id :: text
