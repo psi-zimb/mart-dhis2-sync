@@ -35,7 +35,7 @@ public class CompletedEnrollmentServiceTest {
     private NewCompletedEnrollmentWithEventsStep newEnrollmentWithEventsStep;
 
     @Mock
-    private NewCompletedEnrollmentStep enrollmentStep;
+    private NewCompletedEnrollmentStep completedEnrollmentStep;
 
     @Mock
     private JobService jobService;
@@ -69,7 +69,7 @@ public class CompletedEnrollmentServiceTest {
         service = new CompletedEnrollmentService();
 
         setValuesForMemberFields(service, "newEnrollmentWithEventsStep", newEnrollmentWithEventsStep);
-        setValuesForMemberFields(service, "enrollmentStep", enrollmentStep);
+        setValuesForMemberFields(service, "completedEnrollmentStep", completedEnrollmentStep);
         setValuesForMemberFields(service, "jobService", jobService);
         setValuesForMemberFields(service, "logger", logger);
         setValuesForMemberFields(service, "updatedEnrollmentWithEventsStep", updatedCompletedEnrollmentWithEventsStep);
@@ -80,7 +80,7 @@ public class CompletedEnrollmentServiceTest {
     public void shouldTriggerTheJob() throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
             JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
         when(newEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, programName, mappingObj)).thenReturn(step);
-        when(enrollmentStep.get()).thenReturn(step);
+        when(completedEnrollmentStep.get()).thenReturn(step);
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(step);
         steps.add(step);
@@ -90,14 +90,14 @@ public class CompletedEnrollmentServiceTest {
 
         verify(jobService, times(1)).triggerJob(programName, user, jobName, steps, openLatestCompletedEnrollment);
         verify(newEnrollmentWithEventsStep, times(1)).get(enrLookupTable, evnLookupTable, programName, mappingObj);
-        verify(enrollmentStep, times(1)).get();
+        verify(completedEnrollmentStep, times(1)).get();
     }
 
     @Test
     public void shouldLogErrorOnJobFail() throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
             JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
         when(newEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, programName, mappingObj)).thenReturn(step);
-        when(enrollmentStep.get()).thenReturn(step);
+        when(completedEnrollmentStep.get()).thenReturn(step);
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(step);
         steps.add(step);
@@ -108,7 +108,7 @@ public class CompletedEnrollmentServiceTest {
         } catch (Exception e) {
             verify(jobService, times(1)).triggerJob(programName, user, jobName, steps, openLatestCompletedEnrollment);
             verify(newEnrollmentWithEventsStep, times(1)).get(enrLookupTable, evnLookupTable, programName, mappingObj);
-            verify(enrollmentStep, times(1)).get();
+            verify(completedEnrollmentStep, times(1)).get();
             verify(logger, times(1)).error("Completed Enrollments: Invalid Params");
         }
 

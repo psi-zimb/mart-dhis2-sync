@@ -43,6 +43,9 @@ public class PushController {
     private CompletedEnrollmentService completedEnrollmentService;
 
     @Autowired
+    private CancelledEnrollmentService cancelledEnrollmentService;
+
+    @Autowired
     private ActiveEnrollmentService activeEnrollmentService;
 
     @Autowired
@@ -132,8 +135,18 @@ public class PushController {
         enrollmentsToIgnore = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
         TrackersHandler.clearTrackerLists();
 
-        logger.info("=========================New Completed Enrollment Sync Success=========================\n\n" +
-                "=========================Update Complete Enrollment Sync Started=========================\n");
+        logger.info("=========================New Completed Enrollment Sync Success=========================\n\n");
+        logger.info("=========================New Cancelled Enrollment Sync Started=========================\n\n");
+
+        cancelledEnrollmentService.triggerJobForNewCancelledEnrollments(requestBody.getService(), requestBody.getUser(),
+                lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), config.getOpenLatestCompletedEnrollment());
+
+        enrollmentsToIgnore = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
+        TrackersHandler.clearTrackerLists();
+
+        logger.info("=========================New Cancelled Enrollment Sync Success=========================\n\n");
+
+        logger.info("=========================Update Complete Enrollment Sync Started=========================\n");
 
         completedEnrollmentService.triggerJobForUpdatedCompletedEnrollments(requestBody.getService(), requestBody.getUser(),
                 lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), enrollmentsToIgnore,

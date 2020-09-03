@@ -21,7 +21,7 @@ public class NewCompletedEnrollmentStepTest {
     private StepFactory stepFactory;
 
     @Mock
-    private NewCompletedEnrollmentTasklet tasklet;
+    private NewCompletedEnrollmentTasklet newCompletedEnrollmentTasklet;
 
     @Mock
     private Step step;
@@ -33,17 +33,17 @@ public class NewCompletedEnrollmentStepTest {
         enrollmentStep = new NewCompletedEnrollmentStep();
 
         setValuesForMemberFields(enrollmentStep, "stepFactory", stepFactory);
-        setValuesForMemberFields(enrollmentStep, "tasklet", tasklet);
+        setValuesForMemberFields(enrollmentStep, "newCompletedEnrollmentTasklet", newCompletedEnrollmentTasklet);
     }
 
     @Test
     public void shouldReturnStep() {
         String stepMessage = "New Completed Enrollment Step:: ";
-        when(stepFactory.build(stepMessage, tasklet)).thenReturn(step);
+        when(stepFactory.build(stepMessage, newCompletedEnrollmentTasklet)).thenReturn(step);
 
         Step actual = enrollmentStep.get();
 
         assertEquals(step, actual);
-        verify(stepFactory, times(1)).build(stepMessage, tasklet);
+        verify(stepFactory, times(1)).build(stepMessage, newCompletedEnrollmentTasklet);
     }
 }

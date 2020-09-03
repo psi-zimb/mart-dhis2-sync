@@ -1,0 +1,8 @@
+fileignoreconfig: 
+- filename: src/main/resources/sql/NewCancelledEnrollmentWithEvents.sql 
+  checksum: 2d50224f96e3a83f7bc4f6c99bb7a7db080025b59a7d5a34180819a07c4477f4 
+  ignore_detectors: []
+- filename: src/main/resources/sql/NewCompletedEnrollmentWithEvents.sql 
+  checksum: 90c0cf0c793dc350f729dce624454411754a0a6e7559ca81496515f0f0dbd16c 
+  ignore_detectors: [] 
+scopeconfig: []

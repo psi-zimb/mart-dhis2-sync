@@ -17,8 +17,10 @@ public class MarkerUtil {
     public static final String CATEGORY_INSTANCE = "instance";
     public static final String CATEGORY_NEW_ACTIVE_ENROLLMENT = "new_active_enrollment";
     public static final String CATEGORY_NEW_COMPLETED_ENROLLMENT = "new_completed_enrollment";
+    public static final String CATEGORY_NEW_CANCELLED_ENROLLMENT = "new_cancelled_enrollment";
     public static final String CATEGORY_UPDATED_ACTIVE_ENROLLMENT = "updated_active_enrollment";
     public static final String CATEGORY_UPDATED_COMPLETED_ENROLLMENT = "updated_completed_enrollment";
+    public static final String CATEGORY_UPDATED_CANCELLED_ENROLLMENT = "updated_cancelled_enrollment";
     public static final String CATEGORY_EVENT = "event";
 
     @Autowired
@@ -44,6 +46,4 @@ public class MarkerUtil {
 
         return BatchUtil.getDateFromString(lastSyncedDate.toString(), DATEFORMAT_WITH_24HR_TIME);
     }
-
-
 }

@@ -12,6 +12,7 @@ import static com.thoughtworks.martdhis2sync.util.BatchUtil.getDateFromString;
 public class EnrollmentUtil {
 
     public static Date newCompletedDate = new Date(Long.MIN_VALUE);
+    public static Date newCancelledDate = new Date(Long.MIN_VALUE);
     public static Date newActiveDate = new Date(Long.MIN_VALUE);
 
     public static Date updatedCompletedDate = new Date(Long.MIN_VALUE);
@@ -38,6 +39,11 @@ public class EnrollmentUtil {
                     newCompletedDate = bahmniDateCreated;
                 }
                 break;
+            case MarkerUtil.CATEGORY_NEW_CANCELLED_ENROLLMENT :
+                if (newCancelledDate.compareTo(bahmniDateCreated) < 1) {
+                    newCancelledDate = bahmniDateCreated;
+                }
+                break;
             case MarkerUtil.CATEGORY_UPDATED_ACTIVE_ENROLLMENT :
                 if (updatedActiveDate.compareTo(bahmniDateCreated) < 1) {
                     updatedActiveDate = bahmniDateCreated;
@@ -61,6 +67,9 @@ public class EnrollmentUtil {
                 break;
             case MarkerUtil.CATEGORY_NEW_COMPLETED_ENROLLMENT :
                 enrollmentDate = BatchUtil.getStringFromDate(newCompletedDate, BatchUtil.DATEFORMAT_WITH_24HR_TIME);
+                break;
+            case MarkerUtil.CATEGORY_NEW_CANCELLED_ENROLLMENT :
+                enrollmentDate = BatchUtil.getStringFromDate(newCancelledDate, BatchUtil.DATEFORMAT_WITH_24HR_TIME);
                 break;
             case MarkerUtil.CATEGORY_UPDATED_ACTIVE_ENROLLMENT :
                 enrollmentDate = BatchUtil.getStringFromDate(updatedActiveDate, BatchUtil.DATEFORMAT_WITH_24HR_TIME);

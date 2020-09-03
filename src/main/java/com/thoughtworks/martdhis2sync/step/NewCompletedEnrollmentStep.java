@@ -12,11 +12,11 @@ public class NewCompletedEnrollmentStep {
     private StepFactory stepFactory;
 
     @Autowired
-    private NewCompletedEnrollmentTasklet tasklet;
+    private NewCompletedEnrollmentTasklet newCompletedEnrollmentTasklet;
 
     private static final String NCE_STEP_NAME = "New Completed Enrollment Step:: ";
 
     public Step get() {
-        return stepFactory.build(NCE_STEP_NAME, tasklet);
+        return stepFactory.build(NCE_STEP_NAME, newCompletedEnrollmentTasklet);
     }
 }

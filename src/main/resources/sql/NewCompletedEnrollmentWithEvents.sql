@@ -22,4 +22,4 @@ WHERE enrTable.date_created :: TIMESTAMP > COALESCE((SELECT last_synced_date FRO
                                                                                            AND program_name = '%s'),
                                                     '-infinity')
   AND enrTracker.instance_id IS NULL
-  AND (enrTable.status = 'COMPLETED' OR enrTable.status = 'CANCELLED') order by enrTable.date_created;
+  AND (enrTable.status = 'COMPLETED') order by enrTable.date_created;

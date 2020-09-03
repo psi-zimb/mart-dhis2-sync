@@ -2,7 +2,6 @@ package com.thoughtworks.martdhis2sync.reader;
 
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
-import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
@@ -36,6 +35,10 @@ public class MappingReader {
 
     @Value("classpath:sql/NewCompletedEnrollmentWithEvents.sql")
     private Resource newCompletedEnrWithEventsResource;
+
+    @Value("classpath:sql/NewCancelledEnrollmentWithEvents.sql")
+    private Resource newCancelledEnrWithEventsResource;
+
 
     @Value("classpath:sql/UpdatedCompletedEnrollmentWithEvents.sql")
     private Resource updatedCompletedEnrWithEventsResource;
@@ -85,7 +88,14 @@ public class MappingReader {
     public JdbcCursorItemReader<Map<String, Object>> getNewCompletedEnrollmentWithEventsReader(
             String enrollmentLookupTable, String programName, String eventLookupTable) {
         String sql = String.format(getSql(newCompletedEnrWithEventsResource), enrollmentLookupTable,
-                                            eventLookupTable, programName);
+                eventLookupTable, programName);
+        return get(sql);
+    }
+
+    public JdbcCursorItemReader<Map<String, Object>> getNewCancelledEnrollmentWithEventsReader(
+            String enrollmentLookupTable, String programName, String eventLookupTable) {
+        String sql = String.format(getSql(newCancelledEnrWithEventsResource), enrollmentLookupTable,
+                eventLookupTable, programName);
         return get(sql);
     }
 
@@ -97,7 +107,7 @@ public class MappingReader {
         String andClause = StringUtils.isEmpty(syncedCompletedEnrollmentIds) ? ""
                 : String.format("AND enrolTracker.enrollment_id NOT IN (%s)", syncedCompletedEnrollmentIds);
         String sql = String.format(getSql(updatedCompletedEnrWithEventsResource), enrollmentLookupTable, programName,
-                                    eventLookupTable, enrollmentLookupTable, programName, andClause);
+                eventLookupTable, enrollmentLookupTable, programName, andClause);
         return get(sql);
     }
 

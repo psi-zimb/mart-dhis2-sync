@@ -1,10 +1,7 @@
 package com.thoughtworks.martdhis2sync.service;
 
 import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
-import com.thoughtworks.martdhis2sync.step.NewCompletedEnrollmentStep;
-import com.thoughtworks.martdhis2sync.step.NewCompletedEnrollmentWithEventsStep;
-import com.thoughtworks.martdhis2sync.step.UpdatedCompletedEnrollmentStep;
-import com.thoughtworks.martdhis2sync.step.UpdatedCompletedEnrollmentWithEventsStep;
+import com.thoughtworks.martdhis2sync.step.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobParametersInvalidException;
@@ -20,39 +17,39 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Component
-public class CompletedEnrollmentService {
+public class CancelledEnrollmentService {
 
     @Autowired
-    private NewCompletedEnrollmentWithEventsStep newEnrollmentWithEventsStep;
+    private NewCancelledEnrollmentWithEventsStep newEnrollmentWithEventsStep;
 
     @Autowired
-    private NewCompletedEnrollmentStep completedEnrollmentStep;
+    private NewCancelledEnrollmentStep cancelledEnrollmentStep;
 
     @Autowired
     private UpdatedCompletedEnrollmentWithEventsStep updatedEnrollmentWithEventsStep;
 
     @Autowired
-    private UpdatedCompletedEnrollmentStep updatedCompletedEnrollmentStep;
+    private UpdatedCompletedEnrollmentStep updatedCancelledEnrollmentStep;
 
     @Autowired
     private JobService jobService;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private static final String LOG_PREFIX = "Completed Enrollments: ";
-    private static final String JOB_NEW_COMPLETED_ENROLLMENTS = "New Completed Enrollments";
-    private static final String JOB_UPDATED_COMPLETED_ENROLLMENTS = "Updated Completed Enrollments";
+    private static final String LOG_PREFIX = "Cancelled Enrollments: ";
+    private static final String JOB_NEW_CANCELLED_ENROLLMENTS = "New Cancelled Enrollments";
+    private static final String JOB_UPDATED_CANCELLED_ENROLLMENTS = "Updated Cancelled Enrollments";
 
 
-    public void triggerJobForNewCompletedEnrollments(String service, String user, String enrLookupTable,
+    public void triggerJobForNewCancelledEnrollments(String service, String user, String enrLookupTable,
                                                      String evnLookupTable, Object mappingObj, String openLatestCompletedEnrollment)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
             JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
 
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(newEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, service, mappingObj));
-        steps.add(completedEnrollmentStep.get());
-        triggerJob(service, user, steps, JOB_NEW_COMPLETED_ENROLLMENTS, openLatestCompletedEnrollment);
+        steps.add(cancelledEnrollmentStep.get());
+        triggerJob(service, user, steps, JOB_NEW_CANCELLED_ENROLLMENTS, openLatestCompletedEnrollment);
     }
 
     public void triggerJobForUpdatedCompletedEnrollments(String service, String user, String enrLookupTable,
@@ -62,13 +59,13 @@ public class CompletedEnrollmentService {
 
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(updatedEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, service, mappingObj, enrollmentsToIgnore));
-        steps.add(updatedCompletedEnrollmentStep.get());
-        triggerJob(service, user, steps, JOB_UPDATED_COMPLETED_ENROLLMENTS, openLatestCompletedEnrollment);
+        steps.add(updatedCancelledEnrollmentStep.get());
+        triggerJob(service, user, steps, JOB_UPDATED_CANCELLED_ENROLLMENTS, openLatestCompletedEnrollment);
     }
 
     private void triggerJob(String service, String user, LinkedList<Step> steps, String jobName, String openLatestCompletedEnrollment)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException,
-                    JobInstanceAlreadyCompleteException, SyncFailedException {
+            JobInstanceAlreadyCompleteException, SyncFailedException {
         try {
             jobService.triggerJob(service, user, jobName, steps, openLatestCompletedEnrollment);
         } catch (Exception e) {
