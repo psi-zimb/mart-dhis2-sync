@@ -16,6 +16,7 @@ public class EnrollmentUtil {
     public static Date newActiveDate = new Date(Long.MIN_VALUE);
 
     public static Date updatedCompletedDate = new Date(Long.MIN_VALUE);
+    public static Date updatedCancelledDate = new Date(Long.MIN_VALUE);
     public static Date updatedActiveDate = new Date(Long.MIN_VALUE);
 
     public static List<EnrollmentAPIPayLoad> enrollmentsToSaveInTracker = new ArrayList<>();
@@ -42,6 +43,11 @@ public class EnrollmentUtil {
             case MarkerUtil.CATEGORY_NEW_CANCELLED_ENROLLMENT :
                 if (newCancelledDate.compareTo(bahmniDateCreated) < 1) {
                     newCancelledDate = bahmniDateCreated;
+                }
+                break;
+            case MarkerUtil.CATEGORY_UPDATED_CANCELLED_ENROLLMENT :
+                if (updatedCancelledDate.compareTo(bahmniDateCreated) < 1) {
+                    updatedCancelledDate = bahmniDateCreated;
                 }
                 break;
             case MarkerUtil.CATEGORY_UPDATED_ACTIVE_ENROLLMENT :
@@ -76,6 +82,9 @@ public class EnrollmentUtil {
                 break;
             case MarkerUtil.CATEGORY_UPDATED_COMPLETED_ENROLLMENT :
                 enrollmentDate = BatchUtil.getStringFromDate(updatedCompletedDate, BatchUtil.DATEFORMAT_WITH_24HR_TIME);
+                break;
+            case MarkerUtil.CATEGORY_UPDATED_CANCELLED_ENROLLMENT :
+                enrollmentDate = BatchUtil.getStringFromDate(updatedCancelledDate, BatchUtil.DATEFORMAT_WITH_24HR_TIME);
                 break;
         }
         logger.info("Updating Enrollment marker with date : " + enrollmentDate + " Type : " + enrollmentType);

@@ -73,9 +73,11 @@ public class PushController {
         Config config = gson.fromJson(mapping.get("config").toString(), Config.class);
         EnrollmentUtil.newActiveDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_NEW_ACTIVE_ENROLLMENT);
         EnrollmentUtil.newCompletedDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_NEW_COMPLETED_ENROLLMENT);
+        EnrollmentUtil.newCancelledDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_NEW_CANCELLED_ENROLLMENT);
 
         EnrollmentUtil.updatedActiveDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_UPDATED_ACTIVE_ENROLLMENT);
         EnrollmentUtil.updatedCompletedDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_UPDATED_COMPLETED_ENROLLMENT);
+        EnrollmentUtil.updatedCancelledDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_UPDATED_CANCELLED_ENROLLMENT);
 
         EventUtil.date = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_EVENT);
 
@@ -145,6 +147,17 @@ public class PushController {
         TrackersHandler.clearTrackerLists();
 
         logger.info("=========================New Cancelled Enrollment Sync Success=========================\n\n");
+
+        logger.info("=========================Update Cancelled Enrollment Sync Started=========================\n\n");
+
+        cancelledEnrollmentService.triggerJobForUpdatedCancelledEnrollments(requestBody.getService(), requestBody.getUser(),
+                lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), enrollmentsToIgnore,
+                config.getOpenLatestCompletedEnrollment());
+
+        enrollmentsToIgnore = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
+        TrackersHandler.clearTrackerLists();
+
+        logger.info("=========================Update Cancelled Enrollment Sync Success=========================\n\n");
 
         logger.info("=========================Update Complete Enrollment Sync Started=========================\n");
 

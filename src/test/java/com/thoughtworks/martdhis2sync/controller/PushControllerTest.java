@@ -50,6 +50,9 @@ public class PushControllerTest {
     private CompletedEnrollmentService completedEnrollmentService;
 
     @Mock
+    private CancelledEnrollmentService cancelledEnrollmentService;
+
+    @Mock
     private ActiveEnrollmentService activeEnrollmentService;
 
     @Mock
@@ -69,6 +72,7 @@ public class PushControllerTest {
         setValuesForMemberFields(pushController, "loggerService", loggerService);
         setValuesForMemberFields(pushController, "dhisMetaDataService", dhisMetaDataService);
         setValuesForMemberFields(pushController, "completedEnrollmentService", completedEnrollmentService);
+        setValuesForMemberFields(pushController, "cancelledEnrollmentService", cancelledEnrollmentService);
         setValuesForMemberFields(pushController, "activeEnrollmentService", activeEnrollmentService);
         setValuesForMemberFields(pushController, "markerUtil", markerUtil);
 
@@ -157,6 +161,47 @@ public class PushControllerTest {
     }
 
     @Test
+    public void shouldNotCallUpdatedCancelledEnrollmentServiceWhenNewCancelledEnrollmentIsFailed() throws Exception {
+        Map<String, Object> mapping = getMapping();
+        DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
+        Gson gson = new Gson();
+        MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
+
+        doNothing().when(dhisMetaDataService).filterByTypeDateTime();
+        doNothing().when(loggerService).addLog(service, user, comment);
+        doNothing().when(loggerService).updateLog(service, "failed");
+        when(mappingService.getMapping(service)).thenReturn(mapping);
+        doNothing().when(teiService).getTrackedEntityInstances(dhisSyncRequestBody.getService(), mappingJson);
+        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
+        doThrow(new SyncFailedException("instance sync failed")).when(cancelledEnrollmentService)
+                .triggerJobForNewCancelledEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
+        doNothing().when(teiService).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service);
+
+        try {
+            pushController.pushData(dhisSyncRequestBody);
+        } catch (HttpServerErrorException e) {
+            verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
+            verify(loggerService, times(1)).addLog(service, user, comment);
+            verify(loggerService, times(1)).updateLog(service, "failed");
+            verify(mappingService, times(1)).getMapping(service);
+            verify(teiService, times(1)).getTrackedEntityInstances(
+                    getDhisSyncRequestBody().getService(),
+                    mappingJson
+            );
+            verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
+            verify(cancelledEnrollmentService, times(1))
+                    .triggerJobForNewCancelledEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
+            verify(cancelledEnrollmentService, times(0)).triggerJobForUpdatedCancelledEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString());
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
+            verifyStatic(times(1));
+            TrackersHandler.clearTrackerLists();
+            verify(teiService, times(1)).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service);
+            assertEquals("500 SYNC FAILED", e.getMessage());
+        }
+    }
+
+    @Test
     public void shouldThrowExceptionWithNoDataToSync() throws Exception {
         Map<String, Object> mapping = getMapping();
         DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
@@ -189,7 +234,7 @@ public class PushControllerTest {
             verify(markerUtil, times(1)).getLastSyncedDate(service, "updated_active_enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "updated_completed_enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
-            verifyStatic(times(4));
+            verifyStatic(times(6));
             TrackersHandler.clearTrackerLists();
             verify(teiService, times(1)).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service);
 

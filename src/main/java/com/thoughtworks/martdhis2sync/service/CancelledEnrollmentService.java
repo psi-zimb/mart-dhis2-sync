@@ -26,10 +26,10 @@ public class CancelledEnrollmentService {
     private NewCancelledEnrollmentStep cancelledEnrollmentStep;
 
     @Autowired
-    private UpdatedCompletedEnrollmentWithEventsStep updatedEnrollmentWithEventsStep;
+    private UpdatedCancelledEnrollmentWithEventsStep updatedCancelledEnrollmentWithEventsStep;
 
     @Autowired
-    private UpdatedCompletedEnrollmentStep updatedCancelledEnrollmentStep;
+    private UpdatedCancelledEnrollmentStep updatedCancelledEnrollmentStep;
 
     @Autowired
     private JobService jobService;
@@ -52,13 +52,13 @@ public class CancelledEnrollmentService {
         triggerJob(service, user, steps, JOB_NEW_CANCELLED_ENROLLMENTS, openLatestCompletedEnrollment);
     }
 
-    public void triggerJobForUpdatedCompletedEnrollments(String service, String user, String enrLookupTable,
+    public void triggerJobForUpdatedCancelledEnrollments(String service, String user, String enrLookupTable,
                                                          String evnLookupTable, Object mappingObj, List<EnrollmentAPIPayLoad> enrollmentsToIgnore, String openLatestCompletedEnrollment)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
             JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
 
         LinkedList<Step> steps = new LinkedList<>();
-        steps.add(updatedEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, service, mappingObj, enrollmentsToIgnore));
+        steps.add(updatedCancelledEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, service, mappingObj, enrollmentsToIgnore));
         steps.add(updatedCancelledEnrollmentStep.get());
         triggerJob(service, user, steps, JOB_UPDATED_CANCELLED_ENROLLMENTS, openLatestCompletedEnrollment);
     }

@@ -39,6 +39,8 @@ public class MappingReader {
     @Value("classpath:sql/NewCancelledEnrollmentWithEvents.sql")
     private Resource newCancelledEnrWithEventsResource;
 
+    @Value("classpath:sql/UpdatedCancelledEnrollmentWithEvents.sql")
+    private Resource updatedCancelledEnrWithEventsResource;
 
     @Value("classpath:sql/UpdatedCompletedEnrollmentWithEvents.sql")
     private Resource updatedCompletedEnrWithEventsResource;
@@ -107,6 +109,18 @@ public class MappingReader {
         String andClause = StringUtils.isEmpty(syncedCompletedEnrollmentIds) ? ""
                 : String.format("AND enrolTracker.enrollment_id NOT IN (%s)", syncedCompletedEnrollmentIds);
         String sql = String.format(getSql(updatedCompletedEnrWithEventsResource), enrollmentLookupTable, programName,
+                eventLookupTable, enrollmentLookupTable, programName, andClause);
+        return get(sql);
+    }
+
+    public JdbcCursorItemReader<Map<String, Object>> getUpdatedCancelledEnrollmentWithEventsReader(
+            String enrollmentLookupTable, String programName, String eventLookupTable,
+            List<EnrollmentAPIPayLoad> enrollmentsToIgnore) {
+
+        String syncedCompletedEnrollmentIds = getEnrollmentIds(enrollmentsToIgnore);
+        String andClause = StringUtils.isEmpty(syncedCompletedEnrollmentIds) ? ""
+                : String.format("AND enrolTracker.enrollment_id NOT IN (%s)", syncedCompletedEnrollmentIds);
+        String sql = String.format(getSql(updatedCancelledEnrWithEventsResource), enrollmentLookupTable, programName,
                 eventLookupTable, enrollmentLookupTable, programName, andClause);
         return get(sql);
     }

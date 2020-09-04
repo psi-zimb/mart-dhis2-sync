@@ -216,9 +216,13 @@ public class TEIService {
         rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY,
                 lookupTable.getEnrollments(), CATEGORY_NEW_COMPLETED_ENROLLMENT, serviceName)));
         rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY,
+                lookupTable.getEnrollments(), CATEGORY_NEW_CANCELLED_ENROLLMENT, serviceName)));
+        rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY,
                 lookupTable.getEnrollments(), CATEGORY_UPDATED_ACTIVE_ENROLLMENT, serviceName)));
         rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY,
                 lookupTable.getEnrollments(), CATEGORY_UPDATED_COMPLETED_ENROLLMENT, serviceName)));
+        rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY,
+                lookupTable.getEnrollments(), CATEGORY_UPDATED_CANCELLED_ENROLLMENT, serviceName)));
         rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY,
                 lookupTable.getEvent(), CATEGORY_EVENT, serviceName)));
 

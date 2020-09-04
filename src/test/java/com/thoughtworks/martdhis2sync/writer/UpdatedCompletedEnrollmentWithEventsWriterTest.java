@@ -50,7 +50,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.management.*")
 @PrepareForTest(JobService.class)
-public class UpdatedEnrollmentWithEventsWriterTest {
+public class UpdatedCompletedEnrollmentWithEventsWriterTest {
     @Mock
     private SyncRepository syncRepository;
 
