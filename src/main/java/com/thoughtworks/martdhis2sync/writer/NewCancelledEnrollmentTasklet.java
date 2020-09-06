@@ -26,7 +26,7 @@ import java.util.List;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeLastChar;
 @Component
-public class NewCancelledEnrollmentTasklet extends NewCompletedEnrollmentTasklet{
+public class NewCancelledEnrollmentTasklet implements Tasklet {
     private static final String URI = "/api/enrollments?strategy=CREATE_AND_UPDATE";
 
     @Autowired
