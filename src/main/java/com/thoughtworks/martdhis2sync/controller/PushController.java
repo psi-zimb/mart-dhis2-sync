@@ -61,7 +61,7 @@ public class PushController {
     public void pushData(@RequestBody DHISSyncRequestBody requestBody) throws Exception {
         long timeInMillis = System.currentTimeMillis();
         IS_DELTA_EXISTS = false;
-        loggerService.addLog(requestBody.getService(), requestBody.getUser(), requestBody.getComment());
+        loggerService.addLog(requestBody.getService(), requestBody.getUser(), requestBody.getComment(), requestBody.getStartDate(), requestBody.getEndDate());
 
         dhisMetaDataService.filterByTypeDateTime();
 

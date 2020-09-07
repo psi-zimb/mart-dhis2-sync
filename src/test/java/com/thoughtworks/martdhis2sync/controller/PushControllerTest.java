@@ -324,6 +324,8 @@ public class PushControllerTest {
         dhisSyncRequestBody.setService(service);
         dhisSyncRequestBody.setUser(user);
         dhisSyncRequestBody.setComment(comment);
+        dhisSyncRequestBody.setStartDate(new Date());
+        dhisSyncRequestBody.setEndDate(new Date());
         return dhisSyncRequestBody;
     }
 

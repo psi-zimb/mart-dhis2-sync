@@ -237,4 +237,17 @@
             ALTER TABLE public.enrollment_tracker ADD CONSTRAINT enrollment_id_unique UNIQUE (enrollment_id);
         </sql>
     </changeSet>
+    <changeSet id="0209202001" author="Gopi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="start_date" tableName="log"/>
+                <columnExists columnName="end_date" tableName="log"/>
+            </not>
+        </preConditions>
+        <comment>Adding Start And End Dates in log table</comment>
+        <sql>
+            ALTER TABLE log ADD COLUMN start_date TIMESTAMP;
+            ALTER TABLE log ADD COLUMN end_date TIMESTAMP;
+        </sql>
+    </changeSet>
 </databaseChangeLog>
