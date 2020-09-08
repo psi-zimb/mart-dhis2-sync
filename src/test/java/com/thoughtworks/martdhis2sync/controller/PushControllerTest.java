@@ -63,6 +63,8 @@ public class PushControllerTest {
     private String user = "***REMOVED***";
     private String comment = "";
     Date lastSyncedDate = new Date(Long.MIN_VALUE);
+    private Date startDate;
+    private Date endDate;
 
     @Before
     public void setUp() throws Exception {
@@ -81,6 +83,8 @@ public class PushControllerTest {
         TrackersHandler.clearTrackerLists();
         when(markerUtil.getLastSyncedDate(service, "enrollment")).thenReturn(lastSyncedDate);
         when(markerUtil.getLastSyncedDate(service, "event")).thenReturn(lastSyncedDate);
+        startDate=new Date();
+        endDate = startDate;
     }
 
     @After
@@ -97,7 +101,7 @@ public class PushControllerTest {
 
         doNothing().when(dhisMetaDataService).filterByTypeDateTime();
         doNothing().when(teiService).getTrackedEntityInstances(dhisSyncRequestBody.getService(), mappingJson);
-        doNothing().when(loggerService).addLog(service, user, comment);
+        doNothing().when(loggerService).addLog(service, user, comment, new Date(), new Date());
         doNothing().when(loggerService).updateLog(service, "failed");
         when(mappingService.getMapping(service)).thenReturn(mapping);
         doThrow(new SyncFailedException("instance sync failed")).when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
@@ -108,7 +112,7 @@ public class PushControllerTest {
             verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
             verify(teiService, times(1)).getTrackedEntityInstances(
                     getDhisSyncRequestBody().getService(), mappingJson);
-            verify(loggerService, times(1)).addLog(service, user, comment);
+            verify(loggerService, times(1)).addLog(service, user, comment, new Date(), new Date());
             verify(loggerService, times(1)).updateLog(service, "failed");
             verify(mappingService, times(1)).getMapping(service);
             verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
@@ -127,7 +131,7 @@ public class PushControllerTest {
         MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
 
         doNothing().when(dhisMetaDataService).filterByTypeDateTime();
-        doNothing().when(loggerService).addLog(service, user, comment);
+        doNothing().when(loggerService).addLog(service, user, comment, startDate, endDate);
         doNothing().when(loggerService).updateLog(service, "failed");
         when(mappingService.getMapping(service)).thenReturn(mapping);
         doNothing().when(teiService).getTrackedEntityInstances(dhisSyncRequestBody.getService(), mappingJson);
@@ -140,7 +144,7 @@ public class PushControllerTest {
             pushController.pushData(dhisSyncRequestBody);
         } catch (HttpServerErrorException e) {
             verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
-            verify(loggerService, times(1)).addLog(service, user, comment);
+            verify(loggerService, times(1)).addLog(service, user, comment, startDate, endDate);
             verify(loggerService, times(1)).updateLog(service, "failed");
             verify(mappingService, times(1)).getMapping(service);
             verify(teiService, times(1)).getTrackedEntityInstances(
@@ -168,7 +172,7 @@ public class PushControllerTest {
         MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
 
         doNothing().when(dhisMetaDataService).filterByTypeDateTime();
-        doNothing().when(loggerService).addLog(service, user, comment);
+        doNothing().when(loggerService).addLog(service, user, comment, startDate, endDate);
         doNothing().when(loggerService).updateLog(service, "failed");
         when(mappingService.getMapping(service)).thenReturn(mapping);
         doNothing().when(teiService).getTrackedEntityInstances(dhisSyncRequestBody.getService(), mappingJson);
@@ -181,7 +185,7 @@ public class PushControllerTest {
             pushController.pushData(dhisSyncRequestBody);
         } catch (HttpServerErrorException e) {
             verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
-            verify(loggerService, times(1)).addLog(service, user, comment);
+            verify(loggerService, times(1)).addLog(service, user, comment, startDate, endDate);
             verify(loggerService, times(1)).updateLog(service, "failed");
             verify(mappingService, times(1)).getMapping(service);
             verify(teiService, times(1)).getTrackedEntityInstances(
@@ -209,7 +213,7 @@ public class PushControllerTest {
         MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
 
         doNothing().when(teiService).getTrackedEntityInstances(getDhisSyncRequestBody().getService(), mappingJson);
-        doNothing().when(loggerService).addLog(service, user, comment);
+        doNothing().when(loggerService).addLog(service, user, comment, startDate, endDate);
         doNothing().when(loggerService).updateLog(service, "success");
         doNothing().when(loggerService).collateLogMessage("No delta data to sync.");
         when(mappingService.getMapping(service)).thenReturn(mapping);
@@ -220,7 +224,7 @@ public class PushControllerTest {
         try {
             pushController.pushData(dhisSyncRequestBody);
         } catch (Exception e) {
-            verify(loggerService, times(1)).addLog(service, user, comment);
+            verify(loggerService, times(1)).addLog(service, user, comment, startDate, endDate);
             verify(teiService, times(1)).getTrackedEntityInstances(
                     getDhisSyncRequestBody().getService(),
                     mappingJson);
@@ -248,7 +252,7 @@ public class PushControllerTest {
         DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
 
         doNothing().when(dhisMetaDataService).filterByTypeDateTime();
-        doNothing().when(loggerService).addLog(service, user, comment);
+        doNothing().when(loggerService).addLog(service, user, comment, startDate, endDate);
         doNothing().when(loggerService).updateLog(service, "failed");
         when(mappingService.getMapping(service)).thenReturn(mapping);
         doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
@@ -263,7 +267,7 @@ public class PushControllerTest {
             pushController.pushData(dhisSyncRequestBody);
         } catch (HttpServerErrorException e) {
             verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
-            verify(loggerService, times(1)).addLog(service, user, comment);
+            verify(loggerService, times(1)).addLog(service, user, comment, startDate, endDate);
             verify(loggerService, times(1)).updateLog(service, "failed");
             verify(mappingService, times(1)).getMapping(service);
             verify(completedEnrollmentService, times(1))
@@ -286,7 +290,7 @@ public class PushControllerTest {
         DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
 
         doNothing().when(dhisMetaDataService).filterByTypeDateTime();
-        doNothing().when(loggerService).addLog(service, user, comment);
+        doNothing().when(loggerService).addLog(service, user, comment, startDate, endDate);
         doNothing().when(loggerService).updateLog(service, "failed");
         when(mappingService.getMapping(service)).thenReturn(mapping);
         doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
@@ -301,7 +305,7 @@ public class PushControllerTest {
             pushController.pushData(dhisSyncRequestBody);
         } catch (HttpServerErrorException e) {
             verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
-            verify(loggerService, times(1)).addLog(service, user, comment);
+            verify(loggerService, times(1)).addLog(service, user, comment, startDate, endDate);
             verify(loggerService, times(1)).updateLog(service, "failed");
             verify(mappingService, times(1)).getMapping(service);
             verify(activeEnrollmentService, times(1))

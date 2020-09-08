@@ -42,8 +42,8 @@ public class LoggerDAO {
             String stringFromEndDate = getStringFromDate(endDate, DATEFORMAT_WITH_24HR_TIME);
             Date endDateFromString = getDateFromString(stringFromEndDate, DATEFORMAT_WITH_24HR_TIME);
 
-            parameterSource.addValue("startDate", dateFromString);
-            parameterSource.addValue("endDate", dateFromString);
+            parameterSource.addValue("startDate", startDateFromString);
+            parameterSource.addValue("endDate", endDateFromString);
         } else {
             parameterSource.addValue("startDate", null);
             parameterSource.addValue("endDate", null);
