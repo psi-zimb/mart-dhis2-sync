@@ -58,7 +58,7 @@ public class UpdatedCancelledEnrollmentWithEventsStepTest {
         List<EnrollmentAPIPayLoad> enrollmentsToIgnore = new ArrayList<>();
 
         when(objectFactory.getObject()).thenReturn(processor);
-        eventStep.get(enrLookupTable, envLookupTable, programName, mappingObj, enrollmentsToIgnore);
+        eventStep.get(enrLookupTable, envLookupTable, programName, mappingObj, enrollmentsToIgnore, "", "");
 
         verify(mappingReader, times(1)).getUpdatedCancelledEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable, enrollmentsToIgnore);
     }
@@ -72,7 +72,7 @@ public class UpdatedCancelledEnrollmentWithEventsStepTest {
         List<EnrollmentAPIPayLoad> enrollmentsToIgnore = new ArrayList<>();
 
         when(objectFactory.getObject()).thenReturn(processor);
-        eventStep.get(enrLookupTable, envLookupTable, programName, mappingObj, enrollmentsToIgnore);
+        eventStep.get(enrLookupTable, envLookupTable, programName, mappingObj, enrollmentsToIgnore, "", "");
 
         verify(stepFactory, times(1)).build(anyString(), any(), any(), any());
     }

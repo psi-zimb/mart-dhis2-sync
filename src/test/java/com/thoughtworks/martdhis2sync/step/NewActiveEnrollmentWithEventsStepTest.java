@@ -70,7 +70,7 @@ public class NewActiveEnrollmentWithEventsStepTest {
         when(objectFactory.getObject()).thenReturn(processor);
         when(stepFactory.build(stepName, jdbcCursorItemReader, processor, writer)).thenReturn(step);
 
-        Step actual = eventStep.get(enrLookupTable, envLookupTable, programName, mappingObj);
+        Step actual = eventStep.get(enrLookupTable, envLookupTable, programName, mappingObj, "", "");
 
         verify(mappingReader, times(1)).getNewActiveEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable);
         verify(stepFactory, times(1)).build(stepName, jdbcCursorItemReader, processor, writer);

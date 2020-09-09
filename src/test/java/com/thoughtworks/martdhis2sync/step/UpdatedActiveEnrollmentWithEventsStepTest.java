@@ -75,7 +75,7 @@ public class UpdatedActiveEnrollmentWithEventsStepTest {
         when(objectFactory.getObject()).thenReturn(processor);
         when(stepFactory.build(stepName, jdbcCursorItemReader, processor, writer)).thenReturn(step);
 
-        Step actual = eventStep.get(enrLookupTable, envLookupTable, programName, mappingObj, enrollmentsToIgnore);
+        Step actual = eventStep.get(enrLookupTable, envLookupTable, programName, mappingObj, enrollmentsToIgnore, "", "");
 
         verify(mappingReader, times(1))
                 .getUpdatedActiveEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable, enrollmentsToIgnore);
