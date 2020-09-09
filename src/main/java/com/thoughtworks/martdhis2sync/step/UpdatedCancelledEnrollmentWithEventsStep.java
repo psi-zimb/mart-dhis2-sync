@@ -28,9 +28,11 @@ public class UpdatedCancelledEnrollmentWithEventsStep {
 
     private static final String STEP_NAME = "Updated Cancelled Enrollment With Events Step:: ";
 
-    public Step get(String enrLookupTable, String envLookupTable, String programName, Object mappingObj, List<EnrollmentAPIPayLoad> enrollmentsToIgnore) {
+    public Step get(String enrLookupTable, String envLookupTable, String programName, Object mappingObj, List<EnrollmentAPIPayLoad> enrollmentsToIgnore, String startDate, String endDate) {
         return stepFactory.build(STEP_NAME,
-                mappingReader.getUpdatedCancelledEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable, enrollmentsToIgnore),
+                (startDate != "" && endDate !="")
+                        ? mappingReader.getUpdatedCompletedEnrollmentWithEventsReaderWithDateRange(enrLookupTable,programName,envLookupTable,enrollmentsToIgnore,startDate,endDate)
+                        : mappingReader.getUpdatedCancelledEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable, enrollmentsToIgnore),
                 getProcessor(mappingObj),
                 writer);
     }

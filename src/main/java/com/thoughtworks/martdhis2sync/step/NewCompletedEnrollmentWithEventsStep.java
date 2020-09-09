@@ -25,9 +25,11 @@ public class NewCompletedEnrollmentWithEventsStep {
 
     private static final String STEP_NAME = "New Completed Enrollment With Events Step:: ";
 
-    public Step get(String enrLookupTable, String envLookupTable, String programName, Object mappingObj) {
+    public Step get(String enrLookupTable, String envLookupTable, String programName, Object mappingObj, String startDate, String endDate) {
         return stepFactory.build(STEP_NAME,
-                mappingReader.getNewCompletedEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable),
+                (startDate != "" && endDate != "")
+                        ? mappingReader.getNewCompletedEnrollmentWithEventsReaderWithDateRange(enrLookupTable, programName, envLookupTable, startDate, endDate)
+                        : mappingReader.getNewCompletedEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable),
                 getProcessor(mappingObj),
                 writer);
     }
