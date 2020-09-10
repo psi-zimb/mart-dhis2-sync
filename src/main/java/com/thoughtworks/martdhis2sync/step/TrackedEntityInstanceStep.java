@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.checkDates;
 import static com.thoughtworks.martdhis2sync.util.MarkerUtil.CATEGORY_INSTANCE;
 
 
@@ -38,10 +39,10 @@ public class TrackedEntityInstanceStep {
     public Step get(String lookupTable, String programName, Object mappingObj, List<String> searchableAttributes, List<String> comparableAttributes, String startDate, String endDate) {
         TEIUtil.resetPatientTEIUidMap();
         TEIUtil.date = markerUtil.getLastSyncedDate(programName, CATEGORY_INSTANCE);
-
+        writer.updateLastSyncedDate = checkDates(startDate,endDate) ? true : false;
         return stepFactory.build(
                 TEI_STEP_NAME,
-                (startDate != "" && endDate !="")
+                checkDates(startDate,endDate)
                         ? mappingReader.getInstanceReaderWithDateRange(lookupTable, programName, startDate, endDate)
                         : mappingReader.getInstanceReader(lookupTable, programName),
                 getProcessor(mappingObj, searchableAttributes, comparableAttributes),

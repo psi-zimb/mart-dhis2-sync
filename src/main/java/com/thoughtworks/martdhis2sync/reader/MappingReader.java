@@ -223,7 +223,7 @@ public class MappingReader {
         String syncedCompletedEnrollmentIds = getEnrollmentIds(enrollmentsToIgnore);
         String andClause = StringUtils.isEmpty(syncedCompletedEnrollmentIds) ? ""
                 : String.format("AND enrolTracker.enrollment_id NOT IN (%s)", syncedCompletedEnrollmentIds);
-        String sql = String.format(getSql(updatedActiveEnrWithEventsResourceWithDateRange), enrollmentLookupTable, programName, startDate, endDate,
+        String sql = String.format(getSql(updatedActiveEnrWithEventsResourceWithDateRange), enrollmentLookupTable, startDate, endDate, programName,
                 eventLookupTable, enrollmentLookupTable, startDate, endDate, programName, andClause);
         return get(sql);
     }

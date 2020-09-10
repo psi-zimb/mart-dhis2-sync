@@ -20,8 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static com.thoughtworks.martdhis2sync.service.LoggerService.*;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getStringFromDate;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
 import static com.thoughtworks.martdhis2sync.util.MarkerUtil.*;
 
 
@@ -106,6 +105,7 @@ public class PushController {
                 loggerService.updateLog(requestBody.getService(), SUCCESS);
                 throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "NO DATA TO SYNC");
             } else {
+                if(!checkDates(startDate,endDate))
                 updateEventMarker(requestBody);
             }
             loggerService.updateLog(requestBody.getService(), SUCCESS);

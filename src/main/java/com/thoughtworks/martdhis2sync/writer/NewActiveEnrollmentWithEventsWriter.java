@@ -13,9 +13,11 @@ import java.util.List;
 @StepScope
 public class NewActiveEnrollmentWithEventsWriter extends NewEnrollmentWithEventsWriter implements ItemWriter<ProcessedTableRow> {
 
+    public static boolean updateLastSyncedDate = false;
     @Override
     public void write(List<? extends ProcessedTableRow> tableRows) throws Exception {
         processWrite(tableRows);
+        if(!updateLastSyncedDate)
         EnrollmentUtil.updateMarker(markerUtil, programName, MarkerUtil.CATEGORY_NEW_ACTIVE_ENROLLMENT);
     }
 }

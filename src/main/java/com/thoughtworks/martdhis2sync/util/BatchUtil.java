@@ -74,4 +74,9 @@ public class BatchUtil {
         return value.replace("\\","\\\\")
                     .replace("\"","\\\"");
     }
+
+    public static boolean checkDates(String startDate, String endDate)
+    {
+        return (startDate != "" && endDate !="");
+    }
 }

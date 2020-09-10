@@ -12,10 +12,11 @@ import java.util.List;
 @Component
 @StepScope
 public class UpdatedCancelledEnrollmentWithEventsWriter extends UpdatedEnrollmentWithEventsWriter implements ItemWriter<ProcessedTableRow> {
-
+    public static boolean updateLastSyncedDate = false;
     @Override
     public void write(List<? extends ProcessedTableRow> tableRows) throws Exception {
         processWrite(tableRows);
+        if(!updateLastSyncedDate)
         EnrollmentUtil.updateMarker(markerUtil, programName, MarkerUtil.CATEGORY_UPDATED_CANCELLED_ENROLLMENT);
     }
 }

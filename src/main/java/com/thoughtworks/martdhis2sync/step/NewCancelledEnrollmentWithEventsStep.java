@@ -8,6 +8,8 @@ import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.checkDates;
+
 @Component
 public class NewCancelledEnrollmentWithEventsStep {
 
@@ -26,8 +28,10 @@ public class NewCancelledEnrollmentWithEventsStep {
     private static final String STEP_NAME = "New Cancelled Enrollment With Events Step:: ";
 
     public Step get(String enrLookupTable, String envLookupTable, String programName, Object mappingObj, String startDate, String endDate) {
+
+        writer.updateLastSyncedDate = checkDates(startDate,endDate) ? true : false;
         return stepFactory.build(STEP_NAME,
-                (startDate != "" && endDate !="")
+                checkDates(startDate,endDate)
                         ? mappingReader.getNewCancelledEnrollmentWithEventsReaderWithDateRange(enrLookupTable, programName, envLookupTable, startDate, endDate)
                         : mappingReader.getNewCancelledEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable),
                 getProcessor(mappingObj),
