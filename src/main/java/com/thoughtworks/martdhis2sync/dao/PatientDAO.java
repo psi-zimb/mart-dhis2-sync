@@ -46,7 +46,7 @@ public class PatientDAO {
         } catch (IOException e) {
             throw new Exception("Error in converting sql to string:: " + e.getMessage());
         }
-        logger.info("getDeltaEnrollmentInstanceIds: SQL :: " + sql);
+        logger.info("getDeltaEnrollmentInstanceIdsWithDateRange: SQL :: " + sql);
         return jdbcTemplate.queryForList(String.format(sql, enrollmentTable, startDate, endDate, programName,
                 enrollmentTable, startDate, endDate, programName,
                 enrollmentTable, startDate, endDate, programName,
