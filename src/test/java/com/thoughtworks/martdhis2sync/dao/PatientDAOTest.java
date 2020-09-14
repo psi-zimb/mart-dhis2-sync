@@ -89,6 +89,18 @@ public class PatientDAOTest {
                 "          FROM %s enrTable\n" +
                 "          INNER JOIN marker enrollment_marker\n" +
                 "              ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
+                "              AND category = 'updated_cancelled_enrollment' AND program_name = '%s'\n" +
+                "         ) UNION\n" +
+                "         (SELECT enrTable.*\n" +
+                "          FROM %s enrTable\n" +
+                "          INNER JOIN marker enrollment_marker\n" +
+                "              ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
+                "              AND category = 'new_cancelled_enrollment' AND program_name = '%s'\n" +
+                "         ) UNION\n" +
+                "         (SELECT enrTable.*\n" +
+                "          FROM %s enrTable\n" +
+                "          INNER JOIN marker enrollment_marker\n" +
+                "              ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
                 "              AND category = 'updated_active_enrollment' AND program_name = '%s'\n" +
                 "         )\n" +
                 "     ) AS enrollmentsTable\n" +
@@ -131,6 +143,18 @@ public class PatientDAOTest {
                 "              AND category = 'new_active_enrollment' AND program_name = 'hts'\n" +
                 "         ) UNION\n" +
                 "         (SELECT enrTable.*\n" +
+                "          FROM hts_program_enrollment_table enrTable\n" +
+                "          INNER JOIN marker enrollment_marker\n" +
+                "              ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
+                "              AND category = 'updated_cancelled_enrollment' AND program_name = 'hts'\n" +
+                "         ) UNION\n"+
+                "         (SELECT enrTable.*\n" +
+                "          FROM hts_program_enrollment_table enrTable\n" +
+                "          INNER JOIN marker enrollment_marker\n" +
+                "              ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +
+                "              AND category = 'new_cancelled_enrollment' AND program_name = 'hts'\n" +
+                "         ) UNION\n"+
+        "         (SELECT enrTable.*\n" +
                 "          FROM hts_program_enrollment_table enrTable\n" +
                 "          INNER JOIN marker enrollment_marker\n" +
                 "              ON enrTable.date_created :: TIMESTAMP > COALESCE(enrollment_marker.last_synced_date, '-infinity')\n" +

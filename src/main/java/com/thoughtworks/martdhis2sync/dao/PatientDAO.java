@@ -33,6 +33,6 @@ public class PatientDAO {
             throw new Exception("Error in converting sql to string:: " + e.getMessage());
         }
         logger.info("getDeltaEnrollmentInstanceIds: SQL :: " + sql);
-        return jdbcTemplate.queryForList(String.format(sql, enrollmentTable, programName, enrollmentTable, programName, enrollmentTable, programName, enrollmentTable, programName, eventTable, enrollmentTable, programName));
+        return jdbcTemplate.queryForList(String.format(sql, enrollmentTable, programName, enrollmentTable, programName,enrollmentTable, programName,enrollmentTable, programName, enrollmentTable, programName, enrollmentTable, programName, eventTable, enrollmentTable, programName));
     }
 }
