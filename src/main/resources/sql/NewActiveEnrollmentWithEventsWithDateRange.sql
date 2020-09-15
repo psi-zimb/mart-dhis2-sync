@@ -18,9 +18,7 @@ FROM %s enrTable
        LEFT JOIN enrollment_tracker enrTracker
          ON enrTable.program = enrTracker.program AND enrTracker.instance_id = insTracker.instance_id
               AND enrTracker.program_unique_id = enrTable.program_unique_id :: text
-WHERE enrTable.date_created :: TIMESTAMP > COALESCE((SELECT last_synced_date FROM marker WHERE category = 'new_active_enrollment'
-                                                                                           AND program_name = '%s'),
-                                                    '-infinity')
+WHERE enrTable.date_created :: TIMESTAMP BETWEEN '%s' AND '%s'
   AND enrTracker.instance_id IS NULL
   AND enrTable.status = 'ACTIVE' order by enrTable.date_created;
 

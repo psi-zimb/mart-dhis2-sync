@@ -74,13 +74,13 @@ public class TEIService {
     private static final String LOG_PREFIX = "TEI Service: ";
     private static final String TEI_JOB_NAME = "Sync Tracked Entity Instance";
 
-    public void triggerJob(String service, String user, String lookupTable, Object mappingObj, List<String> searchableAttributes, List<String> comparableAttributes)
+    public void triggerJob(String service, String user, String lookupTable, Object mappingObj, List<String> searchableAttributes, List<String> comparableAttributes, String startDate, String endDate)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
             JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
 
         try {
             LinkedList<Step> steps = new LinkedList<>();
-            steps.add(trackedEntityInstanceStep.get(lookupTable, service, mappingObj, searchableAttributes, comparableAttributes));
+            steps.add(trackedEntityInstanceStep.get(lookupTable, service, mappingObj, searchableAttributes, comparableAttributes, startDate, endDate));
             jobService.triggerJob(service, user, TEI_JOB_NAME, steps, "");
         } catch (Exception e) {
             logger.error(LOG_PREFIX + e.getMessage());
@@ -130,13 +130,15 @@ public class TEIService {
         logger.info("TEIUtil.getTrackedEntityInstanceInfos().size(): " + TEIUtil.getTrackedEntityInstanceInfos().size());
     }
 
-    public void getEnrollmentsForInstances(String enrollmentTable, String eventTable, String programName) throws Exception {
+    public void getEnrollmentsForInstances(String enrollmentTable, String eventTable, String programName, String startDate, String endDate) throws Exception {
         logger.info("Enrollment Table is " + enrollmentTable);
         logger.info("Event Table is " + eventTable);
         logger.info("Program name is " + programName);
 
         TEIUtil.setInstancesWithEnrollments(new HashMap<>());
-        List<Map<String, Object>> deltaInstanceIds = patientDAO.getDeltaEnrollmentInstanceIds(enrollmentTable, eventTable, programName);
+        List<Map<String, Object>> deltaInstanceIds = (startDate != "" && endDate !="" ) ?
+                patientDAO.getDeltaEnrollmentInstanceIdsWithDateRange(enrollmentTable, eventTable, programName, startDate, endDate)
+                :patientDAO.getDeltaEnrollmentInstanceIds(enrollmentTable, eventTable, programName);
         logger.info("Delta Instance Ids: " + (deltaInstanceIds != null ? deltaInstanceIds.size() : "null"));
 
         if (!deltaInstanceIds.isEmpty()) {

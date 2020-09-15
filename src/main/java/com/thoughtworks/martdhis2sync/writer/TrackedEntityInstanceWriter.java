@@ -63,6 +63,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     private String programName;
 
     private Iterator<Entry<String, String>> mapIterator;
+    public static boolean updateLastSyncedDate = false;
 
     @Override
     public void write(List list) throws Exception {
@@ -178,8 +179,10 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     }
 
     private void updateMarker() {
-        String teiDate = BatchUtil.getStringFromDate(TEIUtil.date, BatchUtil.DATEFORMAT_WITH_24HR_TIME);
-        logger.info("updating marker with date : " + teiDate);
-        markerUtil.updateMarkerEntry(programName, CATEGORY_INSTANCE, teiDate);
+        if(!updateLastSyncedDate) {
+            String teiDate = BatchUtil.getStringFromDate(TEIUtil.date, BatchUtil.DATEFORMAT_WITH_24HR_TIME);
+            logger.info("updating marker with date : " + teiDate);
+            markerUtil.updateMarkerEntry(programName, CATEGORY_INSTANCE, teiDate);
+        }
     }
 }

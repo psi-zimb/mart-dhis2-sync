@@ -19,6 +19,9 @@ public class PatientDAO {
     @Value("classpath:sql/DeltaEnrollmentInstances.sql")
     private Resource deltaEnrollmentInstances;
 
+    @Value("classpath:sql/DeltaEnrollmentInstancesWithDateRange.sql")
+    private Resource deltaEnrollmentInstancesWithDateRange;
+
     @Autowired
     @Qualifier("jdbcTemplate")
     private JdbcTemplate jdbcTemplate;
@@ -34,5 +37,22 @@ public class PatientDAO {
         }
         logger.info("getDeltaEnrollmentInstanceIds: SQL :: " + sql);
         return jdbcTemplate.queryForList(String.format(sql, enrollmentTable, programName, enrollmentTable, programName,enrollmentTable, programName,enrollmentTable, programName, enrollmentTable, programName, enrollmentTable, programName, eventTable, enrollmentTable, programName));
+    }
+
+    public List<Map<String, Object>> getDeltaEnrollmentInstanceIdsWithDateRange(String enrollmentTable, String eventTable, String programName, String startDate, String endDate) throws Exception {
+        String sql;
+        try {
+            sql = BatchUtil.convertResourceOutputToString(deltaEnrollmentInstancesWithDateRange);
+        } catch (IOException e) {
+            throw new Exception("Error in converting sql to string:: " + e.getMessage());
+        }
+        logger.info("getDeltaEnrollmentInstanceIdsWithDateRange: SQL :: " + sql);
+        return jdbcTemplate.queryForList(String.format(sql, enrollmentTable, startDate, endDate, programName,
+                enrollmentTable, startDate, endDate, programName,
+                enrollmentTable, startDate, endDate, programName,
+                enrollmentTable, startDate, endDate, programName,
+                enrollmentTable, startDate, endDate, programName,
+                enrollmentTable, startDate, endDate, programName,
+                eventTable, enrollmentTable, startDate, endDate,programName));
     }
 }

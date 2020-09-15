@@ -44,6 +44,8 @@ public class LoggerDAOTest {
     private String user = "Superman";
     private String comments = "comments";
     private String dateStr = "2018-01-02 10:00:00";
+    private Date startDate;
+    private Date endDate;
 
     @Before
     public void setUp() throws Exception {
@@ -53,17 +55,19 @@ public class LoggerDAOTest {
         mockStatic(BatchUtil.class);
         when(BatchUtil.getStringFromDate(any(Date.class), anyString())).thenReturn(dateStr);
         when(BatchUtil.getDateFromString(dateStr, DATEFORMAT_WITH_24HR_TIME)).thenReturn(date);
+        startDate=new Date();
+        endDate = startDate;
     }
 
     @Test
     public void shouldLogSuccessMessageOnLogInsert() {
         when(parameterJdbcTemplate.update(anyString(), any(MapSqlParameterSource.class))).thenReturn(1);
 
-        loggerDAO.addLog(service, user, comments);
+        loggerDAO.addLog(service, user, comments, startDate, endDate);
 
-        verifyStatic();
+        verifyStatic(times(3));
         BatchUtil.getStringFromDate(any(Date.class), anyString());
-        verifyStatic();
+        verifyStatic(times(3));
         BatchUtil.getDateFromString(dateStr, BatchUtil.DATEFORMAT_WITH_24HR_TIME);
         verify(parameterJdbcTemplate, times(1)).update(anyString(), any(MapSqlParameterSource.class));
         verify(logger, times(1)).info("LoggerDAO: Successfully inserted into log table");
@@ -73,11 +77,11 @@ public class LoggerDAOTest {
     public void shouldLogErrorMessageOnLogInsertFail() {
         when(parameterJdbcTemplate.update(anyString(), any(MapSqlParameterSource.class))).thenReturn(0);
 
-        loggerDAO.addLog(service, user, comments);
+        loggerDAO.addLog(service, user, comments, startDate, endDate);
 
-        verifyStatic();
+        verifyStatic(times(3));
         BatchUtil.getStringFromDate(any(Date.class), anyString());
-        verifyStatic();
+        verifyStatic(times(3));
         BatchUtil.getDateFromString(dateStr, BatchUtil.DATEFORMAT_WITH_24HR_TIME);
         verify(parameterJdbcTemplate, times(1)).update(anyString(), any(MapSqlParameterSource.class));
         verify(logger, times(1)).error("LoggerDAO: Failed to insert into log table");

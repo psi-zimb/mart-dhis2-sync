@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.getStringFromDate;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
@@ -63,6 +64,8 @@ public class PushControllerTest {
     private String user = "***REMOVED***";
     private String comment = "";
     Date lastSyncedDate = new Date(Long.MIN_VALUE);
+    private Date startDate;
+    private Date endDate;
 
     @Before
     public void setUp() throws Exception {
@@ -81,6 +84,8 @@ public class PushControllerTest {
         TrackersHandler.clearTrackerLists();
         when(markerUtil.getLastSyncedDate(service, "enrollment")).thenReturn(lastSyncedDate);
         when(markerUtil.getLastSyncedDate(service, "event")).thenReturn(lastSyncedDate);
+        startDate=new Date();
+        endDate = startDate;
     }
 
     @After
@@ -97,10 +102,10 @@ public class PushControllerTest {
 
         doNothing().when(dhisMetaDataService).filterByTypeDateTime();
         doNothing().when(teiService).getTrackedEntityInstances(dhisSyncRequestBody.getService(), mappingJson);
-        doNothing().when(loggerService).addLog(service, user, comment);
+        doNothing().when(loggerService).addLog(service, user, comment, new Date(), new Date());
         doNothing().when(loggerService).updateLog(service, "failed");
         when(mappingService.getMapping(service)).thenReturn(mapping);
-        doThrow(new SyncFailedException("instance sync failed")).when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
+        doThrow(new SyncFailedException("instance sync failed")).when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList(), anyString(), anyString());
 
         try {
             pushController.pushData(dhisSyncRequestBody);
@@ -108,10 +113,10 @@ public class PushControllerTest {
             verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
             verify(teiService, times(1)).getTrackedEntityInstances(
                     getDhisSyncRequestBody().getService(), mappingJson);
-            verify(loggerService, times(1)).addLog(service, user, comment);
+            verify(loggerService, times(1)).addLog(service, user, comment, new Date(), new Date());
             verify(loggerService, times(1)).updateLog(service, "failed");
             verify(mappingService, times(1)).getMapping(service);
-            verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
+            verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList(), anyString(), anyString());
             verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
             verifyStatic(times(0));
@@ -127,35 +132,35 @@ public class PushControllerTest {
         MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
 
         doNothing().when(dhisMetaDataService).filterByTypeDateTime();
-        doNothing().when(loggerService).addLog(service, user, comment);
+        doNothing().when(loggerService).addLog(service, user, comment, startDate, endDate);
         doNothing().when(loggerService).updateLog(service, "failed");
         when(mappingService.getMapping(service)).thenReturn(mapping);
         doNothing().when(teiService).getTrackedEntityInstances(dhisSyncRequestBody.getService(), mappingJson);
-        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
+        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList(), anyString(), anyString());
         doThrow(new SyncFailedException("instance sync failed")).when(completedEnrollmentService)
-                .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
-        doNothing().when(teiService).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service);
+                .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
+        doNothing().when(teiService).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service, getDate(startDate), getDate(endDate));
 
         try {
             pushController.pushData(dhisSyncRequestBody);
         } catch (HttpServerErrorException e) {
             verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
-            verify(loggerService, times(1)).addLog(service, user, comment);
+            verify(loggerService, times(1)).addLog(service, user, comment, startDate, endDate);
             verify(loggerService, times(1)).updateLog(service, "failed");
             verify(mappingService, times(1)).getMapping(service);
             verify(teiService, times(1)).getTrackedEntityInstances(
                     getDhisSyncRequestBody().getService(),
                     mappingJson
             );
-            verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
+            verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList(), anyString(), anyString());
             verify(completedEnrollmentService, times(1))
-                    .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
-            verify(completedEnrollmentService, times(0)).triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString());
+                    .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
+            verify(completedEnrollmentService, times(0)).triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(), anyString(), anyString());
             verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
             verifyStatic(times(1));
             TrackersHandler.clearTrackerLists();
-            verify(teiService, times(1)).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service);
+            verify(teiService, times(1)).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service, getDate(startDate), getDate(endDate));
             assertEquals("500 SYNC FAILED", e.getMessage());
         }
     }
@@ -168,35 +173,35 @@ public class PushControllerTest {
         MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
 
         doNothing().when(dhisMetaDataService).filterByTypeDateTime();
-        doNothing().when(loggerService).addLog(service, user, comment);
+        doNothing().when(loggerService).addLog(service, user, comment, startDate, endDate);
         doNothing().when(loggerService).updateLog(service, "failed");
         when(mappingService.getMapping(service)).thenReturn(mapping);
         doNothing().when(teiService).getTrackedEntityInstances(dhisSyncRequestBody.getService(), mappingJson);
-        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
+        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList(), anyString(), anyString());
         doThrow(new SyncFailedException("instance sync failed")).when(cancelledEnrollmentService)
-                .triggerJobForNewCancelledEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
-        doNothing().when(teiService).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service);
+                .triggerJobForNewCancelledEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
+        doNothing().when(teiService).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service, getDate(startDate), getDate(endDate));
 
         try {
             pushController.pushData(dhisSyncRequestBody);
         } catch (HttpServerErrorException e) {
             verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
-            verify(loggerService, times(1)).addLog(service, user, comment);
+            verify(loggerService, times(1)).addLog(service, user, comment, startDate, endDate);
             verify(loggerService, times(1)).updateLog(service, "failed");
             verify(mappingService, times(1)).getMapping(service);
             verify(teiService, times(1)).getTrackedEntityInstances(
                     getDhisSyncRequestBody().getService(),
                     mappingJson
             );
-            verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
+            verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList(), anyString(), anyString());
             verify(cancelledEnrollmentService, times(1))
-                    .triggerJobForNewCancelledEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
-            verify(cancelledEnrollmentService, times(0)).triggerJobForUpdatedCancelledEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString());
+                    .triggerJobForNewCancelledEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
+            verify(cancelledEnrollmentService, times(0)).triggerJobForUpdatedCancelledEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(), anyString(), anyString());
             verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
             verifyStatic(times(1));
             TrackersHandler.clearTrackerLists();
-            verify(teiService, times(1)).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service);
+            verify(teiService, times(1)).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service, getDate(startDate), getDate(endDate));
             assertEquals("500 SYNC FAILED", e.getMessage());
         }
     }
@@ -209,26 +214,26 @@ public class PushControllerTest {
         MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
 
         doNothing().when(teiService).getTrackedEntityInstances(getDhisSyncRequestBody().getService(), mappingJson);
-        doNothing().when(loggerService).addLog(service, user, comment);
+        doNothing().when(loggerService).addLog(service, user, comment, startDate, endDate);
         doNothing().when(loggerService).updateLog(service, "success");
         doNothing().when(loggerService).collateLogMessage("No delta data to sync.");
         when(mappingService.getMapping(service)).thenReturn(mapping);
-        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
-        doNothing().when(completedEnrollmentService).triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
-        doNothing().when(completedEnrollmentService).triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString());
+        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList(), anyString(), anyString());
+        doNothing().when(completedEnrollmentService).triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
+        doNothing().when(completedEnrollmentService).triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(), anyString(), anyString());
 
         try {
             pushController.pushData(dhisSyncRequestBody);
         } catch (Exception e) {
-            verify(loggerService, times(1)).addLog(service, user, comment);
+            verify(loggerService, times(1)).addLog(service, user, comment, startDate, endDate);
             verify(teiService, times(1)).getTrackedEntityInstances(
                     getDhisSyncRequestBody().getService(),
                     mappingJson);
             verify(loggerService, times(1)).updateLog(service, "success");
             verify(loggerService, times(1)).collateLogMessage("No delta data to sync.");
             verify(mappingService, times(1)).getMapping(service);
-            verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
-            verify(completedEnrollmentService, times(1)).triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
+            verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList(), anyString(), anyString());
+            verify(completedEnrollmentService, times(1)).triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
             verify(markerUtil, times(1)).getLastSyncedDate(service, "new_active_enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "new_completed_enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "updated_active_enrollment");
@@ -236,7 +241,7 @@ public class PushControllerTest {
             verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
             verifyStatic(times(6));
             TrackersHandler.clearTrackerLists();
-            verify(teiService, times(1)).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service);
+            verify(teiService, times(1)).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service, getDate(startDate), getDate(endDate));
 
             assertEquals("500 NO DATA TO SYNC", e.getMessage());
         }
@@ -248,28 +253,28 @@ public class PushControllerTest {
         DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
 
         doNothing().when(dhisMetaDataService).filterByTypeDateTime();
-        doNothing().when(loggerService).addLog(service, user, comment);
+        doNothing().when(loggerService).addLog(service, user, comment, startDate, endDate);
         doNothing().when(loggerService).updateLog(service, "failed");
         when(mappingService.getMapping(service)).thenReturn(mapping);
-        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
+        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList(), anyString(), anyString());
         doNothing().when(completedEnrollmentService)
-                .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
+                .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
         doNothing().when(completedEnrollmentService)
-                .triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString());
+                .triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(), anyString(), anyString());
         doThrow(new SyncFailedException("instance sync failed")).when(completedEnrollmentService)
-                .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
+                .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
 
         try {
             pushController.pushData(dhisSyncRequestBody);
         } catch (HttpServerErrorException e) {
             verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
-            verify(loggerService, times(1)).addLog(service, user, comment);
+            verify(loggerService, times(1)).addLog(service, user, comment, startDate, endDate);
             verify(loggerService, times(1)).updateLog(service, "failed");
             verify(mappingService, times(1)).getMapping(service);
             verify(completedEnrollmentService, times(1))
-                    .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
+                    .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
             verify(activeEnrollmentService, times(0))
-                    .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
+                    .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
             verify(markerUtil, times(1)).getLastSyncedDate(service, "new_active_enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "new_completed_enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "updated_active_enrollment");
@@ -286,28 +291,28 @@ public class PushControllerTest {
         DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
 
         doNothing().when(dhisMetaDataService).filterByTypeDateTime();
-        doNothing().when(loggerService).addLog(service, user, comment);
+        doNothing().when(loggerService).addLog(service, user, comment, startDate, endDate);
         doNothing().when(loggerService).updateLog(service, "failed");
         when(mappingService.getMapping(service)).thenReturn(mapping);
-        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList());
+        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList(), anyString(), anyString());
         doNothing().when(completedEnrollmentService)
-                .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
+                .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
         doNothing().when(completedEnrollmentService)
-                .triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString());
+                .triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(), anyString(), anyString());
         doThrow(new SyncFailedException("instance sync failed")).when(activeEnrollmentService)
-                .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
+                .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
 
         try {
             pushController.pushData(dhisSyncRequestBody);
         } catch (HttpServerErrorException e) {
             verify(dhisMetaDataService, times(1)).filterByTypeDateTime();
-            verify(loggerService, times(1)).addLog(service, user, comment);
+            verify(loggerService, times(1)).addLog(service, user, comment, startDate, endDate);
             verify(loggerService, times(1)).updateLog(service, "failed");
             verify(mappingService, times(1)).getMapping(service);
             verify(activeEnrollmentService, times(1))
-                    .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString());
+                    .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
             verify(activeEnrollmentService, times(0))
-                    .triggerJobForUpdatedActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString());
+                    .triggerJobForUpdatedActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(), anyString(), anyString());
             verify(markerUtil, times(1)).getLastSyncedDate(service, "new_active_enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "new_completed_enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "updated_active_enrollment");
@@ -324,9 +329,14 @@ public class PushControllerTest {
         dhisSyncRequestBody.setService(service);
         dhisSyncRequestBody.setUser(user);
         dhisSyncRequestBody.setComment(comment);
+        dhisSyncRequestBody.setStartDate(startDate);
+        dhisSyncRequestBody.setEndDate(endDate);
         return dhisSyncRequestBody;
     }
-
+    private String getDate(Date date)
+    {
+        return getStringFromDate(date,"yyyy-MM-dd");
+    }
     private Map<String, Object> getMapping() {
         String lookupTable = "{" +
                 "\"instance\":\"hts_instance_table\"," +

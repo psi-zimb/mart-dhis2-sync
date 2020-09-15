@@ -27,6 +27,9 @@ public class MappingReader {
     @Value("classpath:sql/InstanceReader.sql")
     private Resource instanceResource;
 
+    @Value("classpath:sql/InstanceReaderWithDateRange.sql")
+    private Resource instanceResourceWithDateRange;
+
     @Value("classpath:sql/EnrollmentReader.sql")
     private Resource enrollmentResource;
 
@@ -36,20 +39,38 @@ public class MappingReader {
     @Value("classpath:sql/NewCompletedEnrollmentWithEvents.sql")
     private Resource newCompletedEnrWithEventsResource;
 
+    @Value("classpath:sql/NewCompletedEnrollmentWithEventsWithDateRange.sql")
+    private Resource newCompletedEnrWithEventsResourceWithDateRange;
+
     @Value("classpath:sql/NewCancelledEnrollmentWithEvents.sql")
     private Resource newCancelledEnrWithEventsResource;
+
+    @Value("classpath:sql/NewCancelledEnrollmentWithEventsWithDateRange.sql")
+    private Resource newCancelledEnrWithEventsResourceWithDateRange;
 
     @Value("classpath:sql/UpdatedCancelledEnrollmentWithEvents.sql")
     private Resource updatedCancelledEnrWithEventsResource;
 
+    @Value("classpath:sql/UpdatedCancelledEnrollmentWithEventsWithDateRange.sql")
+    private Resource updatedCancelledEnrWithEventsResourceWithDateRange;
+
     @Value("classpath:sql/UpdatedCompletedEnrollmentWithEvents.sql")
     private Resource updatedCompletedEnrWithEventsResource;
+
+    @Value("classpath:sql/UpdatedCompletedEnrollmentWithEventsWithDateRange.sql")
+    private Resource updatedCompletedEnrWithEventsResourceWithDateRange;
 
     @Value("classpath:sql/NewActiveEnrollmentWithEvents.sql")
     private Resource newActiveEnrWithEventsResource;
 
+    @Value("classpath:sql/NewActiveEnrollmentWithEventsWithDateRange.sql")
+    private Resource newActiveEnrWithEventsResourceWithDateRange;
+
     @Value("classpath:sql/UpdatedActiveEnrollmentWithEvents.sql")
     private Resource updatedActiveEnrWithEventsResource;
+
+    @Value("classpath:sql/UpdatedActiveEnrollmentWithEventsWithDateRange.sql")
+    private Resource updatedActiveEnrWithEventsResourceWithDateRange;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -82,6 +103,11 @@ public class MappingReader {
         return get(sql);
     }
 
+    public JdbcCursorItemReader<Map<String, Object>> getInstanceReaderWithDateRange(String lookupTable, String programName, String startDate, String endDate) {
+        String sql = String.format(getSql(instanceResourceWithDateRange), lookupTable, programName, endDate);
+        return get(sql);
+    }
+
     public JdbcCursorItemReader<Map<String, Object>> getEventReader(String lookupTable, String programName, String enrollmentLookupTable) {
         String sql = String.format(getSql(eventResource), lookupTable, enrollmentLookupTable, programName);
         return get(sql);
@@ -94,10 +120,24 @@ public class MappingReader {
         return get(sql);
     }
 
+    public JdbcCursorItemReader<Map<String, Object>> getNewCompletedEnrollmentWithEventsReaderWithDateRange(
+            String enrollmentLookupTable, String programName, String eventLookupTable, String startDate, String endDate) {
+        String sql = String.format(getSql(newCompletedEnrWithEventsResourceWithDateRange), enrollmentLookupTable,
+                eventLookupTable, startDate, endDate);
+        return get(sql);
+    }
+
     public JdbcCursorItemReader<Map<String, Object>> getNewCancelledEnrollmentWithEventsReader(
             String enrollmentLookupTable, String programName, String eventLookupTable) {
         String sql = String.format(getSql(newCancelledEnrWithEventsResource), enrollmentLookupTable,
                 eventLookupTable, programName);
+        return get(sql);
+    }
+
+    public JdbcCursorItemReader<Map<String, Object>> getNewCancelledEnrollmentWithEventsReaderWithDateRange(
+            String enrollmentLookupTable, String programName, String eventLookupTable, String startDate, String endDate) {
+        String sql = String.format(getSql(newCancelledEnrWithEventsResourceWithDateRange), enrollmentLookupTable,
+                eventLookupTable, startDate, endDate);
         return get(sql);
     }
 
@@ -113,6 +153,18 @@ public class MappingReader {
         return get(sql);
     }
 
+    public JdbcCursorItemReader<Map<String, Object>> getUpdatedCompletedEnrollmentWithEventsReaderWithDateRange(
+            String enrollmentLookupTable, String programName, String eventLookupTable,
+            List<EnrollmentAPIPayLoad> enrollmentsToIgnore, String startDate, String endDate) {
+
+        String syncedCompletedEnrollmentIds = getEnrollmentIds(enrollmentsToIgnore);
+        String andClause = StringUtils.isEmpty(syncedCompletedEnrollmentIds) ? ""
+                : String.format("AND enrolTracker.enrollment_id NOT IN (%s)", syncedCompletedEnrollmentIds);
+        String sql = String.format(getSql(updatedCompletedEnrWithEventsResourceWithDateRange), enrollmentLookupTable, startDate, endDate, programName,
+                eventLookupTable, enrollmentLookupTable, startDate, endDate, programName, andClause);
+        return get(sql);
+    }
+
     public JdbcCursorItemReader<Map<String, Object>> getUpdatedCancelledEnrollmentWithEventsReader(
             String enrollmentLookupTable, String programName, String eventLookupTable,
             List<EnrollmentAPIPayLoad> enrollmentsToIgnore) {
@@ -124,12 +176,31 @@ public class MappingReader {
                 eventLookupTable, enrollmentLookupTable, programName, andClause);
         return get(sql);
     }
+    public JdbcCursorItemReader<Map<String, Object>> getUpdatedCancelledEnrollmentWithEventsReaderWithDateRange(
+            String enrollmentLookupTable, String programName, String eventLookupTable,
+            List<EnrollmentAPIPayLoad> enrollmentsToIgnore, String startDate, String endDate) {
+
+        String syncedCompletedEnrollmentIds = getEnrollmentIds(enrollmentsToIgnore);
+        String andClause = StringUtils.isEmpty(syncedCompletedEnrollmentIds) ? ""
+                : String.format("AND enrolTracker.enrollment_id NOT IN (%s)", syncedCompletedEnrollmentIds);
+        String sql = String.format(getSql(updatedCancelledEnrWithEventsResourceWithDateRange), enrollmentLookupTable, startDate, endDate, programName,
+                eventLookupTable, enrollmentLookupTable, startDate, endDate, programName, andClause);
+        return get(sql);
+    }
 
     public JdbcCursorItemReader<Map<String, Object>> getNewActiveEnrollmentWithEventsReader(
             String enrollmentLookupTable, String programName, String eventLookupTable) {
 
         String sql = String.format(getSql(newActiveEnrWithEventsResource), enrollmentLookupTable,
                 eventLookupTable, programName);
+        return get(sql);
+    }
+
+    public JdbcCursorItemReader<Map<String, Object>> getNewActiveEnrollmentWithEventsReaderWithDateRange(
+            String enrollmentLookupTable, String programName, String eventLookupTable, String startDate, String endDate) {
+
+        String sql = String.format(getSql(newActiveEnrWithEventsResourceWithDateRange), enrollmentLookupTable,
+                eventLookupTable, startDate, endDate);
         return get(sql);
     }
 
@@ -142,6 +213,18 @@ public class MappingReader {
                 : String.format("AND enrolTracker.enrollment_id NOT IN (%s)", syncedCompletedEnrollmentIds);
         String sql = String.format(getSql(updatedActiveEnrWithEventsResource), enrollmentLookupTable, programName,
                 eventLookupTable, enrollmentLookupTable, programName, andClause);
+        return get(sql);
+    }
+
+    public JdbcCursorItemReader<Map<String, Object>> getUpdatedActiveEnrollmentWithEventsReaderWithDateRange(
+            String enrollmentLookupTable, String programName, String eventLookupTable,
+            List<EnrollmentAPIPayLoad> enrollmentsToIgnore, String startDate, String endDate) {
+
+        String syncedCompletedEnrollmentIds = getEnrollmentIds(enrollmentsToIgnore);
+        String andClause = StringUtils.isEmpty(syncedCompletedEnrollmentIds) ? ""
+                : String.format("AND enrolTracker.enrollment_id NOT IN (%s)", syncedCompletedEnrollmentIds);
+        String sql = String.format(getSql(updatedActiveEnrWithEventsResourceWithDateRange), enrollmentLookupTable, startDate, endDate, programName,
+                eventLookupTable, enrollmentLookupTable, startDate, endDate, programName, andClause);
         return get(sql);
     }
 

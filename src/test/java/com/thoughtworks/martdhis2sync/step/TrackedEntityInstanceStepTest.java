@@ -79,7 +79,7 @@ public class TrackedEntityInstanceStepTest {
         when(processorObjectFactory.getObject()).thenReturn(processor);
         when(stepFactory.build(stepName, jdbcCursorItemReader, processor, writer)).thenReturn(step);
 
-        teiStep.get(lookupTable, programName, mappingObj, searchableAttributes, comparableAttributes);
+        teiStep.get(lookupTable, programName, mappingObj, searchableAttributes, comparableAttributes,"","");
 
         verify(mappingReader, times(1)).getInstanceReader(anyString(), anyString());
         verify(processorObjectFactory, times(1)).getObject();

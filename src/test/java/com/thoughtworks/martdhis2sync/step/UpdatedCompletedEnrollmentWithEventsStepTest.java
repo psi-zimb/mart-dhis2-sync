@@ -71,7 +71,7 @@ public class UpdatedCompletedEnrollmentWithEventsStepTest {
         when(objectFactory.getObject()).thenReturn(processor);
         when(stepFactory.build(stepName, jdbcCursorItemReader, processor, writer)).thenReturn(step);
 
-        Step actual = eventStep.get(enrLookupTable, envLookupTable, programName, mappingObj, enrollmentsToIgnore);
+        Step actual = eventStep.get(enrLookupTable, envLookupTable, programName, mappingObj, enrollmentsToIgnore, "", "");
 
         verify(mappingReader, times(1)).getUpdatedCompletedEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable, enrollmentsToIgnore);
         verify(stepFactory, times(1)).build(stepName, jdbcCursorItemReader, processor, writer);

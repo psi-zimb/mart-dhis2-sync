@@ -8,6 +8,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.Date;
+
 import static com.thoughtworks.martdhis2sync.service.LoggerService.CONTACT_ADMIN;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -20,11 +22,15 @@ public class LoggerServiceTest {
     private LoggerDAO loggerDAO;
 
     private LoggerService loggerService;
+    private Date startDate;
+    private Date endDate;
 
     @Before
     public void setUp() throws Exception {
         loggerService = new LoggerService();
         CommonTestHelper.setValuesForMemberFields(loggerService, "loggerDAO", loggerDAO);
+        startDate = new Date();
+        endDate = startDate;
     }
 
     @Test
@@ -32,11 +38,11 @@ public class LoggerServiceTest {
         String service = "HT Service";
         String user = "superman";
         String comments = "comments";
-        doNothing().when(loggerDAO).addLog(service, user, comments);
+        doNothing().when(loggerDAO).addLog(service, user, comments, startDate, endDate);
 
-        loggerService.addLog(service, user, comments);
+        loggerService.addLog(service, user, comments, startDate, endDate);
 
-        verify(loggerDAO, times(1)).addLog(service, user, comments);
+        verify(loggerDAO, times(1)).addLog(service, user, comments, startDate, endDate);
     }
 
     @Test

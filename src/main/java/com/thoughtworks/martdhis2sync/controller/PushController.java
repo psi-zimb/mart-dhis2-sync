@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpServerErrorException;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static com.thoughtworks.martdhis2sync.service.LoggerService.*;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getStringFromDate;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
 import static com.thoughtworks.martdhis2sync.util.MarkerUtil.*;
 
 
@@ -56,13 +56,15 @@ public class PushController {
     public static boolean IS_DELTA_EXISTS = false;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
+    private String dateFormat = "yyyy-MM-dd";
 
     @PutMapping(value = "/pushData")
     public void pushData(@RequestBody DHISSyncRequestBody requestBody) throws Exception {
         long timeInMillis = System.currentTimeMillis();
         IS_DELTA_EXISTS = false;
-        loggerService.addLog(requestBody.getService(), requestBody.getUser(), requestBody.getComment());
-
+        loggerService.addLog(requestBody.getService(), requestBody.getUser(), requestBody.getComment(), requestBody.getStartDate(), requestBody.getEndDate());
+        String startDate = requestBody.getStartDate() != null ? getStringFromDate(requestBody.getStartDate(),dateFormat) : "";
+        String endDate = requestBody.getEndDate() != null ? getStringFromDate(requestBody.getEndDate(),dateFormat) : "";
         dhisMetaDataService.filterByTypeDateTime();
 
         Map<String, Object> mapping = mappingService.getMapping(requestBody.getService());
@@ -95,14 +97,15 @@ public class PushController {
             }
             teiService.getTrackedEntityInstances(requestBody.getService(), mappingJson);
             teiService.triggerJob(requestBody.getService(), requestBody.getUser(),
-                    lookupTable.getInstance(), mappingJson.getInstance(), config.getSearchable(), config.getComparable());
-            triggerEnrollmentsSync(requestBody, lookupTable, mappingJson, config);
+                    lookupTable.getInstance(), mappingJson.getInstance(), config.getSearchable(), config.getComparable(), startDate , endDate);
+            triggerEnrollmentsSync(requestBody, lookupTable, mappingJson, config, startDate, endDate);
 
             if (!IS_DELTA_EXISTS) {
                 loggerService.collateLogMessage(NO_DELTA_DATA);
                 loggerService.updateLog(requestBody.getService(), SUCCESS);
                 throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "NO DATA TO SYNC");
             } else {
+                if(!checkDates(startDate,endDate))
                 updateEventMarker(requestBody);
             }
             loggerService.updateLog(requestBody.getService(), SUCCESS);
@@ -120,19 +123,19 @@ public class PushController {
                 getStringFromDate(EventUtil.date, DATEFORMAT_WITH_24HR_TIME));
     }
 
-    private void triggerEnrollmentsSync(DHISSyncRequestBody requestBody, LookupTable lookupTable, MappingJson mappingJson, Config config) throws Exception {
+    private void triggerEnrollmentsSync(DHISSyncRequestBody requestBody, LookupTable lookupTable, MappingJson mappingJson, Config config, String startDate, String endDate) throws Exception {
         TrackersHandler.clearTrackerLists();
 
         logger.info("=========================TEI sync Success=========================\n\n" +
                 "=========================Getting enrollments for TEI=========================\n");
 
-        teiService.getEnrollmentsForInstances(lookupTable.getEnrollments(), lookupTable.getEvent(), requestBody.getService());
+        teiService.getEnrollmentsForInstances(lookupTable.getEnrollments(), lookupTable.getEvent(), requestBody.getService(), startDate, endDate);
 
         logger.info("=========================Got enrollments for TEI=========================\n\n" +
                 "=========================New Completed Enrollment Sync Started=========================\n");
 
         completedEnrollmentService.triggerJobForNewCompletedEnrollments(requestBody.getService(), requestBody.getUser(),
-                lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), config.getOpenLatestCompletedEnrollment());
+                lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), config.getOpenLatestCompletedEnrollment(), startDate, endDate);
 
         enrollmentsToIgnore = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
         TrackersHandler.clearTrackerLists();
@@ -141,7 +144,7 @@ public class PushController {
         logger.info("=========================New Cancelled Enrollment Sync Started=========================\n\n");
 
         cancelledEnrollmentService.triggerJobForNewCancelledEnrollments(requestBody.getService(), requestBody.getUser(),
-                lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), config.getOpenLatestCompletedEnrollment());
+                lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), config.getOpenLatestCompletedEnrollment(), startDate, endDate);
 
         enrollmentsToIgnore = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
         TrackersHandler.clearTrackerLists();
@@ -152,7 +155,7 @@ public class PushController {
 
         cancelledEnrollmentService.triggerJobForUpdatedCancelledEnrollments(requestBody.getService(), requestBody.getUser(),
                 lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), enrollmentsToIgnore,
-                config.getOpenLatestCompletedEnrollment());
+                config.getOpenLatestCompletedEnrollment(), startDate, endDate);
 
         enrollmentsToIgnore = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
         TrackersHandler.clearTrackerLists();
@@ -163,7 +166,7 @@ public class PushController {
 
         completedEnrollmentService.triggerJobForUpdatedCompletedEnrollments(requestBody.getService(), requestBody.getUser(),
                 lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), enrollmentsToIgnore,
-                config.getOpenLatestCompletedEnrollment());
+                config.getOpenLatestCompletedEnrollment(), startDate, endDate);
 
         TrackersHandler.clearTrackerLists();
 
@@ -171,7 +174,7 @@ public class PushController {
                 "=========================New Active Enrollment Sync Started=========================\n");
 
         activeEnrollmentService.triggerJobForNewActiveEnrollments(requestBody.getService(), requestBody.getUser(),
-                lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), config.getOpenLatestCompletedEnrollment());
+                lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), config.getOpenLatestCompletedEnrollment(), startDate, endDate);
 
         enrollmentsToIgnore = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
         TrackersHandler.clearTrackerLists();
@@ -182,6 +185,6 @@ public class PushController {
 
         activeEnrollmentService.triggerJobForUpdatedActiveEnrollments(requestBody.getService(), requestBody.getUser(),
                 lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), enrollmentsToIgnore,
-                config.getOpenLatestCompletedEnrollment());
+                config.getOpenLatestCompletedEnrollment(), startDate, endDate);
     }
 }

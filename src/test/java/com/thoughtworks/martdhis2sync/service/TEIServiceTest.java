@@ -109,9 +109,9 @@ public class TEIServiceTest {
         List<String> comparableAttributes = Arrays.asList("patient_id", "prepID");
 
         doNothing().when(jobService).triggerJob(service, user, jobName, steps, "");
-        when(instanceStep.get(lookUpTable, service, mappingObj, searchableAttributes, comparableAttributes)).thenReturn(step);
+        when(instanceStep.get(lookUpTable, service, mappingObj, searchableAttributes, comparableAttributes, "","")).thenReturn(step);
 
-        teiService.triggerJob(service, user, lookUpTable, mappingObj, searchableAttributes, comparableAttributes);
+        teiService.triggerJob(service, user, lookUpTable, mappingObj, searchableAttributes, comparableAttributes, "","");
 
         verify(jobService, times(1)).triggerJob(service, user, jobName, steps, "");
     }
@@ -126,12 +126,12 @@ public class TEIServiceTest {
         List<String> searchableAttributes = Arrays.asList("UIC", "date_created");
         List<String> comparableAttributes = Arrays.asList("patient_id", "prepID");
 
-        when(instanceStep.get(lookUpTable, service, mappingObj, searchableAttributes, comparableAttributes)).thenReturn(step);
+        when(instanceStep.get(lookUpTable, service, mappingObj, searchableAttributes, comparableAttributes, "","")).thenReturn(step);
         doThrow(JobExecutionAlreadyRunningException.class).when(jobService)
                 .triggerJob(service, user, jobName, steps, "");
 
         try {
-            teiService.triggerJob(service, user, lookUpTable, mappingObj, searchableAttributes, comparableAttributes);
+            teiService.triggerJob(service, user, lookUpTable, mappingObj, searchableAttributes, comparableAttributes, "","");
         } catch (Exception e) {
             throw e;
         }
@@ -147,12 +147,12 @@ public class TEIServiceTest {
         List<String> searchableAttributes = Arrays.asList("UIC", "date_created");
         List<String> comparableAttributes = Arrays.asList("patient_id", "prepID");
 
-        when(instanceStep.get(lookUpTable, service, mappingObj, searchableAttributes, comparableAttributes)).thenReturn(step);
+        when(instanceStep.get(lookUpTable, service, mappingObj, searchableAttributes, comparableAttributes, "","")).thenReturn(step);
         doThrow(SyncFailedException.class).when(jobService)
                 .triggerJob(service, user, jobName, steps, "");
 
         try {
-            teiService.triggerJob(service, user, lookUpTable, mappingObj, searchableAttributes, comparableAttributes);
+            teiService.triggerJob(service, user, lookUpTable, mappingObj, searchableAttributes, comparableAttributes, "","");
         } catch (Exception e) {
             throw e;
         }
@@ -165,7 +165,7 @@ public class TEIServiceTest {
         String eventTable = "eventTable";
         when(patientDAO.getDeltaEnrollmentInstanceIds(enrollment, eventTable, programName)).thenReturn(new ArrayList<>());
 
-        teiService.getEnrollmentsForInstances(enrollment, eventTable, programName);
+        teiService.getEnrollmentsForInstances(enrollment, eventTable, programName, "","");
 
         assertEquals(0, TEIUtil.getInstancesWithEnrollments().size());
     }
@@ -204,7 +204,7 @@ public class TEIServiceTest {
         when(responseEntity.getBody()).thenReturn(response);
         when(response.getTrackedEntityInstances()).thenReturn(Arrays.asList(trackedEntityInstance1, trackedEntityInstance2));
 
-        teiService.getEnrollmentsForInstances(enrollment, eventTable, programName);
+        teiService.getEnrollmentsForInstances(enrollment, eventTable, programName, "","");
 
         Map<String, List<EnrollmentDetails>> expected = new HashMap<>();
         expected.put("instance1", Arrays.asList(enrollment1, enrollment2));
@@ -233,7 +233,7 @@ public class TEIServiceTest {
         when(syncRepository.getTrackedEntityInstances(url)).thenThrow(new HttpServerErrorException(HttpStatus.CONFLICT));
 
         try {
-            teiService.getEnrollmentsForInstances(enrollment, eventTable, programName);
+            teiService.getEnrollmentsForInstances(enrollment, eventTable, programName, "","");
         } catch (Exception e) {
             assertEquals(0, TEIUtil.getInstancesWithEnrollments().size());
         }

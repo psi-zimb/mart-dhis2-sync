@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.checkDates;
+
 @Component
 public class UpdatedCompletedEnrollmentWithEventsStep {
 
@@ -29,9 +31,12 @@ public class UpdatedCompletedEnrollmentWithEventsStep {
 
     private static final String STEP_NAME = "Updated Completed Enrollment With Events Step:: ";
 
-    public Step get(String enrLookupTable, String envLookupTable, String programName, Object mappingObj, List<EnrollmentAPIPayLoad> enrollmentsToIgnore) {
+    public Step get(String enrLookupTable, String envLookupTable, String programName, Object mappingObj, List<EnrollmentAPIPayLoad> enrollmentsToIgnore, String startDate, String endDate) {
+        writer.updateLastSyncedDate = checkDates(startDate,endDate) ? true : false;
         return stepFactory.build(STEP_NAME,
-                mappingReader.getUpdatedCompletedEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable, enrollmentsToIgnore),
+                checkDates(startDate,endDate)
+                        ? mappingReader.getUpdatedCompletedEnrollmentWithEventsReaderWithDateRange(enrLookupTable, programName, envLookupTable, enrollmentsToIgnore, startDate, endDate)
+                        : mappingReader.getUpdatedCompletedEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable, enrollmentsToIgnore),
                 getProcessor(mappingObj),
                 writer);
     }

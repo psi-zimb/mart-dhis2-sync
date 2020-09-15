@@ -4,6 +4,7 @@ import com.thoughtworks.martdhis2sync.dao.LoggerDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -23,9 +24,9 @@ public class LoggerService {
 
     private Set<String> logMessage = new LinkedHashSet<>();
 
-    public void addLog(String service, String user, String comments) {
+    public void addLog(String service, String user, String comments, Date startDate, Date endDate) {
         logMessage.clear();
-        loggerDAO.addLog(service, user, comments);
+        loggerDAO.addLog(service, user, comments, startDate, endDate);
     }
 
     public void updateLog(String service, String status) {
