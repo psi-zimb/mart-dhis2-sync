@@ -1,15 +1,6 @@
 package com.thoughtworks.martdhis2sync.repository;
 
-import com.thoughtworks.martdhis2sync.model.DHISEnrollmentSyncResponse;
-import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
-import com.thoughtworks.martdhis2sync.model.DataElementResponse;
-import com.thoughtworks.martdhis2sync.model.EnrollmentImportSummary;
-import com.thoughtworks.martdhis2sync.model.EnrollmentResponse;
-import com.thoughtworks.martdhis2sync.model.ImportSummary;
-import com.thoughtworks.martdhis2sync.model.OrgUnitResponse;
-import com.thoughtworks.martdhis2sync.model.Response;
-import com.thoughtworks.martdhis2sync.model.TrackedEntityAttributeResponse;
-import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceResponse;
+import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +19,10 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static org.junit.Assert.assertEquals;
@@ -382,6 +376,93 @@ public class SyncRepositoryTest {
             verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
             verify(logger, times(1)).error("SyncRepository: org.springframework.web.client.HttpServerErrorException: 409 CONFLICT");
             verify(loggerService, times(1)).collateLogMessage("409 CONFLICT");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void shouldReturnResponseEntityAndCallLoggerErrorAndLoggerServiceToCollateMessageFor409() throws Exception {
+        String response = "{\n" +
+                "    \"httpStatus\": \"Conflict\",\n" +
+                "    \"httpStatusCode\": 409,\n" +
+                "    \"status\": \"ERROR\",\n" +
+                "    \"response\": {\n" +
+                "        \"imported\": 0,\n" +
+                "        \"updated\": 0,\n" +
+                "        \"deleted\": 0,\n" +
+                "        \"ignored\": 1,\n" +
+                "        \"importSummaries\": [\n" +
+                "            {\n" +
+                "                \"conflicts\": [\n" +
+                "                    {\n" +
+                "                        \"object\": \"Attribute.value\",\n" +
+                "                        \"value\": \"Non-unique attribute value 'TETEGE160991M' for attribute zRA08XEYiSF\"\n" +
+                "                    }\n" +
+                "                ]\n" +
+                "            }\n" +
+                "        ]\n" +
+                "    }\n" +
+                "}";
+
+        ImportSummary importSummary = new ImportSummary();
+        Conflict conflict= new Conflict("Attribute.value","Non-unique attribute value 'TETEGE160991M' for attribute zRA08XEYiSF");
+        List<Conflict> conflicts = new ArrayList<Conflict>();
+        conflicts.add(conflict);
+        importSummary.setConflicts(conflicts);
+        Response responseObj = new Response();
+        responseObj.setIgnored(1);
+        responseObj.setImportSummaries(Collections.singletonList(importSummary));
+        DHISSyncResponse dhisSyncResponse = new DHISSyncResponse();
+        dhisSyncResponse.setHttpStatus("Conflict");
+        dhisSyncResponse.setHttpStatusCode(409);
+        dhisSyncResponse.setStatus("ERROR");
+        dhisSyncResponse.setResponse(responseObj);
+        ResponseEntity<DHISSyncResponse> errorResponse = new ResponseEntity<>(dhisSyncResponse, HttpStatus.CONFLICT);
+        Charset charset = Charset.forName("UTF-8");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
+                .thenThrow(new HttpClientErrorException(HttpStatus.CONFLICT, "CONFLICT", response.getBytes(), charset));
+        doNothing().when(logger).error("SyncRepository: org.springframework.web.client.HttpClientErrorException: 409 CONFLICT");
+        doNothing().when(loggerService).collateLogMessage("Non-unique attribute value 'TETEGE160991M' for attribute zRA08XEYiSF");
+
+        ResponseEntity<DHISSyncResponse> actualResponse = syncRepository.sendData("/api/trackedEntityInstance", body);
+
+        verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
+        verify(logger, times(1)).error("SyncRepository: org.springframework.web.client.HttpClientErrorException: 409 CONFLICT");
+        verify(loggerService, times(1)).collateLogMessage("Non-unique attribute value 'TETEGE160991M' for attribute zRA08XEYiSF");
+
+        assertEquals(errorResponse, actualResponse);
+    }
+
+    @Test
+    public void shouldHandle502Exception() throws Exception {
+        String response502= "{\n" +
+                "    \"httpStatus\": \"Bad Gateway\",\n" +
+                "    \"httpStatusCode\": 502,\n" +
+                "    \"status\": \"ERROR\"" +
+                "}";
+        Response responseObj = new Response();
+        responseObj.setIgnored(1);
+        DHISSyncResponse dhisSyncResponse = new DHISSyncResponse();
+        dhisSyncResponse.setHttpStatus("Bad Gateway");
+        dhisSyncResponse.setHttpStatusCode(502);
+        dhisSyncResponse.setStatus("ERROR");
+        dhisSyncResponse.setResponse(responseObj);
+        ResponseEntity<DHISSyncResponse> errorResponse = new ResponseEntity<>(dhisSyncResponse, HttpStatus.CONFLICT);
+        Charset charset = Charset.forName("UTF-8");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class)))
+                .thenThrow(new HttpServerErrorException(HttpStatus.BAD_GATEWAY, "Bad Gateway", response502.getBytes(), charset));
+        doNothing().when(logger).error("SyncRepository: org.springframework.web.client.HttpServerErrorException: 502 Bad Gateway");
+        doNothing().when(loggerService).collateLogMessage("DHIS System is Having Issues to Connect. Please try again");
+
+        try {
+            syncRepository.sendEnrollmentData("/api/enrollments", body);
+        } catch (HttpServerErrorException e) {
+            verify(restTemplate, times(1)).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(Class.class));
+            verify(logger, times(1)).error("SyncRepository: org.springframework.web.client.HttpServerErrorException: 502 Bad Gateway");
+            verify(loggerService, times(1)).collateLogMessage("DHIS System is Having Issues to Connect. Please try again");
         } catch (Exception e) {
             e.printStackTrace();
         }
