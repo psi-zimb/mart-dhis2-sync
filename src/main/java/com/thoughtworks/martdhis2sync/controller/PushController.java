@@ -180,7 +180,7 @@ public class PushController {
 
         logger.info("=========================Update Cancelled Enrollment Sync Started=========================\n\n");
 
-        cancelledEnrollmentService.triggerJobForUpdatedCancelledEnrollments(requestBody.getService(), requestBody.getUser(),
+        cancelledEnrollmentService.triggerJobForUpdatedCancelledEnrollments(requestBody.getService(), requestBody.getUser(),lookupTable.getInstance(),
                 lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), enrollmentsToIgnore,
                 config.getOpenLatestCompletedEnrollment(), startDate, endDate);
 

@@ -285,6 +285,7 @@ public class MappingReaderTest {
     public void shouldReturnReaderForUpdatedCancelledEnrollmentsWithEvents() throws Exception {
         String eventLookupTable = "event";
         String enrollmentLookupTable = "enrollment";
+        String instanceLookupTable = "instance";
         EnrollmentAPIPayLoad enr1 = new EnrollmentAPIPayLoad();
         enr1.setEnrollmentId("NAH0000000009");
         EnrollmentAPIPayLoad enr2 = new EnrollmentAPIPayLoad();
@@ -305,7 +306,7 @@ public class MappingReaderTest {
         doNothing().when(jdbcCursorItemReader).setDataSource(dataSource);
         doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
 
-        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getUpdatedCancelledEnrollmentWithEventsReader(enrollmentLookupTable, programName, eventLookupTable, EnrollmentUtil.enrollmentsToSaveInTracker);
+        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getUpdatedCancelledEnrollmentWithEventsReader(instanceLookupTable,enrollmentLookupTable, programName, eventLookupTable, EnrollmentUtil.enrollmentsToSaveInTracker);
 
         assertEquals(jdbcCursorItemReader, actual);
 

@@ -186,8 +186,8 @@ public class PushControllerTest {
             );
             verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList(), anyString(), anyString());
             verify(cancelledEnrollmentService, times(1))
-                    .triggerJobForNewCancelledEnrollments(anyString(),anyString(),anyString(), anyString(), anyString(), anyString(), any(), anyString(),anyString());
-            verify(cancelledEnrollmentService, times(0)).triggerJobForUpdatedCancelledEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(),anyString(), anyString());
+                    .triggerJobForNewCancelledEnrollments(anyString(),anyString(), anyString(), anyString(), anyString(), any(), anyString(),anyString(), anyString());
+            verify(cancelledEnrollmentService, times(0)).triggerJobForUpdatedCancelledEnrollments(anyString(),anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(),anyString(), anyString());
             verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
             verifyStatic(times(1));

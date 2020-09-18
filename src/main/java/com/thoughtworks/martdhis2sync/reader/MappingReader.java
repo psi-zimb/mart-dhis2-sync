@@ -165,14 +165,14 @@ public class MappingReader {
     }
 
     public JdbcCursorItemReader<Map<String, Object>> getUpdatedCancelledEnrollmentWithEventsReader(
-            String enrollmentLookupTable, String programName, String eventLookupTable,
+            String instanceLookupTable,String enrollmentLookupTable, String programName, String eventLookupTable,
             List<EnrollmentAPIPayLoad> enrollmentsToIgnore) {
 
         String syncedCompletedEnrollmentIds = getEnrollmentIds(enrollmentsToIgnore);
         String andClause = StringUtils.isEmpty(syncedCompletedEnrollmentIds) ? ""
                 : String.format("AND enrolTracker.enrollment_id NOT IN (%s)", syncedCompletedEnrollmentIds);
         String sql = String.format(getSql(updatedCancelledEnrWithEventsResource), enrollmentLookupTable, programName,
-                eventLookupTable, enrollmentLookupTable, programName, andClause);
+                eventLookupTable, enrollmentLookupTable, programName,instanceLookupTable, andClause);
         return get(sql);
     }
     public JdbcCursorItemReader<Map<String, Object>> getUpdatedCancelledEnrollmentWithEventsReaderWithDateRange(

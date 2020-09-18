@@ -52,27 +52,29 @@ public class UpdatedCancelledEnrollmentWithEventsStepTest {
     @Test
     public void whenCreatingAStepWithParametersThenShouldGetMappingReaderWithSameParameters() {
         String enrLookupTable = "enrollment_lookup_table";
+        String insLookupTable = "enrollment_lookup_table";
         String programName = "HTS Service";
         String mappingObj = "";
         String envLookupTable = "patient_event";
         List<EnrollmentAPIPayLoad> enrollmentsToIgnore = new ArrayList<>();
 
         when(objectFactory.getObject()).thenReturn(processor);
-        eventStep.get(enrLookupTable, envLookupTable, programName, mappingObj, enrollmentsToIgnore, "", "");
+        eventStep.get(insLookupTable,enrLookupTable, envLookupTable, programName, mappingObj, enrollmentsToIgnore,"", "");
 
-        verify(mappingReader, times(1)).getUpdatedCancelledEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable, enrollmentsToIgnore);
+        verify(mappingReader, times(1)).getUpdatedCancelledEnrollmentWithEventsReader(insLookupTable,enrLookupTable, programName, envLookupTable, enrollmentsToIgnore);
     }
 
     @Test
     public void whenCreatingAStepWithParametersThenShouldCallStepFactoryWithSameParameters() {
         String enrLookupTable = "enrollment_lookup_table";
+        String insLookupTable = "enrollment_lookup_table";
         String programName = "HTS Service";
         String mappingObj = "";
         String envLookupTable = "patient_event";
         List<EnrollmentAPIPayLoad> enrollmentsToIgnore = new ArrayList<>();
 
         when(objectFactory.getObject()).thenReturn(processor);
-        eventStep.get(enrLookupTable, envLookupTable, programName, mappingObj, enrollmentsToIgnore, "", "");
+        eventStep.get(insLookupTable,enrLookupTable, envLookupTable, programName, mappingObj, enrollmentsToIgnore,"", "");
 
         verify(stepFactory, times(1)).build(anyString(), any(), any(), any());
     }

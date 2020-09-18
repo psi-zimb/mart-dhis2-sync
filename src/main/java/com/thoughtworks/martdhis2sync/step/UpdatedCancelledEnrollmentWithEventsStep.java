@@ -30,12 +30,12 @@ public class UpdatedCancelledEnrollmentWithEventsStep {
 
     private static final String STEP_NAME = "Updated Cancelled Enrollment With Events Step:: ";
 
-    public Step get(String enrLookupTable, String envLookupTable, String programName, Object mappingObj, List<EnrollmentAPIPayLoad> enrollmentsToIgnore, String startDate, String endDate) {
-        writer.updateLastSyncedDate = checkDates(startDate,endDate) ? true : false;
+    public Step get(String insLookupTable,String enrLookupTable, String envLookupTable, String programName, Object mappingObj, List<EnrollmentAPIPayLoad> enrollmentsToIgnore, String startDate, String endDate) {
+        UpdatedCancelledEnrollmentWithEventsWriter.updateLastSyncedDate = checkDates(startDate, endDate);
         return stepFactory.build(STEP_NAME,
                 checkDates(startDate,endDate)
                         ? mappingReader.getUpdatedCancelledEnrollmentWithEventsReaderWithDateRange(enrLookupTable,programName,envLookupTable,enrollmentsToIgnore,startDate,endDate)
-                        : mappingReader.getUpdatedCancelledEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable, enrollmentsToIgnore),
+                        : mappingReader.getUpdatedCancelledEnrollmentWithEventsReader(insLookupTable,enrLookupTable, programName, envLookupTable, enrollmentsToIgnore),
                 getProcessor(mappingObj),
                 writer);
     }
