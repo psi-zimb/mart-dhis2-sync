@@ -23,11 +23,9 @@ import java.util.Map;
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.getStringFromDate;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.*;
@@ -274,7 +272,8 @@ public class PushControllerTest {
             verify(completedEnrollmentService, times(1))
                     .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
             verify(activeEnrollmentService, times(0))
-                    .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
+                    .triggerJobForNewActiveEnrollments(anyString(),anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
+
             verify(markerUtil, times(1)).getLastSyncedDate(service, "new_active_enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "new_completed_enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "updated_active_enrollment");
@@ -300,7 +299,8 @@ public class PushControllerTest {
         doNothing().when(completedEnrollmentService)
                 .triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(), anyString(), anyString());
         doThrow(new SyncFailedException("instance sync failed")).when(activeEnrollmentService)
-                .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
+                .triggerJobForNewActiveEnrollments(anyString(),anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
+
 
         try {
             pushController.pushData(dhisSyncRequestBody);
@@ -310,8 +310,9 @@ public class PushControllerTest {
             verify(loggerService, times(1)).updateLog(service, "failed");
             verify(mappingService, times(1)).getMapping(service);
             verify(activeEnrollmentService, times(1))
-                    .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
-            verify(activeEnrollmentService, times(0))
+
+                    .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
+   verify(activeEnrollmentService, times(0))
                     .triggerJobForUpdatedActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(), anyString(), anyString());
             verify(markerUtil, times(1)).getLastSyncedDate(service, "new_active_enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "new_completed_enrollment");

@@ -16,8 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpServerErrorException;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.service.LoggerService.*;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
@@ -111,10 +112,8 @@ public class PushController {
                 StringBuffer sbf = new StringBuffer();
                 sbf.append("Pre-validation for sync service failed.");
                 sbf.append("\nInvalid Org Unit specified for below patients.");
-                //loggerService.collateLogMessage("Pre-validation for sync service failed. Invalid Org Unit specified for below patients. Update patient's clinical info in Bahmni, run Bahmni MART");
                 invalidPatients.forEach((patientID,orgUnit)-> {
                     sbf.append("\n[Patient ID (" + patientID + ") Org Unit ID (" + orgUnit + ")] ");
-                    //loggerService.collateLogMessage("[Patient ID (" + patientID + ") Org Unit ID (" + orgUnit + ")] ");
                 });
                 sbf.append("\nUpdate patient's clinical info in Bahmni, run Bahmni MART.");
                 loggerService.collateLogMessage(sbf.toString());
@@ -199,7 +198,7 @@ public class PushController {
         logger.info("=========================Update Complete Enrollment Sync Success=========================\n\n" +
                 "=========================New Active Enrollment Sync Started=========================\n");
 
-        activeEnrollmentService.triggerJobForNewActiveEnrollments(requestBody.getService(), requestBody.getUser(),
+        activeEnrollmentService.triggerJobForNewActiveEnrollments(requestBody.getService(), requestBody.getUser(),lookupTable.getInstance(),
                 lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), config.getOpenLatestCompletedEnrollment(), startDate, endDate);
 
         enrollmentsToIgnore = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);

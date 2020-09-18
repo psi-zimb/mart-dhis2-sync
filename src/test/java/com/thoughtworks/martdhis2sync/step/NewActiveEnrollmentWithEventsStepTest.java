@@ -3,8 +3,6 @@ package com.thoughtworks.martdhis2sync.step;
 import com.thoughtworks.martdhis2sync.processor.NewEnrollmentWithEventsProcessor;
 import com.thoughtworks.martdhis2sync.reader.MappingReader;
 import com.thoughtworks.martdhis2sync.writer.NewActiveEnrollmentWithEventsWriter;
-import com.thoughtworks.martdhis2sync.writer.NewCompletedEnrollmentWithEventsWriter;
-import com.thoughtworks.martdhis2sync.writer.NewEnrollmentWithEventsWriter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,18 +59,18 @@ public class NewActiveEnrollmentWithEventsStepTest {
     @Test
     public void shouldReturnStep() {
         String enrLookupTable = "enrollment_lookup_table";
+        String insLookupTable = "instance_lookup_table";
         String programName = "HTS Service";
         String stepName = "New Active Enrollment With Events Step:: ";
         String mappingObj = "";
         String envLookupTable = "patient_enrollment";
 
-        when(mappingReader.getNewActiveEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable)).thenReturn(jdbcCursorItemReader);
+        when(mappingReader.getNewActiveEnrollmentWithEventsReader(insLookupTable,enrLookupTable, programName, envLookupTable)).thenReturn(jdbcCursorItemReader);
         when(objectFactory.getObject()).thenReturn(processor);
         when(stepFactory.build(stepName, jdbcCursorItemReader, processor, writer)).thenReturn(step);
 
-        Step actual = eventStep.get(enrLookupTable, envLookupTable, programName, mappingObj, "", "");
+        Step actual = eventStep.get(enrLookupTable,insLookupTable, envLookupTable, programName, mappingObj,"", "");
 
-        verify(mappingReader, times(1)).getNewActiveEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable);
         verify(stepFactory, times(1)).build(stepName, jdbcCursorItemReader, processor, writer);
         assertEquals(step, actual);
     }

@@ -89,7 +89,6 @@ public class MappingReader {
         } catch (IOException e) {
             logger.error("Error in converting sql to string : " + e.getMessage());
         }
-
         return sql;
     }
 
@@ -100,7 +99,7 @@ public class MappingReader {
 
     public JdbcCursorItemReader<Map<String, Object>> getInstanceReader(String lookupTable, String programName) {
         String sql = String.format(getSql(instanceResource), lookupTable, programName);
-        return get(sql);
+       return get(sql);
     }
 
     public JdbcCursorItemReader<Map<String, Object>> getInstanceReaderWithDateRange(String lookupTable, String programName, String startDate, String endDate) {
@@ -189,9 +188,9 @@ public class MappingReader {
     }
 
     public JdbcCursorItemReader<Map<String, Object>> getNewActiveEnrollmentWithEventsReader(
-            String enrollmentLookupTable, String programName, String eventLookupTable) {
+            String insLookupTable,String enrollmentLookupTable, String programName, String eventLookupTable) {
 
-        String sql = String.format(getSql(newActiveEnrWithEventsResource), enrollmentLookupTable,
+        String sql = String.format(getSql(newActiveEnrWithEventsResource), enrollmentLookupTable, insLookupTable,
                 eventLookupTable, programName);
         return get(sql);
     }
