@@ -5,37 +5,37 @@ FROM (
         (SELECT enrTable.*
           FROM %s enrTable
           INNER JOIN marker enrollment_marker
-              ON enrTable.date_created :: TIMESTAMP BETWEEN '%s' AND '%s'
+              ON enrTable.date_created :: DATE BETWEEN '%s' AND '%s'
               AND category = 'new_completed_enrollment' AND program_name = '%s'
          ) UNION
          (SELECT enrTable.*
           FROM %s enrTable
           INNER JOIN marker enrollment_marker
-              ON enrTable.date_created :: TIMESTAMP BETWEEN '%s' AND '%s'
+              ON enrTable.date_created :: DATE BETWEEN '%s' AND '%s'
               AND category = 'updated_completed_enrollment' AND program_name = '%s'
          ) UNION
          (SELECT enrTable.*
           FROM %s enrTable
           INNER JOIN marker enrollment_marker
-              ON enrTable.date_created :: TIMESTAMP BETWEEN '%s' AND '%s'
+              ON enrTable.date_created :: DATE BETWEEN '%s' AND '%s'
               AND category = 'new_active_enrollment' AND program_name = '%s'
          ) UNION
          (SELECT enrTable.*
           FROM %s enrTable
           INNER JOIN marker enrollment_marker
-              ON enrTable.date_created :: TIMESTAMP BETWEEN '%s' AND '%s'
+              ON enrTable.date_created :: DATE BETWEEN '%s' AND '%s'
               AND category = 'updated_active_enrollment' AND program_name = '%s'
          ) UNION
         (SELECT enrTable.*
          FROM %s enrTable
              INNER JOIN marker enrollment_marker
-         ON enrTable.date_created :: TIMESTAMP BETWEEN '%s' AND '%s'
+         ON enrTable.date_created :: DATE BETWEEN '%s' AND '%s'
              AND category = 'new_cancelled_enrollment' AND program_name = '%s'
         ) UNION
         (SELECT enrTable.*
          FROM %s enrTable
              INNER JOIN marker enrollment_marker
-         ON enrTable.date_created :: TIMESTAMP BETWEEN '%s' AND '%s'
+         ON enrTable.date_created :: DATE BETWEEN '%s' AND '%s'
              AND category = 'updated_cancelled_enrollment' AND program_name = '%s'
         )
      ) AS enrollmentsTable
@@ -45,7 +45,7 @@ FULL OUTER JOIN (SELECT evnTable.*,
                    INNER JOIN %s enrollments ON evnTable."Patient_Identifier" = enrollments."Patient_Identifier"
                               AND evnTable.enrollment_date = COALESCE(enrollments.enrollment_date, evnTable.enrollment_date)
                    INNER JOIN marker event_marker
-                       ON evnTable.date_created :: TIMESTAMP BETWEEN '%s' AND '%s'
+                       ON evnTable.date_created :: DATE BETWEEN '%s' AND '%s'
                        AND category = 'event' AND program_name = '%s'
                 ) AS eventsTable
     ON enrollmentsTable."Patient_Identifier" = eventsTable."Patient_Identifier"

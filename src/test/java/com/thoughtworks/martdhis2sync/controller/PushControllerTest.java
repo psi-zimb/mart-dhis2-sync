@@ -225,7 +225,7 @@ public class PushControllerTest {
         try {
             pushController.pushData(dhisSyncRequestBody);
         } catch (Exception e) {
-            verify(loggerService, times(1)).addLog(service, user, comment, startDate, new Date(endDate.getTime() - (1000*60*60*24)));
+            verify(loggerService, times(1)).addLog(service, user, comment, startDate, endDate);
             verify(teiService, times(1)).getTrackedEntityInstances(
                     getDhisSyncRequestBody().getService(),
                     mappingJson);
