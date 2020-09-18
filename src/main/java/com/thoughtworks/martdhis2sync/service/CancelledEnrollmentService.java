@@ -41,13 +41,14 @@ public class CancelledEnrollmentService {
     private static final String JOB_UPDATED_CANCELLED_ENROLLMENTS = "Updated Cancelled Enrollments";
 
 
-    public void triggerJobForNewCancelledEnrollments(String service, String user, String enrLookupTable,
+
+    public void triggerJobForNewCancelledEnrollments(String service, String user, String insLookupTable,String enrLookupTable,
                                                      String evnLookupTable, Object mappingObj, String openLatestCompletedEnrollment, String startDate, String endDate)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
             JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
 
         LinkedList<Step> steps = new LinkedList<>();
-        steps.add(newEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, service, mappingObj, startDate, endDate));
+        steps.add(newEnrollmentWithEventsStep.get(insLookupTable,enrLookupTable, evnLookupTable, service, mappingObj,startDate, endDate));
         steps.add(cancelledEnrollmentStep.get());
         triggerJob(service, user, steps, JOB_NEW_CANCELLED_ENROLLMENTS, openLatestCompletedEnrollment);
     }

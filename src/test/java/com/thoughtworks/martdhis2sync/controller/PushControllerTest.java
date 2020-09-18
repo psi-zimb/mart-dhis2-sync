@@ -171,8 +171,8 @@ public class PushControllerTest {
         doNothing().when(teiService).getTrackedEntityInstances(dhisSyncRequestBody.getService(), mappingJson);
         doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList(), anyString(), anyString());
         doThrow(new SyncFailedException("instance sync failed")).when(cancelledEnrollmentService)
-                .triggerJobForNewCancelledEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
-        doNothing().when(teiService).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service, getDate(startDate), getDate(endDate));
+                .triggerJobForNewCancelledEnrollments(anyString(),anyString(), anyString(), anyString(), anyString(), any(), anyString(),anyString(), anyString());
+        doNothing().when(teiService).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service,getDate(startDate), getDate(endDate));
 
         try {
             pushController.pushData(dhisSyncRequestBody);
@@ -187,8 +187,8 @@ public class PushControllerTest {
             );
             verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList(), anyString(), anyString());
             verify(cancelledEnrollmentService, times(1))
-                    .triggerJobForNewCancelledEnrollments(anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
-            verify(cancelledEnrollmentService, times(0)).triggerJobForUpdatedCancelledEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(), anyString(), anyString());
+                    .triggerJobForNewCancelledEnrollments(anyString(),anyString(),anyString(), anyString(), anyString(), anyString(), any(), anyString(),anyString());
+            verify(cancelledEnrollmentService, times(0)).triggerJobForUpdatedCancelledEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(),anyString(), anyString());
             verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
             verifyStatic(times(1));

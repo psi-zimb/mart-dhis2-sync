@@ -169,7 +169,8 @@ public class PushController {
         logger.info("=========================New Completed Enrollment Sync Success=========================\n\n");
         logger.info("=========================New Cancelled Enrollment Sync Started=========================\n\n");
 
-        cancelledEnrollmentService.triggerJobForNewCancelledEnrollments(requestBody.getService(), requestBody.getUser(),
+
+        cancelledEnrollmentService.triggerJobForNewCancelledEnrollments(requestBody.getService(), requestBody.getUser(),lookupTable.getInstance(),
                 lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), config.getOpenLatestCompletedEnrollment(), startDate, endDate);
 
         enrollmentsToIgnore = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);

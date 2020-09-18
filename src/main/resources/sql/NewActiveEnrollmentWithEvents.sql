@@ -12,14 +12,9 @@ SELECT enrTable.incident_date,
        insTable."UIC" AS UIC
 FROM %s enrTable
        LEFT JOIN %s evnTable ON evnTable."Patient_Identifier" = enrTable."Patient_Identifier" AND
-<<<<<<< HEAD
-                                                      evnTable.enrollment_date = enrTable.enrollment_date
-                                                      AND evnTable.patient_program_id = enrTable.program_unique_id
-=======
                                                       evnTable.enrollment_date = enrTable.enrollment_date AND
                                                       evnTable.patient_program_id = enrTable.program_unique_id
        INNER JOIN %s insTable on enrTable."Patient_Identifier"=insTable."Patient_Identifier"
->>>>>>> SOM | PE 117 - Add instance table to the enrollmenet workflow to be able to use the UIC further down the road
        INNER JOIN instance_tracker insTracker ON insTracker.patient_id = enrTable."Patient_Identifier"
        INNER JOIN orgunit_tracker orgTracker ON COALESCE(evnTable."OrgUnit", enrTable."OrgUnit") = orgTracker.orgUnit
        LEFT JOIN enrollment_tracker enrTracker

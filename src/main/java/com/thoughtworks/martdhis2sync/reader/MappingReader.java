@@ -127,9 +127,9 @@ public class MappingReader {
     }
 
     public JdbcCursorItemReader<Map<String, Object>> getNewCancelledEnrollmentWithEventsReader(
-            String enrollmentLookupTable, String programName, String eventLookupTable) {
+            String instanceLookupTable,String enrollmentLookupTable, String programName, String eventLookupTable) {
         String sql = String.format(getSql(newCancelledEnrWithEventsResource), enrollmentLookupTable,
-                eventLookupTable, programName);
+                eventLookupTable,instanceLookupTable, programName);
         return get(sql);
     }
 
