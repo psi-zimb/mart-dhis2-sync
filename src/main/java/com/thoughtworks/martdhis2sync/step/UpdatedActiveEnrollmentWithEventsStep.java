@@ -31,13 +31,13 @@ public class UpdatedActiveEnrollmentWithEventsStep {
 
     private static final String STEP_NAME = "Updated Active Enrollment With Events Step:: ";
 
-    public Step get(String enrLookupTable, String envLookupTable, String programName, Object mappingObj,
+    public Step get(String insLookupTable,String enrLookupTable, String envLookupTable, String programName, Object mappingObj,
                     List<EnrollmentAPIPayLoad> enrollmentsToIgnore, String startDate, String endDate) {
-        writer.updateLastSyncedDate = checkDates(startDate,endDate) ? true : false;
+        UpdatedActiveEnrollmentWithEventsWriter.updateLastSyncedDate = checkDates(startDate, endDate);
         return stepFactory.build(STEP_NAME,
                 checkDates(startDate,endDate)
                         ? mappingReader.getUpdatedActiveEnrollmentWithEventsReaderWithDateRange(enrLookupTable, programName, envLookupTable, enrollmentsToIgnore, startDate, endDate)
-                        : mappingReader.getUpdatedActiveEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable, enrollmentsToIgnore),
+                        : mappingReader.getUpdatedActiveEnrollmentWithEventsReader(insLookupTable,enrLookupTable, programName, envLookupTable, enrollmentsToIgnore),
                 getProcessor(mappingObj),
                 writer);
     }

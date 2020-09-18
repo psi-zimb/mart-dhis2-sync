@@ -11,7 +11,8 @@ SELECT
   insTracker.instance_id,
   enrolTracker.enrollment_id,
   evntTracker.event_id,
-  'updated_active_enrollment' AS enrollment_type
+  'updated_active_enrollment' AS enrollment_type,
+  insTable."UIC" AS UIC
 FROM (SELECT enrTable.*
       FROM %s enrTable
         INNER JOIN marker enrollment_marker
@@ -30,6 +31,7 @@ FROM (SELECT enrTable.*
                           AND category = 'event' AND program_name = '%s') AS eventsTable
     ON enrollmentsTable."Patient_Identifier" = eventsTable."Patient_Identifier"
        AND eventsTable.enrollment_date = COALESCE(enrollmentsTable.enrollment_date, eventsTable.enrollment_date)
+  INNER JOIN %s insTable ON enrollmentsTable."Patient_Identifier" = insTable."Patient_Identifier"
   INNER JOIN orgunit_tracker orgTracker ON COALESCE(eventsTable."OrgUnit", enrollmentsTable."OrgUnit") = orgTracker.orgunit
   INNER JOIN instance_tracker insTracker ON COALESCE(eventsTable."Patient_Identifier", enrollmentsTable."Patient_Identifier") = insTracker.patient_id
   LEFT JOIN enrollment_tracker enrolTracker ON COALESCE(enrollmentsTable.program, eventsTable.program) = enrolTracker.program

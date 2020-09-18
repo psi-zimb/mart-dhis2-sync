@@ -310,7 +310,8 @@ public class PushControllerTest {
 
                     .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
             verify(activeEnrollmentService, times(0))
-                    .triggerJobForUpdatedActiveEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(), anyString(), anyString());
+                    .triggerJobForUpdatedActiveEnrollments(anyString(), anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(), anyString(), anyString());
+
             verify(markerUtil, times(1)).getLastSyncedDate(service, "new_active_enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "new_completed_enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "updated_active_enrollment");

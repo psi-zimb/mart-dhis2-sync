@@ -63,6 +63,7 @@ public class UpdatedActiveEnrollmentWithEventsStepTest {
     @Test
     public void shouldReturnStep() {
         String enrLookupTable = "enrollment_lookup_table";
+        String insLookupTable = "instance_lookup_table";
         String programName = "HTS Service";
         String stepName = "Updated Active Enrollment With Events Step:: ";
         String mappingObj = "";
@@ -70,15 +71,15 @@ public class UpdatedActiveEnrollmentWithEventsStepTest {
         List<EnrollmentAPIPayLoad> enrollmentsToIgnore = new ArrayList<>();
 
         when(mappingReader
-                .getUpdatedActiveEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable, enrollmentsToIgnore))
+                .getUpdatedActiveEnrollmentWithEventsReader(insLookupTable,enrLookupTable, programName, envLookupTable, enrollmentsToIgnore))
                 .thenReturn(jdbcCursorItemReader);
         when(objectFactory.getObject()).thenReturn(processor);
         when(stepFactory.build(stepName, jdbcCursorItemReader, processor, writer)).thenReturn(step);
 
-        Step actual = eventStep.get(enrLookupTable, envLookupTable, programName, mappingObj, enrollmentsToIgnore, "", "");
+        Step actual = eventStep.get(insLookupTable,enrLookupTable, envLookupTable, programName, mappingObj, enrollmentsToIgnore, "", "");
 
         verify(mappingReader, times(1))
-                .getUpdatedActiveEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable, enrollmentsToIgnore);
+                .getUpdatedActiveEnrollmentWithEventsReader(insLookupTable,enrLookupTable, programName, envLookupTable, enrollmentsToIgnore);
         verify(stepFactory, times(1)).build(stepName, jdbcCursorItemReader, processor, writer);
         assertEquals(step, actual);
     }
