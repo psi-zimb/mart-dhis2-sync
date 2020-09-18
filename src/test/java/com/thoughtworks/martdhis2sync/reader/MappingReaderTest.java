@@ -166,6 +166,7 @@ public class MappingReaderTest {
     public void shouldReturnReaderForUpdatedCompletedEnrollmentsWithEvents() throws Exception {
         String eventLookupTable = "event";
         String enrollmentLookupTable = "enrollment";
+        String instanceLookupTable = "instance";
         EnrollmentAPIPayLoad enr1 = new EnrollmentAPIPayLoad();
         enr1.setEnrollmentId("NAH0000000009");
         EnrollmentAPIPayLoad enr2 = new EnrollmentAPIPayLoad();
@@ -186,7 +187,7 @@ public class MappingReaderTest {
         doNothing().when(jdbcCursorItemReader).setDataSource(dataSource);
         doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
 
-        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getUpdatedCompletedEnrollmentWithEventsReader(enrollmentLookupTable, programName, eventLookupTable, EnrollmentUtil.enrollmentsToSaveInTracker);
+        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getUpdatedCompletedEnrollmentWithEventsReader(instanceLookupTable,enrollmentLookupTable, programName, eventLookupTable, EnrollmentUtil.enrollmentsToSaveInTracker);
 
         assertEquals(jdbcCursorItemReader, actual);
 
@@ -200,6 +201,7 @@ public class MappingReaderTest {
     public void shouldNotAddAndClauseToTheReaderSqlWhenEnrollmentsToSaveInTrackerIsEmpty() throws Exception {
         String eventLookupTable = "event";
         String enrollmentLookupTable = "enrollment";
+        String instanceLookupTable = "instance";
         EnrollmentUtil.enrollmentsToSaveInTracker.clear();
 
         String sql = "someQuery";
@@ -211,7 +213,7 @@ public class MappingReaderTest {
         doNothing().when(jdbcCursorItemReader).setDataSource(dataSource);
         doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
 
-        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getUpdatedCompletedEnrollmentWithEventsReader(enrollmentLookupTable, programName, eventLookupTable, EnrollmentUtil.enrollmentsToSaveInTracker);
+        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getUpdatedCompletedEnrollmentWithEventsReader(instanceLookupTable,enrollmentLookupTable, programName, eventLookupTable, EnrollmentUtil.enrollmentsToSaveInTracker);
 
         assertEquals(jdbcCursorItemReader, actual);
 
@@ -248,6 +250,7 @@ public class MappingReaderTest {
     public void shouldReturnReaderForUpdatedActiveEnrollmentsWithEvents() throws Exception {
         String eventLookupTable = "event";
         String enrollmentLookupTable = "enrollment";
+        String instanceLookupTable = "instance";
         EnrollmentAPIPayLoad enr1 = new EnrollmentAPIPayLoad();
         enr1.setEnrollmentId("NAH0000000009");
         EnrollmentAPIPayLoad enr2 = new EnrollmentAPIPayLoad();
@@ -268,7 +271,7 @@ public class MappingReaderTest {
         doNothing().when(jdbcCursorItemReader).setDataSource(dataSource);
         doNothing().when(jdbcCursorItemReader).setRowMapper(columnMapRowMapper);
 
-        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getUpdatedCompletedEnrollmentWithEventsReader(enrollmentLookupTable, programName, eventLookupTable, EnrollmentUtil.enrollmentsToSaveInTracker);
+        JdbcCursorItemReader<Map<String, Object>> actual = mappingReader.getUpdatedCompletedEnrollmentWithEventsReader(instanceLookupTable,enrollmentLookupTable, programName, eventLookupTable, EnrollmentUtil.enrollmentsToSaveInTracker);
 
         assertEquals(jdbcCursorItemReader, actual);
 

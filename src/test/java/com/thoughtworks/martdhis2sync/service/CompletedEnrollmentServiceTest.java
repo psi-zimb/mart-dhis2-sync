@@ -120,7 +120,7 @@ public class CompletedEnrollmentServiceTest {
     public void shouldTriggerTheJobForUpdatedCompletedEnrollments() throws JobParametersInvalidException,
             JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
         when(updatedCompletedEnrollmentWithEventsStep
-                .get(enrLookupTable, evnLookupTable, programName, mappingObj, enrollmentsToIgnore, "", ""))
+                .get(insLookupTable,enrLookupTable, evnLookupTable, programName, mappingObj, enrollmentsToIgnore, "", ""))
                 .thenReturn(step);
         when(updatedCompletedEnrollmentStep.get()).thenReturn(step);
         LinkedList<Step> steps = new LinkedList<>();
@@ -128,17 +128,19 @@ public class CompletedEnrollmentServiceTest {
         steps.add(step);
         doNothing().when(jobService).triggerJob(programName, user, updateJobName, steps, openLatestCompletedEnrollment);
 
-        service.triggerJobForUpdatedCompletedEnrollments(programName, user, enrLookupTable, evnLookupTable, mappingObj, enrollmentsToIgnore, openLatestCompletedEnrollment, "", "");
+        service.triggerJobForUpdatedCompletedEnrollments(programName, user,insLookupTable, enrLookupTable, evnLookupTable, mappingObj, enrollmentsToIgnore, openLatestCompletedEnrollment, "", "");
 
         verify(jobService, times(1)).triggerJob(programName, user, updateJobName, steps, openLatestCompletedEnrollment);
-        verify(updatedCompletedEnrollmentWithEventsStep, times(1)).get(enrLookupTable, evnLookupTable, programName, mappingObj, enrollmentsToIgnore, "", "");
+        verify(updatedCompletedEnrollmentWithEventsStep, times(1)).get(insLookupTable,enrLookupTable, evnLookupTable, programName, mappingObj, enrollmentsToIgnore, "", "");
+
         verify(updatedCompletedEnrollmentStep, times(1)).get();
     }
 
     @Test
     public void shouldLogErrorOnJobFailForUpdateCompletedEnrollments() throws JobParametersInvalidException,
             JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
-        when(updatedCompletedEnrollmentWithEventsStep.get(enrLookupTable, evnLookupTable, programName, mappingObj, enrollmentsToIgnore, "", "")).thenReturn(step);
+        when(updatedCompletedEnrollmentWithEventsStep.get(insLookupTable,enrLookupTable, evnLookupTable, programName, mappingObj, enrollmentsToIgnore, "", "")).thenReturn(step);
+
         when(updatedCompletedEnrollmentStep.get()).thenReturn(step);
         LinkedList<Step> steps = new LinkedList<>();
         steps.add(step);
@@ -146,10 +148,11 @@ public class CompletedEnrollmentServiceTest {
         doThrow(new JobParametersInvalidException("Invalid Params")).when(jobService).triggerJob(programName, user, updateJobName, steps, openLatestCompletedEnrollment);
 
         try {
-            service.triggerJobForUpdatedCompletedEnrollments(programName, user, enrLookupTable, evnLookupTable, mappingObj, enrollmentsToIgnore, openLatestCompletedEnrollment, "","");
+            service.triggerJobForUpdatedCompletedEnrollments(programName, user, insLookupTable,enrLookupTable, evnLookupTable, mappingObj, enrollmentsToIgnore, openLatestCompletedEnrollment, "","");
         } catch (Exception e) {
             verify(jobService, times(1)).triggerJob(programName, user, updateJobName, steps, openLatestCompletedEnrollment);
-            verify(updatedCompletedEnrollmentWithEventsStep, times(1)).get(enrLookupTable, evnLookupTable, programName, mappingObj, enrollmentsToIgnore,"","");
+            verify(updatedCompletedEnrollmentWithEventsStep, times(1)).get(insLookupTable,enrLookupTable, evnLookupTable, programName, mappingObj, enrollmentsToIgnore,"","");
+
             verify(updatedCompletedEnrollmentStep, times(1)).get();
             verify(logger, times(1)).error("Completed Enrollments: Invalid Params");
         }

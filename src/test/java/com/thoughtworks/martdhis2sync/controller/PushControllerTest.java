@@ -145,9 +145,8 @@ public class PushControllerTest {
             );
             verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList(), anyString(), anyString());
             verify(completedEnrollmentService, times(1))
-
-                    .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
-            verify(completedEnrollmentService, times(0)).triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(), anyString(), anyString());
+                    .triggerJobForNewCompletedEnrollments(anyString(),anyString(), anyString(), anyString(), anyString(), any(), anyString(),anyString(),anyString());
+            verify(completedEnrollmentService, times(0)).triggerJobForUpdatedCompletedEnrollments(anyString(),anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(),anyString(), anyString());
             verify(markerUtil, times(1)).getLastSyncedDate(service, "enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
             verifyStatic(times(1));
@@ -212,7 +211,8 @@ public class PushControllerTest {
         when(mappingService.getMapping(service)).thenReturn(mapping);
         doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList(), anyString(), anyString());
         doNothing().when(completedEnrollmentService).triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
-        doNothing().when(completedEnrollmentService).triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(), anyString(), anyString());
+        doNothing().when(completedEnrollmentService).triggerJobForUpdatedCompletedEnrollments(anyString(),anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(), anyString(), anyString());
+
 
         try {
             pushController.pushData(dhisSyncRequestBody);
@@ -252,7 +252,8 @@ public class PushControllerTest {
         doNothing().when(completedEnrollmentService)
                 .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
         doNothing().when(completedEnrollmentService)
-                .triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(), anyString(), anyString());
+                .triggerJobForUpdatedCompletedEnrollments(anyString(),anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(), anyString(), anyString());
+
         doThrow(new SyncFailedException("instance sync failed")).when(completedEnrollmentService)
 
                 .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
@@ -292,7 +293,8 @@ public class PushControllerTest {
         doNothing().when(completedEnrollmentService)
                       .triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
         doNothing().when(completedEnrollmentService)
-                .triggerJobForUpdatedCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(), anyString(), anyString());
+                .triggerJobForUpdatedCompletedEnrollments(anyString(),anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(), anyString(), anyString());
+
         doThrow(new SyncFailedException("instance sync failed")).when(activeEnrollmentService)
                 .triggerJobForNewActiveEnrollments(anyString(), anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
 

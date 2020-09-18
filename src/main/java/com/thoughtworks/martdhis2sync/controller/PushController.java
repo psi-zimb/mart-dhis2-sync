@@ -191,7 +191,7 @@ public class PushController {
 
         logger.info("=========================Update Complete Enrollment Sync Started=========================\n");
 
-        completedEnrollmentService.triggerJobForUpdatedCompletedEnrollments(requestBody.getService(), requestBody.getUser(),
+        completedEnrollmentService.triggerJobForUpdatedCompletedEnrollments(requestBody.getService(), requestBody.getUser(),lookupTable.getInstance(),
                 lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), enrollmentsToIgnore,
                 config.getOpenLatestCompletedEnrollment(), startDate, endDate);
 
