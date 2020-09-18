@@ -113,9 +113,9 @@ public class MappingReader {
     }
 
     public JdbcCursorItemReader<Map<String, Object>> getNewCompletedEnrollmentWithEventsReader(
-            String enrollmentLookupTable, String programName, String eventLookupTable) {
+            String instanceLookupTable,String enrollmentLookupTable, String programName, String eventLookupTable) {
         String sql = String.format(getSql(newCompletedEnrWithEventsResource), enrollmentLookupTable,
-                eventLookupTable, programName);
+                eventLookupTable,instanceLookupTable, programName);
         return get(sql);
     }
 
@@ -188,10 +188,10 @@ public class MappingReader {
     }
 
     public JdbcCursorItemReader<Map<String, Object>> getNewActiveEnrollmentWithEventsReader(
-            String insLookupTable,String enrollmentLookupTable, String programName, String eventLookupTable) {
+            String instanceLookupTable,String enrollmentLookupTable, String programName, String eventLookupTable) {
 
-        String sql = String.format(getSql(newActiveEnrWithEventsResource), enrollmentLookupTable, insLookupTable,
-                eventLookupTable, programName);
+        String sql = String.format(getSql(newActiveEnrWithEventsResource), enrollmentLookupTable,
+                eventLookupTable, instanceLookupTable,programName);
         return get(sql);
     }
 

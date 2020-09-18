@@ -61,18 +61,19 @@ public class NewCompletedEnrollmentWithEventsStepTest {
     @Test
     public void shouldReturnStep() {
         String enrLookupTable = "enrollment_lookup_table";
+        String insLookupTable = "instance_lookup_table";
         String programName = "HTS Service";
         String stepName = "New Completed Enrollment With Events Step:: ";
         String mappingObj = "";
         String envLookupTable = "patient_enrollment";
 
-        when(mappingReader.getNewCompletedEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable)).thenReturn(jdbcCursorItemReader);
+        when(mappingReader.getNewCompletedEnrollmentWithEventsReader(insLookupTable,enrLookupTable, programName, envLookupTable)).thenReturn(jdbcCursorItemReader);
         when(objectFactory.getObject()).thenReturn(processor);
         when(stepFactory.build(stepName, jdbcCursorItemReader, processor, writer)).thenReturn(step);
 
-        Step actual = eventStep.get(enrLookupTable, envLookupTable, programName, mappingObj, "", "");
+        Step actual = eventStep.get(insLookupTable,enrLookupTable, envLookupTable, programName, mappingObj,"", "");
 
-        verify(mappingReader, times(1)).getNewCompletedEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable);
+        verify(mappingReader, times(1)).getNewCompletedEnrollmentWithEventsReader(insLookupTable,enrLookupTable, programName, envLookupTable);
         verify(stepFactory, times(1)).build(stepName, jdbcCursorItemReader, processor, writer);
         assertEquals(step, actual);
     }

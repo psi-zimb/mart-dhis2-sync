@@ -9,7 +9,7 @@ SELECT enrTable.incident_date,
        orgTracker.id               AS orgunit_id,
        insTracker.instance_id,
        'new_active_enrollment' AS enrollment_type,
-       insTable."UIC"
+       insTable."UIC" AS UIC
 FROM %s enrTable
        LEFT JOIN %s evnTable ON evnTable."Patient_Identifier" = enrTable."Patient_Identifier" AND
 <<<<<<< HEAD

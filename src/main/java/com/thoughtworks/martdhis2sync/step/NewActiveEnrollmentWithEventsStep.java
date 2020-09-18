@@ -31,7 +31,7 @@ public class NewActiveEnrollmentWithEventsStep {
 
     private static final String STEP_NAME = "New Active Enrollment With Events Step:: ";
 
-    public Step get(String enrLookupTable,String insLookupTable, String envLookupTable, String programName, Object mappingObj, String startDate, String endDate) {
+    public Step get(String insLookupTable,String enrLookupTable, String envLookupTable, String programName, Object mappingObj, String startDate, String endDate) {
 
         NewActiveEnrollmentWithEventsWriter.updateLastSyncedDate = checkDates(startDate, endDate);
         logger.info("startDate ->" + startDate);

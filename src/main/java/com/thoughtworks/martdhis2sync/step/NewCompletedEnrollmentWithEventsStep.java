@@ -27,14 +27,14 @@ public class NewCompletedEnrollmentWithEventsStep {
 
     private static final String STEP_NAME = "New Completed Enrollment With Events Step:: ";
 
-    public Step get(String enrLookupTable, String envLookupTable, String programName, Object mappingObj, String startDate, String endDate) {
+    public Step get(String insLookupTable,String enrLookupTable, String envLookupTable, String programName, Object mappingObj, String startDate, String endDate) {
 
-        writer.updateLastSyncedDate = checkDates(startDate,endDate) ? true : false ;
+        NewCompletedEnrollmentWithEventsWriter.updateLastSyncedDate = checkDates(startDate, endDate);
 
         return stepFactory.build(STEP_NAME,
                 checkDates(startDate,endDate)
                         ? mappingReader.getNewCompletedEnrollmentWithEventsReaderWithDateRange(enrLookupTable, programName, envLookupTable, startDate, endDate)
-                        : mappingReader.getNewCompletedEnrollmentWithEventsReader(enrLookupTable, programName, envLookupTable),
+                        : mappingReader.getNewCompletedEnrollmentWithEventsReader(insLookupTable,enrLookupTable, programName, envLookupTable),
                 getProcessor(mappingObj),
                 writer);
     }
