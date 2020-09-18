@@ -66,32 +66,57 @@ public class PushController {
         String startDate = requestBody.getStartDate() != null ? getStringFromDate(requestBody.getStartDate(),dateFormat) : "";
         String endDate = requestBody.getEndDate() != null ? getStringFromDate(requestBody.getEndDate(),dateFormat) : "";
         dhisMetaDataService.filterByTypeDateTime();
-
-        Map<String, Object> mapping = mappingService.getMapping(requestBody.getService());
-
-        Gson gson = new Gson();
-        LookupTable lookupTable = gson.fromJson(mapping.get("lookup_table").toString(), LookupTable.class);
-        MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
-        Config config = gson.fromJson(mapping.get("config").toString(), Config.class);
-        EnrollmentUtil.newActiveDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_NEW_ACTIVE_ENROLLMENT);
-        EnrollmentUtil.newCompletedDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_NEW_COMPLETED_ENROLLMENT);
-        EnrollmentUtil.newCancelledDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_NEW_CANCELLED_ENROLLMENT);
-
-        EnrollmentUtil.updatedActiveDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_UPDATED_ACTIVE_ENROLLMENT);
-        EnrollmentUtil.updatedCompletedDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_UPDATED_COMPLETED_ENROLLMENT);
-        EnrollmentUtil.updatedCancelledDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_UPDATED_CANCELLED_ENROLLMENT);
-
-        EventUtil.date = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_EVENT);
-
+        Map<String, Object> mapping;
+        LookupTable lookupTable;
+        MappingJson mappingJson;
+        Config config;
         try {
             loggerService.clearLog();
+            mapping = mappingService.getMapping(requestBody.getService());
+
+           Gson gson = new Gson();
+           lookupTable = gson.fromJson(mapping.get("lookup_table").toString(), LookupTable.class);
+           mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
+           config = gson.fromJson(mapping.get("config").toString(), Config.class);
+        }
+        catch(Exception e)
+        {
+            loggerService.collateLogMessage("There is An Error While Getting Mapping Information . Please Check Corresponding Program Mapping and Sync Again");
+            loggerService.updateLog(requestBody.getService(), FAILED);
+            throw e;
+        }
+
+        try {
+            EnrollmentUtil.newActiveDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_NEW_ACTIVE_ENROLLMENT);
+            EnrollmentUtil.newCompletedDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_NEW_COMPLETED_ENROLLMENT);
+            EnrollmentUtil.newCancelledDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_NEW_CANCELLED_ENROLLMENT);
+
+            EnrollmentUtil.updatedActiveDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_UPDATED_ACTIVE_ENROLLMENT);
+            EnrollmentUtil.updatedCompletedDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_UPDATED_COMPLETED_ENROLLMENT);
+            EnrollmentUtil.updatedCancelledDate = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_UPDATED_CANCELLED_ENROLLMENT);
+
+            EventUtil.date = markerUtil.getLastSyncedDate(requestBody.getService(), CATEGORY_EVENT);
+        }
+        catch(Exception e)
+        {
+            loggerService.collateLogMessage("There is An Error While Getting LastSynced Date.");
+            loggerService.updateLog(requestBody.getService(), FAILED);
+            throw e;
+        }
+        try {
             EnrollmentUtil.instanceIDEnrollmentIDMap.clear();
             Map<String,String> invalidPatients = teiService.verifyOrgUnitsForPatients(lookupTable, requestBody.getService());
             if(invalidPatients.size() > 0) {
-                loggerService.collateLogMessage("Pre-validation for sync service failed. Invalid Org Unit specified for below patients. Update patient's clinical info in Bahmni, run Bahmni MART");
+                StringBuffer sbf = new StringBuffer();
+                sbf.append("Pre-validation for sync service failed.");
+                sbf.append("\nInvalid Org Unit specified for below patients.");
+                //loggerService.collateLogMessage("Pre-validation for sync service failed. Invalid Org Unit specified for below patients. Update patient's clinical info in Bahmni, run Bahmni MART");
                 invalidPatients.forEach((patientID,orgUnit)-> {
-                    loggerService.collateLogMessage("[Patient ID (" + patientID + ") Org Unit ID (" + orgUnit + ")] ");
+                    sbf.append("\n[Patient ID (" + patientID + ") Org Unit ID (" + orgUnit + ")] ");
+                    //loggerService.collateLogMessage("[Patient ID (" + patientID + ") Org Unit ID (" + orgUnit + ")] ");
                 });
+                sbf.append("\nUpdate patient's clinical info in Bahmni, run Bahmni MART.");
+                loggerService.collateLogMessage(sbf.toString());
                 loggerService.updateLog(requestBody.getService(), FAILED);
                 throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Pre-validation for sync service failed. Invalid Org Unit specified for below patients. Update patient's clinical info in Bahmni, run Bahmni MART");
             }

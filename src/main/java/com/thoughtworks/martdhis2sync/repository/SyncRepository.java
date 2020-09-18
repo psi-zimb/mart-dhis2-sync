@@ -1,12 +1,10 @@
 package com.thoughtworks.martdhis2sync.repository;
 
 import com.google.gson.Gson;
-import com.thoughtworks.martdhis2sync.model.DHISEnrollmentSyncResponse;
-import com.thoughtworks.martdhis2sync.model.DHISSyncResponse;
-import com.thoughtworks.martdhis2sync.model.DataElementResponse;
-import com.thoughtworks.martdhis2sync.model.OrgUnitResponse;
-import com.thoughtworks.martdhis2sync.model.TrackedEntityAttributeResponse;
-import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceResponse;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.service.JobService;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
 import org.apache.tomcat.util.codec.binary.Base64;
@@ -26,6 +24,7 @@ import org.springframework.web.client.RestTemplate;
 
 
 import java.nio.charset.Charset;
+import java.util.List;
 
 @Repository
 public class SyncRepository {
@@ -160,11 +159,30 @@ public class SyncRepository {
                     new Gson().fromJson(e.getResponseBodyAsString(), type),
                     e.getStatusCode());
             logger.error("e.getResponseBodyAsString() -> " + e.getResponseBodyAsString());
-            loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
+            if (e.getStatusCode().value() == 409) {
+                if (e.getResponseBodyAsString().contains("conflicts")) {
+                    DHISSyncResponse response = (DHISSyncResponse)responseEntity.getBody();
+                    if(response.getResponse() != null)
+                    {
+                        if(response.getResponse().getImportSummaries() != null)
+                        {
+                            List<Conflict> conflicts = response.getResponse().getImportSummaries().get(0).getConflicts();
+                            for(Conflict conflict : conflicts)
+                                loggerService.collateLogMessage(conflict.getValue());
+                        }
+                    }
+                } else {
+                    loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
+                }
+            }
             logger.error("HttpClientErrorException -> " + responseEntity.getBody());
             logger.error(LOG_PREFIX + e);
         } catch (HttpServerErrorException e) {
-            loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
+            if (e.getStatusCode().value() == 502) {
+                loggerService.collateLogMessage("DHIS System is Having Issues to Connect. Please try again");
+            } else {
+                loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
+            }
             logger.error(LOG_PREFIX + e);
             throw e;
         } catch (Exception e) {
