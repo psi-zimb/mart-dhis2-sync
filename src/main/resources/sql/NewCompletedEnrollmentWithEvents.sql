@@ -9,7 +9,13 @@ SELECT enrTable.incident_date,
        orgTracker.id               AS orgunit_id,
        insTracker.instance_id,
        'new_completed_enrollment' AS enrollment_type,
-       insTable."UIC" AS UIC
+       insTable."UIC" AS UIC,
+       insTable."Mothers_First_Name",
+       insTable."Are_you_Twin",
+       insTable."Last_Name",
+       insTable."Gender",
+       insTable."District_of_Birth",
+       insTable."Date_of_Birth"
 FROM %s enrTable
        LEFT JOIN %s evnTable ON evnTable."Patient_Identifier" = enrTable."Patient_Identifier" AND
                                                       evnTable.enrollment_date = enrTable.enrollment_date AND
