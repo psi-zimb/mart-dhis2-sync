@@ -205,7 +205,7 @@ public class SyncRepository {
 
             logger.info("Request URI---> "+ uri);
             logger.info("Request body--->\n"+ body);
-            boolean dhisSync = PushController.COMPARE_EVENTS ? compareEvents(body) : false;
+            boolean dhisSync = PushController.IS_DATE_RANGE_SYNC ? compareEvents(body) : false;
             logger.info("Should Send to DHIS or Not ? ------>" + dhisSync);
             if(dhisSync){
                 responseEntity = restTemplate

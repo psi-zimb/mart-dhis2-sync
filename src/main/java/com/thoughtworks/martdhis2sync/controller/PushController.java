@@ -54,7 +54,7 @@ public class PushController {
     private List<EnrollmentAPIPayLoad> enrollmentsToIgnore = new ArrayList<>();
 
     public static boolean IS_DELTA_EXISTS = false;
-    public static boolean COMPARE_EVENTS = false;
+    public static boolean IS_DATE_RANGE_SYNC = false;
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private String dateFormat = "yyyy-MM-dd";
 
@@ -65,7 +65,7 @@ public class PushController {
         loggerService.addLog(requestBody.getService(), requestBody.getUser(), requestBody.getComment(), requestBody.getStartDate(), requestBody.getEndDate());
         String startDate = requestBody.getStartDate() != null ? getStringFromDate(requestBody.getStartDate(),dateFormat) : "";
         String endDate = requestBody.getEndDate() != null ? getStringFromDate(requestBody.getEndDate(),dateFormat) : "";
-        COMPARE_EVENTS = checkDates(startDate, endDate) ? true : false;
+        IS_DATE_RANGE_SYNC = checkDates(startDate, endDate) ? true : false;
         dhisMetaDataService.filterByTypeDateTime();
         Map<String, Object> mapping;
         LookupTable lookupTable;
