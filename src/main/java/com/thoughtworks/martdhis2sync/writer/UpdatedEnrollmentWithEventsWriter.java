@@ -104,7 +104,7 @@ public class UpdatedEnrollmentWithEventsWriter {
             payLoads = groupedEnrollmentPayLoad.values();
             String apiBody = getAPIBody(groupedEnrollmentPayLoad);
             if (!JobService.isIS_JOB_FAILED()) {
-                enrollmentResponse = syncRepository.sendEnrollmentData(URI, apiBody);
+                enrollmentResponse = syncRepository.sendEnrollmentDataForUpdate(URI, apiBody);
             }
         } catch (Exception e){
             JobService.setIS_JOB_FAILED(true);

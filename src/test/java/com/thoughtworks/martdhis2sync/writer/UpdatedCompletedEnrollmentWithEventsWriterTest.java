@@ -147,11 +147,11 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
         when(syncResponse.getResponse()).thenReturn(response);
 
         EnrollmentDetails enrollmentDetails1 = new EnrollmentDetails(payLoad1.getProgram(), payLoad1.getEnrollmentId(),
-                payLoad1.getProgramStartDate(), "2018-10-12T12:00:00.234", payLoad1.getStatus());
+                payLoad1.getProgramStartDate(), "2018-10-12T12:00:00.234", payLoad1.getStatus(),new ArrayList<>());
         EnrollmentDetails enrollmentDetails2 = new EnrollmentDetails(payLoad2.getProgram(), payLoad2.getEnrollmentId(),
-                payLoad2.getProgramStartDate(), "2018-10-12T12:00:00.234", payLoad2.getStatus());
+                payLoad2.getProgramStartDate(), "2018-10-12T12:00:00.234", payLoad2.getStatus(),new ArrayList<>());
         EnrollmentDetails enrollmentDetails3 = new EnrollmentDetails(payLoad3.getProgram(), payLoad3.getEnrollmentId(),
-                payLoad3.getProgramStartDate(), "2018-10-12T12:00:00.234", payLoad3.getStatus());
+                payLoad3.getProgramStartDate(), "2018-10-12T12:00:00.234", payLoad3.getStatus(),new ArrayList<>());
         instancesWithEnrollments.put(instanceId1, Collections.singletonList(enrollmentDetails1));
         instancesWithEnrollments.put(instanceId2, Collections.singletonList(enrollmentDetails2));
         instancesWithEnrollments.put(instanceId3, Collections.singletonList(enrollmentDetails3));
@@ -186,13 +186,13 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
                 "}" +
                 "]" +
                 "}";
-        when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
+        when(syncRepository.sendEnrollmentDataForUpdate(uri, requestBody)).thenReturn(responseEntity);
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(response.getImportSummaries()).thenReturn(new ArrayList<>());
 
         writer.write(processedTableRows);
 
-        verify(syncRepository, times(1)).sendEnrollmentData(uri, requestBody);
+        verify(syncRepository, times(1)).sendEnrollmentDataForUpdate(uri, requestBody);
         verify(responseEntity, times(1)).getBody();
         verify(syncResponse, times(1)).getResponse();
         verify(response, times(1)).getImportSummaries();
@@ -239,13 +239,13 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
                 "}" +
                 "]" +
                 "}";
-        when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
+        when(syncRepository.sendEnrollmentDataForUpdate(uri, requestBody)).thenReturn(responseEntity);
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(response.getImportSummaries()).thenReturn(new ArrayList<>());
 
         writer.write(processedTableRows);
 
-        verify(syncRepository, times(1)).sendEnrollmentData(uri, requestBody);
+        verify(syncRepository, times(1)).sendEnrollmentDataForUpdate(uri, requestBody);
         verify(responseEntity, times(1)).getBody();
         verify(syncResponse, times(1)).getResponse();
         verify(response, times(1)).getImportSummaries();
@@ -315,13 +315,13 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
                 )
         );
 
-        when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
+        when(syncRepository.sendEnrollmentDataForUpdate(uri, requestBody)).thenReturn(responseEntity);
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(response.getImportSummaries()).thenReturn(importSummaries);
 
         writer.write(processedTableRows);
 
-        verify(syncRepository, times(1)).sendEnrollmentData(uri, requestBody);
+        verify(syncRepository, times(1)).sendEnrollmentDataForUpdate(uri, requestBody);
         verify(responseEntity, times(1)).getBody();
         verify(syncResponse, times(1)).getResponse();
         verify(response, times(1)).getImportSummaries();
@@ -396,12 +396,12 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
                 )
         );
 
-        when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
+        when(syncRepository.sendEnrollmentDataForUpdate(uri, requestBody)).thenReturn(responseEntity);
         when(response.getImportSummaries()).thenReturn(importSummaries);
 
         writer.write(processedTableRows);
 
-        verify(syncRepository, times(1)).sendEnrollmentData(uri, requestBody);
+        verify(syncRepository, times(1)).sendEnrollmentDataForUpdate(uri, requestBody);
         verify(responseEntity, times(2)).getBody();
         verify(syncResponse, times(1)).getResponse();
         verify(response, times(1)).getImportSummaries();
@@ -440,12 +440,12 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
 
         String message = "Program has another active enrollment going on. Not possible to incomplete";
 
-        when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
+        when(syncRepository.sendEnrollmentDataForUpdate(uri, requestBody)).thenReturn(responseEntity);
         when(syncResponse.getMessage()).thenReturn(message);
 
         writer.write(processedTableRows);
 
-        verify(syncRepository, times(1)).sendEnrollmentData(uri, requestBody);
+        verify(syncRepository, times(1)).sendEnrollmentDataForUpdate(uri, requestBody);
         verify(responseEntity, times(2)).getBody();
         verify(syncResponse, times(1)).getMessage();
         verify(logger, times(1)).error("UPDATE COMPLETED ENROLLMENT WITH EVENTS SYNC: " + message);
@@ -468,9 +468,9 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
         List<ProcessedTableRow> processedTableRows = Collections.singletonList(processedTableRow);
 
         EnrollmentDetails enrollmentDetails1 = new EnrollmentDetails(payLoad.getProgram(), "enrollment1",
-                payLoad.getProgramStartDate(), "2018-10-12T12:00:00.234", EnrollmentAPIPayLoad.STATUS_COMPLETED);
+                payLoad.getProgramStartDate(), "2018-10-12T12:00:00.234", EnrollmentAPIPayLoad.STATUS_COMPLETED,new ArrayList<>());
         EnrollmentDetails enrollmentDetails2 = new EnrollmentDetails(payLoad.getProgram(), "enrollment2",
-                "2018-11-12T19:00:00.345", null, EnrollmentAPIPayLoad.STATUS_ACTIVE);
+                "2018-11-12T19:00:00.345", null, EnrollmentAPIPayLoad.STATUS_ACTIVE,new ArrayList<>());
 
         instancesWithEnrollments.clear();
         instancesWithEnrollments.put(instanceId, Arrays.asList(enrollmentDetails1, enrollmentDetails2));
@@ -528,9 +528,9 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
         List<ProcessedTableRow> processedTableRows = Collections.singletonList(processedTableRow);
 
         EnrollmentDetails enrollmentDetails1 = new EnrollmentDetails(payLoad.getProgram(), "enrollment1",
-                payLoad.getProgramStartDate(), "2018-10-12T12:00:00.234", EnrollmentAPIPayLoad.STATUS_COMPLETED);
+                payLoad.getProgramStartDate(), "2018-10-12T12:00:00.234", EnrollmentAPIPayLoad.STATUS_COMPLETED,new ArrayList<>());
         EnrollmentDetails enrollmentDetails2 = new EnrollmentDetails(payLoad.getProgram(), "enrollment2",
-                "2018-11-12T19:00:00.345", null, EnrollmentAPIPayLoad.STATUS_COMPLETED);
+                "2018-11-12T19:00:00.345", null, EnrollmentAPIPayLoad.STATUS_COMPLETED,new ArrayList<>());
 
         instancesWithEnrollments.clear();
         instancesWithEnrollments.put(instanceId, Arrays.asList(enrollmentDetails1, enrollmentDetails2));
@@ -549,13 +549,13 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
                 "]" +
                 "}";
 
-        when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
+        when(syncRepository.sendEnrollmentDataForUpdate(uri, requestBody)).thenReturn(responseEntity);
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(response.getImportSummaries()).thenReturn(new ArrayList<>());
 
         writer.write(processedTableRows);
 
-        verify(syncRepository, times(1)).sendEnrollmentData(uri, requestBody);
+        verify(syncRepository, times(1)).sendEnrollmentDataForUpdate(uri, requestBody);
         verify(responseEntity, times(1)).getBody();
         verify(syncResponse, times(1)).getResponse();
         verify(response, times(1)).getImportSummaries();
@@ -590,18 +590,18 @@ public class UpdatedCompletedEnrollmentWithEventsWriterTest {
                 "}";
 
         EnrollmentDetails enrollmentDetails1 = new EnrollmentDetails(payLoad1.getProgram(), payLoad1.getEnrollmentId(),
-                payLoad1.getProgramStartDate(), "2018-10-12T12:00:00.234", EnrollmentAPIPayLoad.STATUS_ACTIVE);
+                payLoad1.getProgramStartDate(), "2018-10-12T12:00:00.234", EnrollmentAPIPayLoad.STATUS_ACTIVE,new ArrayList<>());
 
         instancesWithEnrollments.clear();
         instancesWithEnrollments.put(instanceId, Collections.singletonList(enrollmentDetails1));
 
-        when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
+        when(syncRepository.sendEnrollmentDataForUpdate(uri, requestBody)).thenReturn(responseEntity);
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(response.getImportSummaries()).thenReturn(new ArrayList<>());
 
         writer.write(processedTableRows);
 
-        verify(syncRepository, times(1)).sendEnrollmentData(uri, requestBody);
+        verify(syncRepository, times(1)).sendEnrollmentDataForUpdate(uri, requestBody);
         verify(responseEntity, times(1)).getBody();
         verify(syncResponse, times(1)).getResponse();
         verify(response, times(1)).getImportSummaries();

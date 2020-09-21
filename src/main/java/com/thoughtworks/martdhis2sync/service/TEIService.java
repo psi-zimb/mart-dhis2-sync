@@ -32,7 +32,7 @@ import static com.thoughtworks.martdhis2sync.util.MarkerUtil.*;
 @Component
 public class TEIService {
     private final String TEI_ENROLLMENTS_URI = "/api/trackedEntityInstances?" +
-            "fields=trackedEntityInstance,enrollments[program,enrollment,enrollmentDate,completedDate,status]&" +
+            "fields=trackedEntityInstance,enrollments[program,enrollment,enrollmentDate,completedDate,status,events]&" +
             "program=%s&trackedEntityInstance=%s";
 
     private final String RECORDS_WITH_INVALID_ORG_UNIT_QUERY =
@@ -145,6 +145,7 @@ public class TEIService {
             List<String> instanceIdsList = getInstanceIds(deltaInstanceIds);
             String program = deltaInstanceIds.get(0).get("program").toString();
             logger.info("instanceIdsList : " + instanceIdsList.size());
+            logger.info("program name is ->"+ program);
             int lowerLimit = 0;
             int upperLimit = TEI_FILTER_URI_LIMIT;
             List<TrackedEntityInstanceInfo> result = new ArrayList<>();

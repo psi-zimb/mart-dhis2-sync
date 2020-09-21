@@ -184,13 +184,13 @@ public class TEIServiceTest {
         map2.put("program", "program");
 
         String url = "/api/trackedEntityInstances?" +
-                "fields=trackedEntityInstance,enrollments[program,enrollment,enrollmentDate,completedDate,status]&" +
+                "fields=trackedEntityInstance,enrollments[program,enrollment,enrollmentDate,completedDate,status,events]&" +
                 "program=program&trackedEntityInstance=instance1;instance2";
 
-        EnrollmentDetails enrollment1 = new EnrollmentDetails("program", "enrollment1", "2018-10-22", "2018-12-10", "COMPLETED");
-        EnrollmentDetails enrollment2 = new EnrollmentDetails("program", "enrollment2", "2018-10-22", null, "ACTIVE");
-        EnrollmentDetails enrollment3 = new EnrollmentDetails("program2", "enrollment3", "2018-10-22", null, "ACTIVE");
-        EnrollmentDetails enrollment4 = new EnrollmentDetails("program2", "enrollment4", "2018-10-22", null, "ACTIVE");
+        EnrollmentDetails enrollment1 = new EnrollmentDetails("program", "enrollment1", "2018-10-22", "2018-12-10", "COMPLETED",new ArrayList<>());
+        EnrollmentDetails enrollment2 = new EnrollmentDetails("program", "enrollment2", "2018-10-22", null, "ACTIVE",new ArrayList<>());
+        EnrollmentDetails enrollment3 = new EnrollmentDetails("program2", "enrollment3", "2018-10-22", null, "ACTIVE",new ArrayList<>());
+        EnrollmentDetails enrollment4 = new EnrollmentDetails("program2", "enrollment4", "2018-10-22", null, "ACTIVE",new ArrayList<>());
 
         TrackedEntityInstanceInfo trackedEntityInstance1 = new TrackedEntityInstanceInfo();
         trackedEntityInstance1.setEnrollments(Arrays.asList(enrollment1, enrollment2, enrollment3, enrollment4));
@@ -226,7 +226,7 @@ public class TEIServiceTest {
         map2.put("program", "program");
 
         String url = "/api/trackedEntityInstances?" +
-                "fields=trackedEntityInstance,enrollments[program,enrollment,enrollmentDate,completedDate,status]&" +
+                "fields=trackedEntityInstance,enrollments[program,enrollment,enrollmentDate,completedDate,status,events]&" +
                 "program=program&trackedEntityInstance=instance1;instance2";
 
         when(patientDAO.getDeltaEnrollmentInstanceIds(enrollment, eventTable, programName)).thenReturn(Arrays.asList(map1, map2));

@@ -134,7 +134,7 @@ public class UpdatedCompletedEnrollmentTaskletTest {
         when(BatchUtil.GetUTCDateTimeAsString()).thenReturn(date);
         when(BatchUtil.removeLastChar(any())).thenReturn(getEnrollment(payLoad1));
 
-        when(syncRepository.sendEnrollmentData(uri, requestBody)).thenReturn(responseEntity);
+        when(syncRepository.sendEnrollmentDataForUpdate(uri, requestBody)).thenReturn(responseEntity);
         when(responseEntity.getBody()).thenReturn(syncResponse);
         when(syncResponse.getResponse()).thenReturn(response);
         when(chunkContext.getStepContext()).thenReturn(stepContext);
@@ -148,7 +148,7 @@ public class UpdatedCompletedEnrollmentTaskletTest {
 
         tasklet.execute(stepContribution, chunkContext);
 
-        verify(syncRepository, times(1)).sendEnrollmentData(uri, requestBody);
+        verify(syncRepository, times(1)).sendEnrollmentDataForUpdate(uri, requestBody);
         verify(responseEntity, times(1)).getBody();
         verify(syncResponse, times(1)).getResponse();
         verify(response, times(1)).getImportSummaries();
@@ -170,7 +170,7 @@ public class UpdatedCompletedEnrollmentTaskletTest {
 
         tasklet.execute(stepContribution, chunkContext);
 
-        verify(syncRepository, times(1)).sendEnrollmentData(uri, requestBody);
+        verify(syncRepository, times(1)).sendEnrollmentDataForUpdate(uri, requestBody);
         verify(responseEntity, times(1)).getBody();
         verify(syncResponse, times(1)).getResponse();
         verify(response, times(1)).getImportSummaries();
@@ -186,7 +186,7 @@ public class UpdatedCompletedEnrollmentTaskletTest {
         EnrollmentUtil.enrollmentsToSaveInTracker.clear();
         tasklet.execute(stepContribution, chunkContext);
 
-        verify(syncRepository, times(0)).sendEnrollmentData(anyString(), anyString());
+        verify(syncRepository, times(0)).sendEnrollmentDataForUpdate(anyString(), anyString());
         verify(trackersHandler, times(0)).updateInEnrollmentTracker("superman", logPrefix, logger);
         verify(trackersHandler, times(0)).insertInEventTracker("superman", logPrefix, logger);
     }
@@ -201,7 +201,7 @@ public class UpdatedCompletedEnrollmentTaskletTest {
 
         tasklet.execute(stepContribution, chunkContext);
 
-        verify(syncRepository, times(1)).sendEnrollmentData(anyString(), anyString());
+        verify(syncRepository, times(1)).sendEnrollmentDataForUpdate(anyString(), anyString());
         verify(trackersHandler, times(1)).updateInEnrollmentTracker("superman", logPrefix, logger);
         verify(trackersHandler, times(0)).insertInEventTracker("superman", logPrefix, logger);
     }

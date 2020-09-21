@@ -1,22 +1,23 @@
 package com.thoughtworks.martdhis2sync.repository;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.thoughtworks.martdhis2sync.controller.PushController;
 import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.service.JobService;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
+import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -24,7 +25,10 @@ import org.springframework.web.client.RestTemplate;
 
 
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Repository
 public class SyncRepository {
@@ -54,6 +58,10 @@ public class SyncRepository {
 
     public ResponseEntity<DHISEnrollmentSyncResponse> sendEnrollmentData(String uri, String body) throws Exception {
         return sync(uri, body, DHISEnrollmentSyncResponse.class);
+    }
+
+    public ResponseEntity<DHISEnrollmentSyncResponse> sendEnrollmentDataForUpdate(String uri, String body) throws Exception {
+        return syncEnrollments(uri, body, DHISEnrollmentSyncResponse.class);
     }
 
     public ResponseEntity<OrgUnitResponse> getOrgUnits(String url) {
@@ -147,7 +155,6 @@ public class SyncRepository {
 
             logger.info("Request URI---> "+ uri);
             logger.info("Request body--->\n"+ body);
-
             responseEntity = restTemplate
                     .exchange(dhis2Url + uri, HttpMethod.POST, new HttpEntity<>(body, getHttpHeaders()), type);
 
@@ -190,5 +197,120 @@ public class SyncRepository {
             throw e;
         }
         return responseEntity;
+    }
+
+    private <T> ResponseEntity<T> syncEnrollments(String uri, String body, Class<T> type) throws Exception {
+        ResponseEntity<T> responseEntity = null;
+        try {
+
+            logger.info("Request URI---> "+ uri);
+            logger.info("Request body--->\n"+ body);
+            boolean dhisSync = PushController.COMPARE_EVENTS ? compareEvents(body) : false;
+            logger.info("Should Send to DHIS or Not ? ------>" + dhisSync);
+            if(dhisSync){
+                responseEntity = restTemplate
+                        .exchange(dhis2Url + uri, HttpMethod.POST, new HttpEntity<>(body, getHttpHeaders()), type);
+
+                logger.info("Response---------->\n" + responseEntity);
+
+                logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
+                return responseEntity;
+            }
+        } catch (HttpClientErrorException e) {
+            responseEntity = new ResponseEntity<>(
+                    new Gson().fromJson(e.getResponseBodyAsString(), type),
+                    e.getStatusCode());
+            logger.error("e.getResponseBodyAsString() -> " + e.getResponseBodyAsString());
+            if (e.getStatusCode().value() == 409) {
+                if (e.getResponseBodyAsString().contains("conflicts")) {
+                    DHISSyncResponse response = (DHISSyncResponse)responseEntity.getBody();
+                    if(response.getResponse() != null)
+                    {
+                        if(response.getResponse().getImportSummaries() != null)
+                        {
+                            List<Conflict> conflicts = response.getResponse().getImportSummaries().get(0).getConflicts();
+                            for(Conflict conflict : conflicts)
+                                loggerService.collateLogMessage(conflict.getValue());
+                        }
+                    }
+                } else {
+                    loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
+                }
+            }
+            logger.error("HttpClientErrorException -> " + responseEntity.getBody());
+            logger.error(LOG_PREFIX + e);
+        } catch (HttpServerErrorException e) {
+            if (e.getStatusCode().value() == 502) {
+                loggerService.collateLogMessage("DHIS System is Having Issues to Connect. Please try again");
+            } else {
+                loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
+            }
+            logger.error(LOG_PREFIX + e);
+            throw e;
+        } catch (Exception e) {
+            loggerService.collateLogMessage(String.format("Exception message : %s %nCaused by : %s", e.getMessage(), e.getCause()));
+            throw e;
+        }
+        return responseEntity;
+    }
+
+    private boolean compareEvents(String requestBody) {
+        Gson g = new Gson();
+        EnrollmentsList list = g.fromJson(requestBody,EnrollmentsList.class);
+        EnrollmentAPIPayLoadTemp enrollmentData = list.getEnrollments() != null ? list.getEnrollments().get(0) : null;
+        logger.info("EnrollmentAPIPayload ->" + enrollmentData.toString());
+        logger.info("Specific TEI Details ->"+ TEIUtil.getInstancesWithEnrollments().get(enrollmentData.getEvents().get(0).getTrackedEntityInstance()));
+        if(enrollmentData != null) {
+            List<EnrollmentDetails> enrollmentDetails = TEIUtil.getInstancesWithEnrollments().get(enrollmentData.getEvents().get(0).getTrackedEntityInstance());
+            Optional<EnrollmentDetails> matchingEnrollmentObject = enrollmentDetails.stream().
+                    filter(p -> p.getEnrollment().equals(enrollmentData.getEnrollment())).
+                    findFirst();
+            logger.info("matching object details->"+ matchingEnrollmentObject.orElse(null));
+            EnrollmentDetails enrollment = matchingEnrollmentObject.orElse(null);
+            if (enrollment != null) {
+                List<EventTemp> source = enrollment.getEvents();
+                //As We are getting events sorted by date updated we will take latest Event and compare with current Event from Analytics DB
+                if (source.size() != 0 && enrollmentData.getEvents() != null & enrollmentData.getEvents().size() != 0) {
+                    EventTemp latestEvent = source.get(source.size() - 1);
+                    EventTemp destination = enrollmentData.getEvents().get(0);
+                    logger.info("destination dataValues ->" + destination.getDataValues().size());
+                    //for (EventTemp eventSource : source) {
+                    logger.info("Source dataValues ->" + latestEvent.getDataValues().size());
+                    logger.info("result ->" + (latestEvent.getDataValues().size() == destination.getDataValues().size()));
+                    if (latestEvent.getDataValues().size() == destination.getDataValues().size()) {
+                        logger.info("Source DataValues are ->" + latestEvent.getDataValues());
+                        logger.info("Destination DataValues are ->" + destination.getDataValues());
+                        if (compareDataValues(latestEvent.getDataValues(), destination.getDataValues()))
+                            return false;
+                    }
+                    // }
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean compareDataValues(List<Map<String, String>> source, List<Map<String, String>> destination) {
+        int toMatchCount = destination.size();
+        int count = 0;
+        for (Map<String, String> temp : destination) {
+            if (compareDataValueObjectWRTList(temp, source))
+                count++;
+        }
+        logger.info("Matched count is ->" + count + "\n To be matchedCount is  ->"+toMatchCount);
+        if (count == toMatchCount)
+            return true;
+        else
+            return false;
+        //use matchedCount-- > compare each dataValues in requestBody to DHIS dataVale , when ever match happens increase the count . if count matches requestBody dataValue length don;t proceee it .
+    }
+
+    private boolean compareDataValueObjectWRTList(Map<String, String> temp, List<Map<String, String>> source) {
+        for (Map<String, String> temp1 : source) {
+            if (temp.entrySet().stream()
+                    .allMatch(e -> e.getValue().equals(temp1.get(e.getKey()))))
+                return true;
+        }
+        return false;
     }
 }

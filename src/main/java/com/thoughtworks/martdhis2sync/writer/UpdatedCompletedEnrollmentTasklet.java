@@ -61,7 +61,7 @@ public class UpdatedCompletedEnrollmentTasklet implements Tasklet {
         List<EnrollmentAPIPayLoad> completedEnrollments = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
         for(EnrollmentAPIPayLoad enrollment : completedEnrollments) {
             String apiBody = getApiBody(enrollment);
-            ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponse = syncRepository.sendEnrollmentData(URI, apiBody);
+            ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponse = syncRepository.sendEnrollmentDataForUpdate(URI, apiBody);
             processResponseEntity(enrollmentResponse);
         }
         updateTrackers(user);
@@ -70,10 +70,12 @@ public class UpdatedCompletedEnrollmentTasklet implements Tasklet {
 
     private void processResponseEntity(ResponseEntity<DHISEnrollmentSyncResponse> responseEntity) {
         Iterator<EnrollmentAPIPayLoad> iterator = EnrollmentUtil.enrollmentsToSaveInTracker.iterator();
-        List<EnrollmentImportSummary> enrollmentImportSummaries = responseEntity.getBody().getResponse().getImportSummaries();
-        if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
-            JobService.setIS_JOB_FAILED(true);
-            enrollmentResponseHandler.processCompletedSecondStepResponse(enrollmentImportSummaries, iterator, logger, LOG_PREFIX);
+        if(responseEntity != null) {
+            List<EnrollmentImportSummary> enrollmentImportSummaries = responseEntity.getBody().getResponse().getImportSummaries();
+            if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+                JobService.setIS_JOB_FAILED(true);
+                enrollmentResponseHandler.processCompletedSecondStepResponse(enrollmentImportSummaries, iterator, logger, LOG_PREFIX);
+            }
         }
     }
 
