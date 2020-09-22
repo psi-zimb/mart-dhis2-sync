@@ -255,8 +255,8 @@ public class SyncRepository {
     }
 
     private boolean compareEvents(String requestBody) {
-        Gson g = new Gson();
-        EnrollmentsList list = g.fromJson(requestBody,EnrollmentsList.class);
+        Gson jsonFormatter = new Gson();
+        EnrollmentsList list = jsonFormatter.fromJson(requestBody,EnrollmentsList.class);
         EnrollmentAPIPayLoadTemp enrollmentData = list.getEnrollments() != null ? list.getEnrollments().get(0) : null;
         logger.info("EnrollmentAPIPayload ->" + enrollmentData.toString());
         logger.info("Specific TEI Details ->"+ TEIUtil.getInstancesWithEnrollments().get(enrollmentData.getEvents().get(0).getTrackedEntityInstance()));
@@ -265,25 +265,19 @@ public class SyncRepository {
             Optional<EnrollmentDetails> matchingEnrollmentObject = enrollmentDetails.stream().
                     filter(p -> p.getEnrollment().equals(enrollmentData.getEnrollment())).
                     findFirst();
-            logger.info("matching object details->"+ matchingEnrollmentObject.orElse(null));
             EnrollmentDetails enrollment = matchingEnrollmentObject.orElse(null);
             if (enrollment != null) {
                 List<EventTemp> source = enrollment.getEvents();
-                //As We are getting events sorted by date updated we will take latest Event and compare with current Event from Analytics DB
                 if (source.size() != 0 && enrollmentData.getEvents() != null & enrollmentData.getEvents().size() != 0) {
                     EventTemp latestEvent = source.get(source.size() - 1);
+                    //As We are getting events sorted by date updated, we will take latest Event and compare with current Event from Analytics DB
                     EventTemp destination = enrollmentData.getEvents().get(0);
-                    logger.info("destination dataValues ->" + destination.getDataValues().size());
-                    //for (EventTemp eventSource : source) {
-                    logger.info("Source dataValues ->" + latestEvent.getDataValues().size());
-                    logger.info("result ->" + (latestEvent.getDataValues().size() == destination.getDataValues().size()));
                     if (latestEvent.getDataValues().size() == destination.getDataValues().size()) {
                         logger.info("Source DataValues are ->" + latestEvent.getDataValues());
                         logger.info("Destination DataValues are ->" + destination.getDataValues());
                         if (compareDataValues(latestEvent.getDataValues(), destination.getDataValues()))
                             return false;
                     }
-                    // }
                 }
             }
         }
@@ -297,12 +291,11 @@ public class SyncRepository {
             if (compareDataValueObjectWRTList(temp, source))
                 count++;
         }
-        logger.info("Matched count is ->" + count + "\n To be matchedCount is  ->"+toMatchCount);
+        logger.info("Matched count is ->" + count + "\n To be matchedCount is  ->" + toMatchCount);
         if (count == toMatchCount)
             return true;
         else
             return false;
-        //use matchedCount-- > compare each dataValues in requestBody to DHIS dataVale , when ever match happens increase the count . if count matches requestBody dataValue length don;t proceee it .
     }
 
     private boolean compareDataValueObjectWRTList(Map<String, String> temp, List<Map<String, String>> source) {
