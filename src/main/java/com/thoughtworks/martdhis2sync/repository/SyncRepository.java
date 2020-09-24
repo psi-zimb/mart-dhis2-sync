@@ -205,6 +205,7 @@ public class SyncRepository {
 
             logger.info("Request URI---> "+ uri);
             logger.info("Request body--->\n"+ body);
+            logger.info("ISDATARANGESYNC ->"+ PushController.IS_DATE_RANGE_SYNC);
             boolean dhisSync = PushController.IS_DATE_RANGE_SYNC ? compareEvents(body) : false;
             logger.info("Should Send to DHIS or Not ? ------>" + dhisSync);
             if(dhisSync){
@@ -259,19 +260,25 @@ public class SyncRepository {
         EnrollmentsList list = jsonFormatter.fromJson(requestBody,EnrollmentsList.class);
         EnrollmentAPIPayLoadTemp enrollmentData = list.getEnrollments() != null ? list.getEnrollments().get(0) : null;
         logger.info("EnrollmentAPIPayload ->" + enrollmentData.toString());
-        logger.info("Specific TEI Details ->"+ TEIUtil.getInstancesWithEnrollments().get(enrollmentData.getEvents().get(0).getTrackedEntityInstance()));
-        if(enrollmentData != null) {
+        if(enrollmentData != null && enrollmentData.getEvents()!=null && enrollmentData.getEvents().size() != 0 ) {
             List<EnrollmentDetails> enrollmentDetails = TEIUtil.getInstancesWithEnrollments().get(enrollmentData.getEvents().get(0).getTrackedEntityInstance());
+            logger.info("Enrollment details -> "+ enrollmentDetails);
             Optional<EnrollmentDetails> matchingEnrollmentObject = enrollmentDetails.stream().
                     filter(p -> p.getEnrollment().equals(enrollmentData.getEnrollment())).
                     findFirst();
             EnrollmentDetails enrollment = matchingEnrollmentObject.orElse(null);
+            logger.info("Enrollment -> " + enrollment);
             if (enrollment != null) {
                 List<EventTemp> source = enrollment.getEvents();
+                logger.info("source -> "+ source);
+                logger.info("enrollment data events ->"+ enrollmentData.getEvents());
+                logger.info("size ->" + enrollmentData.getEvents().size());
                 if (source.size() != 0 && enrollmentData.getEvents() != null & enrollmentData.getEvents().size() != 0) {
                     EventTemp latestEvent = source.get(source.size() - 1);
                     //As We are getting events sorted by date updated, we will take latest Event and compare with current Event from Analytics DB
                     EventTemp destination = enrollmentData.getEvents().get(0);
+                    logger.info("Source DataValues are ->" + latestEvent.getDataValues());
+                    logger.info("Destination DataValues are ->" + destination.getDataValues());
                     if (latestEvent.getDataValues().size() == destination.getDataValues().size()) {
                         logger.info("Source DataValues are ->" + latestEvent.getDataValues());
                         logger.info("Destination DataValues are ->" + destination.getDataValues());
@@ -305,5 +312,16 @@ public class SyncRepository {
                 return true;
         }
         return false;
+    }
+
+    public static void main(String[] args) {
+
+        String requestBody = "{\"enrollments\":[{\"enrollment\":\"XYyPAKFaaaY\", \"trackedEntityInstance\":\"uWTp6ZZctdC\", \"orgUnit\":\"wI7limHiG8V\", \"program\":\"vatFxlZR2lj\", \"enrollmentDate\":\"2020-09-09\", \"incidentDate\":\"2020-09-09\", \"status\":\"ACTIVE\", \"events\":[]}]}";
+        Gson g = new Gson();
+        EnrollmentsList list = g.fromJson(requestBody,EnrollmentsList.class);
+        EnrollmentAPIPayLoadTemp enrollmentData = list.getEnrollments() != null ? list.getEnrollments().get(0) : null;
+//        ObjectMapper mapper = new ObjectMapper();
+//        List<EnrollmentAPIPayLoad> enrollmentData = mapper.readValue(requestBody, new TypeReference<List<EnrollmentAPIPayLoad>>(){});
+        //System.out.println(list.getEnrollments().get(0).getEvents().get(0).getDataValues());
     }
 }

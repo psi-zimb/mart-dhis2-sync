@@ -160,8 +160,8 @@ public class MappingReader {
         String syncedCompletedEnrollmentIds = getEnrollmentIds(enrollmentsToIgnore);
         String andClause = StringUtils.isEmpty(syncedCompletedEnrollmentIds) ? ""
                 : String.format("AND enrolTracker.enrollment_id NOT IN (%s)", syncedCompletedEnrollmentIds);
-        String sql = String.format(getSql(updatedCompletedEnrWithEventsResourceWithDateRange), enrollmentLookupTable, startDate, endDate, programName,
-                eventLookupTable, enrollmentLookupTable, startDate, endDate, programName, andClause);
+        String sql = String.format(getSql(updatedCompletedEnrWithEventsResourceWithDateRange), enrollmentLookupTable, startDate,
+                eventLookupTable, enrollmentLookupTable, startDate, endDate,  andClause);
         return get(sql);
     }
 
@@ -183,8 +183,8 @@ public class MappingReader {
         String syncedCompletedEnrollmentIds = getEnrollmentIds(enrollmentsToIgnore);
         String andClause = StringUtils.isEmpty(syncedCompletedEnrollmentIds) ? ""
                 : String.format("AND enrolTracker.enrollment_id NOT IN (%s)", syncedCompletedEnrollmentIds);
-        String sql = String.format(getSql(updatedCancelledEnrWithEventsResourceWithDateRange), enrollmentLookupTable, startDate, endDate, programName,
-                eventLookupTable, enrollmentLookupTable, startDate, endDate, programName, andClause);
+        String sql = String.format(getSql(updatedCancelledEnrWithEventsResourceWithDateRange), enrollmentLookupTable, startDate,
+                eventLookupTable, enrollmentLookupTable, startDate, endDate, andClause);
         return get(sql);
     }
 
@@ -223,8 +223,8 @@ public class MappingReader {
         String syncedCompletedEnrollmentIds = getEnrollmentIds(enrollmentsToIgnore);
         String andClause = StringUtils.isEmpty(syncedCompletedEnrollmentIds) ? ""
                 : String.format("AND enrolTracker.enrollment_id NOT IN (%s)", syncedCompletedEnrollmentIds);
-        String sql = String.format(getSql(updatedActiveEnrWithEventsResourceWithDateRange), enrollmentLookupTable, startDate, endDate, programName,
-                eventLookupTable, enrollmentLookupTable, startDate, endDate, programName, andClause);
+        String sql = String.format(getSql(updatedActiveEnrWithEventsResourceWithDateRange), enrollmentLookupTable, startDate,
+                eventLookupTable, enrollmentLookupTable, startDate, endDate, andClause);
         return get(sql);
     }
 

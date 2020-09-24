@@ -1,52 +1,16 @@
 SELECT
   COALESCE(enrollmentsTable.program, eventsTable.program)   AS program,
   insTracker.instance_id
-FROM (
-        (SELECT enrTable.*
-          FROM %s enrTable
-          INNER JOIN marker enrollment_marker
-              ON enrTable.date_created :: DATE BETWEEN '%s' AND '%s'
-              AND category = 'new_completed_enrollment' AND program_name = '%s'
-         ) UNION
-         (SELECT enrTable.*
-          FROM %s enrTable
-          INNER JOIN marker enrollment_marker
-              ON enrTable.date_created :: DATE BETWEEN '%s' AND '%s'
-              AND category = 'updated_completed_enrollment' AND program_name = '%s'
-         ) UNION
-         (SELECT enrTable.*
-          FROM %s enrTable
-          INNER JOIN marker enrollment_marker
-              ON enrTable.date_created :: DATE BETWEEN '%s' AND '%s'
-              AND category = 'new_active_enrollment' AND program_name = '%s'
-         ) UNION
-         (SELECT enrTable.*
-          FROM %s enrTable
-          INNER JOIN marker enrollment_marker
-              ON enrTable.date_created :: DATE BETWEEN '%s' AND '%s'
-              AND category = 'updated_active_enrollment' AND program_name = '%s'
-         ) UNION
-        (SELECT enrTable.*
-         FROM %s enrTable
-             INNER JOIN marker enrollment_marker
-         ON enrTable.date_created :: DATE BETWEEN '%s' AND '%s'
-             AND category = 'new_cancelled_enrollment' AND program_name = '%s'
-        ) UNION
-        (SELECT enrTable.*
-         FROM %s enrTable
-             INNER JOIN marker enrollment_marker
-         ON enrTable.date_created :: DATE BETWEEN '%s' AND '%s'
-             AND category = 'updated_cancelled_enrollment' AND program_name = '%s'
-        )
-     ) AS enrollmentsTable
-FULL OUTER JOIN (SELECT evnTable.*,
+FROM (SELECT enrTable.*
+      FROM %s enrTable
+          WHERE enrTable.enrollment_date :: DATE <= '%s'
+          ) AS enrollmentsTable
+INNER JOIN (SELECT evnTable.*,
                    enrollments.program_unique_id AS event_program_unique_id
                    FROM %s evnTable
                    INNER JOIN %s enrollments ON evnTable."Patient_Identifier" = enrollments."Patient_Identifier"
                               AND evnTable.enrollment_date = COALESCE(enrollments.enrollment_date, evnTable.enrollment_date)
-                   INNER JOIN marker event_marker
-                       ON evnTable.date_created :: DATE BETWEEN '%s' AND '%s'
-                       AND category = 'event' AND program_name = '%s'
+                   AND  evnTable.event_date :: DATE BETWEEN '%s' AND '%s'
                 ) AS eventsTable
     ON enrollmentsTable."Patient_Identifier" = eventsTable."Patient_Identifier"
     AND eventsTable.enrollment_date = COALESCE(enrollmentsTable.enrollment_date, eventsTable.enrollment_date)
