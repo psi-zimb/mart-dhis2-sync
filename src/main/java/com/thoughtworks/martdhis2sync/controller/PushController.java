@@ -198,13 +198,13 @@ public class PushController {
 
         logger.info("=========================Update Complete Enrollment Sync Success=========================\n\n" +
                 "=========================New Active Enrollment Sync Started=========================\n");
-        if(!IS_DATE_RANGE_SYNC) {
-            activeEnrollmentService.triggerJobForNewActiveEnrollments(requestBody.getService(), requestBody.getUser(),
-                    lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), config.getOpenLatestCompletedEnrollment(), startDate, endDate);
 
-            enrollmentsToIgnore = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
-            TrackersHandler.clearTrackerLists();
-        }
+        activeEnrollmentService.triggerJobForNewActiveEnrollments(requestBody.getService(), requestBody.getUser(),
+                lookupTable.getEnrollments(), lookupTable.getEvent(), mappingJson.getEvent(), config.getOpenLatestCompletedEnrollment(), startDate, endDate);
+
+        enrollmentsToIgnore = new ArrayList<>(EnrollmentUtil.enrollmentsToSaveInTracker);
+        TrackersHandler.clearTrackerLists();
+
 
         logger.info("=========================New Active Enrollment Sync Success=========================\n\n" +
                 "=========================Update Active Enrollment Sync Started");
