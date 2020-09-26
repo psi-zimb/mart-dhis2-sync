@@ -1,27 +1,18 @@
 package com.thoughtworks.martdhis2sync.writer;
 
 import com.thoughtworks.martdhis2sync.controller.PushController;
-import com.thoughtworks.martdhis2sync.model.DHISEnrollmentSyncResponse;
-import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
-import com.thoughtworks.martdhis2sync.model.EnrollmentDetails;
-import com.thoughtworks.martdhis2sync.model.EnrollmentImportSummary;
-import com.thoughtworks.martdhis2sync.model.EnrollmentResponse;
-import com.thoughtworks.martdhis2sync.model.Event;
-import com.thoughtworks.martdhis2sync.model.EventTracker;
-import com.thoughtworks.martdhis2sync.model.ProcessedTableRow;
+import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.responseHandler.EnrollmentResponseHandler;
 import com.thoughtworks.martdhis2sync.responseHandler.EventResponseHandler;
 import com.thoughtworks.martdhis2sync.service.JobService;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
-import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import com.thoughtworks.martdhis2sync.util.MarkerUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -29,14 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.removeLastChar;
 import static com.thoughtworks.martdhis2sync.util.EventUtil.getEventTrackers;
@@ -97,6 +81,10 @@ public class UpdatedEnrollmentWithEventsWriter {
     protected void processWrite(List<? extends ProcessedTableRow> tableRows) throws Exception {
         ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponse = null;
         Collection<EnrollmentAPIPayLoad> payLoads = null;
+        if(tableRows.get(0).getPayLoad().getInstanceId() == null){
+            return;
+        }
+
         try {
             PushController.IS_DELTA_EXISTS = true;
             eventTrackers.clear();

@@ -62,6 +62,8 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     @Value("#{jobParameters['service']}")
     private String programName;
 
+
+
     private Iterator<Entry<String, String>> mapIterator;
     public static boolean updateLastSyncedDate = false;
 
@@ -70,6 +72,10 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
         PushController.IS_DELTA_EXISTS = true;
         try {
             StringBuilder instanceApiFormat = new StringBuilder("{\"trackedEntityInstances\":[");
+
+           if (list.get(0).toString().isEmpty()){
+               loggerService.collateLogMessage("Skipping creating instance(client)");
+            }
 
             list.forEach(item -> instanceApiFormat.append(item).append(","));
             instanceApiFormat.replace(instanceApiFormat.length() - 1, instanceApiFormat.length(), "]}");
@@ -126,6 +132,10 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
     }
 
     private void processResponse(List<ImportSummary> importSummaries) {
+        if(importSummaries == null || importSummaries.isEmpty()){
+            loggerService.collateLogMessage(String.format("%s", "Skipped creating an instance."));
+            return;
+        }
         importSummaries.forEach(importSummary -> {
             if (isImported(importSummary)) {
                 while (mapIterator.hasNext()) {
@@ -185,4 +195,5 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
             markerUtil.updateMarkerEntry(programName, CATEGORY_INSTANCE, teiDate);
         }
     }
+
 }

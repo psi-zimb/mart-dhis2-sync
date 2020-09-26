@@ -1,6 +1,8 @@
 package com.thoughtworks.martdhis2sync.service;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.google.gson.internal.LinkedTreeMap;
 import com.thoughtworks.martdhis2sync.dao.MappingDAO;
 import com.thoughtworks.martdhis2sync.dao.PatientDAO;
@@ -24,6 +26,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.SyncFailedException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,10 +35,12 @@ import static com.thoughtworks.martdhis2sync.util.MarkerUtil.*;
 
 @Component
 public class TEIService {
+    private static final String TEI_URI = "/api/trackedEntityInstances?pageSize=10000";
+    private static final String LOG_PREFIX = "TEI Service: ";
+    private static final String TEI_JOB_NAME = "Sync Tracked Entity Instance";
     private final String TEI_ENROLLMENTS_URI = "/api/trackedEntityInstances?" +
             "fields=trackedEntityInstance,enrollments[program,enrollment,enrollmentDate,completedDate,status,events]&" +
             "program=%s&trackedEntityInstance=%s";
-
     private final String RECORDS_WITH_INVALID_ORG_UNIT_QUERY =
             "select \"Patient_Identifier\", \"OrgUnit\" from %s it " +
                     "where (\"OrgUnit\" is null or \"OrgUnit\" not in (select orgunit from orgunit_tracker ot))" +
@@ -43,38 +49,44 @@ public class TEIService {
 
     @Value("${country.org.unit.id.for.patient.data.duplication.check}")
     private String orgUnitID;
-
     @Value("${tracked.entity.filter.uri.limit}")
     private int TEI_FILTER_URI_LIMIT;
-
+    @Value("${tracked.entity.attribute.uic}")
+    private String uicAttributeId;
+    @Value("${tracked.entity.attribute.mothersfirstname}")
+    private String mothersFirstNameAttributeId;
+    @Value("${tracked.entity.attribute.gender}")
+    private String genderAttributeId;
+    @Value("${tracked.entity.attribute.dateofbirth}")
+    private String dateOfBirthAttributeId;
+    @Value("${tracked.entity.attribute.districtofbirth}")
+    private String districtOfBirthAttributeId;
+    @Value("${tracked.entity.attribute.lastname}")
+    private String lastNameAttributeId;
+    @Value("${tracked.entity.attribute.twin}")
+    private String twinAttributeId;
     @Autowired
     private MappingDAO mappingDAO;
-
-    private static final String TEI_URI = "/api/trackedEntityInstances?pageSize=10000";
-
     @Autowired
     private TrackedEntityInstanceStep trackedEntityInstanceStep;
-
     @Autowired
     private JobService jobService;
-
     @Autowired
     private PatientDAO patientDAO;
-
     @Autowired
     private SyncRepository syncRepository;
-
     @Autowired
     @Qualifier("jdbcTemplate")
     private JdbcTemplate jdbcTemplate;
-
-
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private static final String LOG_PREFIX = "TEI Service: ";
-    private static final String TEI_JOB_NAME = "Sync Tracked Entity Instance";
+//
+//
+//    private static final String LOG_PREFIX = "TEI Service: ";
+//    private static final String TEI_JOB_NAME = "Sync Tracked Entity Instance";
+//
 
-    public void triggerJob(String service, String user, String lookupTable, Object mappingObj, List<String> searchableAttributes, List<String> comparableAttributes, String startDate, String endDate)
+    public void triggerJob(String service, String user, String lookupTable, Object mappingObj, List<String> searchableAttributes, List<String> comparableAttributes,String startDate, String endDate)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
             JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
 
@@ -88,6 +100,7 @@ public class TEIService {
         }
     }
 
+
     public void getTrackedEntityInstances(String mappingName, MappingJson mappingJson) throws Exception {
         List<TrackedEntityInstanceInfo> allTEIInfos = new ArrayList<>();
         StringBuilder url = new StringBuilder();
@@ -100,7 +113,7 @@ public class TEIService {
         Gson gson = new Gson();
         LinkedTreeMap instanceMapping = gson.fromJson(mappingJson.getInstance().toString(), LinkedTreeMap.class);
 
-        List<Map<String, Object>> searchableFields = mappingDAO.getSearchableFields(mappingName);
+        List<Map<String, Object>> searchableFields = mappingDAO.getSearchableFieldsValues(mappingName);
 
         if (searchableFields.isEmpty()) {
             TEIUtil.setTrackedEntityInstanceInfos(Collections.emptyList());
@@ -121,13 +134,97 @@ public class TEIService {
             });
             uri.append("&includeAllAttributes=true");
             ResponseEntity<TrackedEntityInstanceResponse> response = syncRepository.getTrackedEntityInstances(url.toString() + uri);
+            List<TrackedEntityInstanceInfo> trackedEntityInstanceInfos;
             if (response != null && response.getBody() != null) {
-                allTEIInfos.addAll(response.getBody().getTrackedEntityInstances());
+                trackedEntityInstanceInfos = response.getBody().getTrackedEntityInstances();
+                if (trackedEntityInstanceInfos.size() > searchableFieldGroup.size()) {
+                    allTEIInfos.addAll(getUniqueInstanceSet(trackedEntityInstanceInfos, mappingName));
+                } else {
+                    allTEIInfos.addAll(trackedEntityInstanceInfos);
+                }
             }
         }
 
         TEIUtil.setTrackedEntityInstanceInfos(allTEIInfos);
         logger.info("TEIUtil.getTrackedEntityInstanceInfos().size(): " + TEIUtil.getTrackedEntityInstanceInfos().size());
+    }
+
+    private Collection<? extends TrackedEntityInstanceInfo> getUniqueInstanceSet(List<TrackedEntityInstanceInfo> trackedEntityInstanceInfos, String mappingName) throws IOException {
+        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
+        List<TrackedEntityInstanceInfo> trackedEntityInstanceInfoList = new ArrayList<>();
+        List<Map<String, Object>> instanceFieldsForAllLocalInstances = mappingDAO.getInstanceFieldsValues(mappingName);
+        instanceFieldsForAllLocalInstances.stream().forEach(localInstance -> {
+            JsonObject localInstanceJSON = gson.toJsonTree(localInstance).getAsJsonObject();
+            String uic = localInstanceJSON.get("UIC").getAsString();
+            List<TrackedEntityInstanceInfo> teiInfos = getInstancesForUIC(uic, trackedEntityInstanceInfos);
+            if (teiInfos.size() == 1) {
+                trackedEntityInstanceInfoList.add(teiInfos.get(0));
+            } else if (teiInfos.size() > 1) {
+                trackedEntityInstanceInfoList.add(getDeDuplicatedInstance(teiInfos, localInstanceJSON));
+            }
+        });
+        return trackedEntityInstanceInfoList;
+    }
+
+    private TrackedEntityInstanceInfo getDeDuplicatedInstance(List<TrackedEntityInstanceInfo> teiInfos, JsonObject tableRowJsonObject) {
+        List<TrackedEntityInstanceInfo> teiInfoList = teiInfos.stream().filter(teiInfo -> {
+            try {
+                return isSameClient(teiInfo, tableRowJsonObject);
+            } catch (ParseException e) {
+                return false;
+            }
+        }).collect(Collectors.toList());
+        if (teiInfoList.size() == 1) {
+            return teiInfoList.get(0);
+        }
+        return new TrackedEntityInstanceInfo();
+    }
+
+    private List<TrackedEntityInstanceInfo> getInstancesForUIC(String uic, List<TrackedEntityInstanceInfo> trackedEntityInstanceInfos) {
+        List<TrackedEntityInstanceInfo> teiInfos = new ArrayList<>();
+        for (TrackedEntityInstanceInfo trackedEntityInstanceInfo : trackedEntityInstanceInfos) {
+            for (Attribute attribute : trackedEntityInstanceInfo.getAttributes()) {
+                if (attribute.getAttribute().equals(uicAttributeId)) {
+                    if (attribute.getValue().equals(uic)) {
+                        teiInfos.add(trackedEntityInstanceInfo);
+                    }
+                }
+            }
+        }
+        return teiInfos;
+    }
+
+    private boolean isSameClient(TrackedEntityInstanceInfo tei, JsonObject tableRowJsonObject) throws ParseException {
+        String gender = tableRowJsonObject.get("Gender").getAsString();
+        String mothersFirstName = tableRowJsonObject.get("Mothers_First_Name").getAsString();
+        String dateOfBirth = tableRowJsonObject.get("Date_of_Birth").getAsString();
+        String lastName = tableRowJsonObject.get("Last_Name").getAsString();
+        String districtOfBirth = tableRowJsonObject.get("District_of_Birth").getAsString();
+        String areYouTwin = "false";
+        if (tableRowJsonObject.has("Are_you_Twin")) {
+            areYouTwin = tableRowJsonObject.get("Are_you_Twin").getAsString();
+        }
+        boolean allComparableAttributesArePresent = tei.hasAttribute(mothersFirstNameAttributeId) && tei.hasAttribute(genderAttributeId) && tei.hasAttribute(lastNameAttributeId) && tei.hasAttribute(dateOfBirthAttributeId)
+                && tei.hasAttribute(districtOfBirthAttributeId) && tei.hasAttribute(twinAttributeId);
+        if (allComparableAttributesArePresent) {
+            boolean mothersNameMatch = tei.getAttributeValue(mothersFirstNameAttributeId).equals(mothersFirstName);
+            boolean genderMatch = tei.getAttributeValue(genderAttributeId).equals(gender);
+            boolean lastNameMatch = tei.getAttributeValue(lastNameAttributeId).equals(lastName);
+            boolean dateOfBirthNameMatch = new SimpleDateFormat("yyyy-MM-dd").parse(dateOfBirth).equals(new SimpleDateFormat("yyyy-MM-dd").parse(tei.getAttributeValue(dateOfBirthAttributeId)));
+            boolean districtOfBirthMatch = tei.getAttributeValue(districtOfBirthAttributeId).equals(districtOfBirth);
+            boolean twinMatch = tei.getAttributeValue(twinAttributeId).equals(areYouTwin);
+            return mothersNameMatch && genderMatch && lastNameMatch && dateOfBirthNameMatch && districtOfBirthMatch && twinMatch;
+        }
+       return false;
+    }
+
+    public Boolean instanceExistsInDHIS(JsonObject tableRowJsonObject, List<TrackedEntityInstanceInfo> trackedEntityInstances) throws ParseException {
+        for (TrackedEntityInstanceInfo tei : trackedEntityInstances) {
+            if (isSameClient(tei, tableRowJsonObject)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void getEnrollmentsForInstances(String enrollmentTable, String eventTable, String programName, String startDate, String endDate) throws Exception {
@@ -139,30 +236,31 @@ public class TEIService {
         List<Map<String, Object>> deltaInstanceIds = (startDate != "" && endDate !="" ) ?
                 patientDAO.getDeltaEnrollmentInstanceIdsWithDateRange(enrollmentTable, eventTable, programName, startDate, endDate)
                 :patientDAO.getDeltaEnrollmentInstanceIds(enrollmentTable, eventTable, programName);
+
         logger.info("Delta Instance Ids: " + (deltaInstanceIds != null ? deltaInstanceIds.size() : "null"));
 
         if (!deltaInstanceIds.isEmpty()) {
-            List<String> instanceIdsList = getInstanceIds(deltaInstanceIds);
+            List<String> instanceIdsList = getInstanceIds(deltaInstanceIds);//Get all instance ids for changes
             String program = deltaInstanceIds.get(0).get("program").toString();
             logger.info("instanceIdsList : " + instanceIdsList.size());
             logger.info("program name is ->"+ program);
             int lowerLimit = 0;
             int upperLimit = TEI_FILTER_URI_LIMIT;
             List<TrackedEntityInstanceInfo> result = new ArrayList<>();
-            while(lowerLimit < instanceIdsList.size()) {
-                if(upperLimit > instanceIdsList.size()) {
+            while (lowerLimit < instanceIdsList.size()) {
+                if (upperLimit > instanceIdsList.size()) {
                     upperLimit = instanceIdsList.size();
                 }
                 logger.info("Lower : " + lowerLimit + " Upper " + upperLimit);
-                List<String> subInstanceIds  =  instanceIdsList.subList(lowerLimit , upperLimit);
+                List<String> subInstanceIds = instanceIdsList.subList(lowerLimit, upperLimit);
                 lowerLimit = upperLimit;
                 upperLimit += TEI_FILTER_URI_LIMIT;
 
                 String instanceIds = String.join(";", subInstanceIds);
                 String url = String.format(TEI_ENROLLMENTS_URI, program, instanceIds);
 
-                ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstances = syncRepository.getTrackedEntityInstances(url);
-                result.addAll(trackedEntityInstances.getBody().getTrackedEntityInstances());
+                ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstancesWithEnrollmentInformation = syncRepository.getTrackedEntityInstances(url);
+                result.addAll(trackedEntityInstancesWithEnrollmentInformation.getBody().getTrackedEntityInstances());
 
             }
             TEIUtil.setInstancesWithEnrollments(getMap(result, program));
@@ -229,12 +327,23 @@ public class TEIService {
         rows.addAll(jdbcTemplate.queryForList(String.format(RECORDS_WITH_INVALID_ORG_UNIT_QUERY,
                 lookupTable.getEvent(), CATEGORY_EVENT, serviceName)));
 
-        Map<String,String> invalidPatients = new HashMap<>();
+        Map<String, String> invalidPatients = new HashMap<>();
         rows.forEach(row -> {
-            String patientID = (String)row.get("Patient_Identifier");
-            String orgUnit = (String)row.get("OrgUnit");
-            invalidPatients.put(patientID,orgUnit);
+            String patientID = (String) row.get("Patient_Identifier");
+            String orgUnit = (String) row.get("OrgUnit");
+            invalidPatients.put(patientID, orgUnit);
         });
         return invalidPatients;
+    }
+
+    public List<TrackedEntityInstanceInfo> getTrackedEntityInstancesForUIC(String uic) throws Exception {
+        StringBuilder url = new StringBuilder();
+        url.append(TEI_URI).append("&fields=[*]").append("&ou=").append(orgUnitID).append("&ouMode=DESCENDANTS").append("&filter=").append(uicAttributeId).append(":IN:").append(uic).append(";").append("&includeAllAttributes=true");
+
+        ResponseEntity<TrackedEntityInstanceResponse> response = syncRepository.getTrackedEntityInstances(url.toString());
+        if (response.getStatusCode().is2xxSuccessful()) {
+            return response.getBody().getTrackedEntityInstances();
+        }
+        return Collections.emptyList();
     }
 }

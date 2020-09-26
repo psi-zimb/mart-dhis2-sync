@@ -23,7 +23,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpServerErrorException;
 
-import java.io.IOException;
 import java.io.SyncFailedException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +34,7 @@ import java.util.Map;
 
 import static com.thoughtworks.martdhis2sync.CommonTestHelper.setValuesForMemberFields;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -77,6 +77,7 @@ public class TEIServiceTest {
     public static final String TRACKED_ENTITY_INSTANCE_URI = "/api/trackedEntityInstances?pageSize=10000";
     private String ORG_UNIT_ID = "DiszpKrYNg8";
     private int TEI_FILTER_URI_LIMIT = 5;
+    private String uicAttributeId="uicAttributeId";
     private ResponseEntity<TrackedEntityInstanceResponse> trackedEntityInstanceResponse;
     private HashMap<String, Object> expectedMapping;
     private TEIService teiService;
@@ -93,6 +94,7 @@ public class TEIServiceTest {
         setValuesForMemberFields(teiService, "orgUnitID", ORG_UNIT_ID);
         setValuesForMemberFields(teiService, "TEI_FILTER_URI_LIMIT", TEI_FILTER_URI_LIMIT);
         setValuesForMemberFields(teiService, "jdbcTemplate", jdbcTemplate);
+        setValuesForMemberFields(teiService, "uicAttributeId", uicAttributeId);
         steps.add(step);
 
         TEIUtil.setInstancesWithEnrollments(new HashMap<>());
@@ -255,16 +257,104 @@ public class TEIServiceTest {
                 "}");
         searchableMapping.put("UIC", "HF8Tu4tg");
 
-        when(mappingDAO.getSearchableFields(program)).thenReturn(getSearchableValues());
+        when(mappingDAO.getSearchableFieldsValues(program)).thenReturn(getSearchableValues());
         when(mappingDAO.getMapping(program)).thenReturn(expectedMapping);
         when(syncRepository.getTrackedEntityInstances(uri)).thenReturn(trackedEntityInstanceResponse);
 
         teiService.getTrackedEntityInstances(program, mappingJson);
 
-        verify(mappingDAO, times(1)).getSearchableFields(program);
+        verify(mappingDAO, times(1)).getSearchableFieldsValues(program);
         verify(syncRepository, times(1)).getTrackedEntityInstances(uri);
         verifyStatic(times(1));
         TEIUtil.setTrackedEntityInstanceInfos(getTrackedEntityInstances());
+    }
+
+    @Test
+    public void shouldBranchAppropIfDuplicateInstancesAreFoundFromDHIS() throws Exception {
+        String program = "HIV Testing Service";
+        String queryParams = "&filter=HF8Tu4tg:IN:NINETU190995MT;JKAPTA170994MT;";
+        String uri = TRACKED_ENTITY_INSTANCE_URI + "&ou=" + ORG_UNIT_ID + "&ouMode=DESCENDANTS" + queryParams + "&includeAllAttributes=true";
+        Map<String, Object> searchableMapping = new HashMap<>();
+
+        TrackedEntityInstanceInfo trInfo = new TrackedEntityInstanceInfo(
+                "2018-09-21T17:54:00.294",
+                "SxgCPPeiq3c",
+                "2018-09-21T17:54:01.337",
+                "w3MoRtzP4SO",
+                "2018-09-21T17:54:01.337",
+                "o0kaqrZa79Y",
+                "2018-09-21T17:54:01.337",
+                false,
+                false,
+                "NONE",
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.singletonList(new Attribute(
+                        "2018-11-26T09:24:57.158",
+                        "***REMOVED***",
+                        "MMD_PER_NAM",
+                        "First name",
+                        "2018-11-26T09:24:57.158",
+                        "TEXT",
+                        "w75KJ2mc4zz",
+                        "Michel"
+                )
+        ));
+
+        List<TrackedEntityInstanceInfo> list = getTrackedEntityInstances();
+        list.add(trInfo);
+
+        trackedEntityInstanceResponse = ResponseEntity.ok(new TrackedEntityInstanceResponse(list, "", 200));
+
+        MappingJson mappingJson = new MappingJson();
+        mappingJson.setInstance("{" +
+                "\"UIC\": \"HF8Tu4tg\"," +
+                "\"date_created\": \"ojmUIu4tg\"" +
+                "}");
+        searchableMapping.put("UIC", "HF8Tu4tg");
+
+        when(mappingDAO.getSearchableFieldsValues(program)).thenReturn(getSearchableValues());
+        when(mappingDAO.getMapping(program)).thenReturn(expectedMapping);
+        when(syncRepository.getTrackedEntityInstances(uri)).thenReturn(trackedEntityInstanceResponse);
+
+        teiService.getTrackedEntityInstances(program, mappingJson);
+
+        verify(mappingDAO, times(1)).getSearchableFieldsValues(program);
+        verify(syncRepository, times(1)).getTrackedEntityInstances(uri);
+        verifyStatic(times(1));
+        TEIUtil.setTrackedEntityInstanceInfos(getTrackedEntityInstances());
+    }
+
+    @Test
+    public void givenUICShouldGetTrackedEntityInstanceListFromDHISIfAnInstanceExistsInDHIS() throws Exception {
+        String queryParams = "&filter=uicAttributeId:IN:uic;";
+        String uri = TRACKED_ENTITY_INSTANCE_URI +"&fields=[*]"+ "&ou=" + ORG_UNIT_ID + "&ouMode=DESCENDANTS" + queryParams + "&includeAllAttributes=true";
+
+        trackedEntityInstanceResponse = ResponseEntity.ok(new TrackedEntityInstanceResponse(getTrackedEntityInstances(), "", 200));
+
+        when(syncRepository.getTrackedEntityInstances(uri)).thenReturn(trackedEntityInstanceResponse);
+
+        List<TrackedEntityInstanceInfo> teiList = teiService.getTrackedEntityInstancesForUIC("uic");
+
+        verify(syncRepository, times(1)).getTrackedEntityInstances(uri);
+        assertTrue(teiList.size()>0);
+        verifyStatic(times(1));
+    }
+
+    @Test
+    public void givenUICShouldGetEmptyListFromDHISIfAnInstanceDoesNotExistInDHIS() throws Exception {
+        String queryParams = "&filter=uicAttributeId:IN:uic;";
+        String uri = TRACKED_ENTITY_INSTANCE_URI +"&fields=[*]" + "&ou=" + ORG_UNIT_ID + "&ouMode=DESCENDANTS" + queryParams + "&includeAllAttributes=true";
+
+        trackedEntityInstanceResponse = ResponseEntity.ok(new TrackedEntityInstanceResponse(Collections.EMPTY_LIST, "", 200));
+        when(syncRepository.getTrackedEntityInstances(uri)).thenReturn(trackedEntityInstanceResponse);
+
+        List<TrackedEntityInstanceInfo> teiList = teiService.getTrackedEntityInstancesForUIC("uic");
+
+        verify(syncRepository, times(1)).getTrackedEntityInstances(uri);
+        assertTrue(teiList.isEmpty());
+        verifyStatic(times(1));
     }
 
     @Test
@@ -277,11 +367,11 @@ public class TEIServiceTest {
                 "\"date_created\": \"ojmUIu4tg\"" +
                 "}");
 
-        when(mappingDAO.getSearchableFields(program)).thenReturn(new ArrayList<>());
+        when(mappingDAO.getSearchableFieldsValues(program)).thenReturn(new ArrayList<>());
 
         teiService.getTrackedEntityInstances(program, mappingJson);
 
-        verify(mappingDAO, times(1)).getSearchableFields(program);
+        verify(mappingDAO, times(1)).getSearchableFieldsValues(program);
         verifyStatic(times(1));
         TEIUtil.setTrackedEntityInstanceInfos(Collections.emptyList());
 
@@ -305,13 +395,13 @@ public class TEIServiceTest {
                 "\"date_created\": \"ojmUIu4tg\"" +
                 "}");
 
-        when(mappingDAO.getSearchableFields(program)).thenReturn(getTenSearchableValues());
+        when(mappingDAO.getSearchableFieldsValues(program)).thenReturn(getTenSearchableValues());
         when(mappingDAO.getMapping(program)).thenReturn(expectedMapping);
         when(syncRepository.getTrackedEntityInstances(anyString())).thenReturn(trackedEntityInstanceResponse);
 
         teiService.getTrackedEntityInstances(program, mappingJson);
 
-        verify(mappingDAO, times(1)).getSearchableFields(program);
+        verify(mappingDAO, times(1)).getSearchableFieldsValues(program);
 
         verify(syncRepository, times(1)).getTrackedEntityInstances(uriWithoutSearchValues + queryParams + firstFiveUICs + postFix);
         verify(syncRepository, times(1)).getTrackedEntityInstances(uriWithoutSearchValues + queryParams + lastFourUICs + postFix);

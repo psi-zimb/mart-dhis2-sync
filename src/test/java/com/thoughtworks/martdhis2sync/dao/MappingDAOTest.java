@@ -97,7 +97,7 @@ public class MappingDAOTest {
         when(jdbcTemplate.queryForMap(getMappingSql)).thenReturn(expectedMapping);
         when(jdbcTemplate.queryForList(actualSql)).thenReturn(expected);
 
-        actual = mappingDAO.getSearchableFields(mappingName);
+        actual = mappingDAO.getSearchableFieldsValues(mappingName);
 
         assertEquals(expected, actual);
     }
@@ -123,7 +123,7 @@ public class MappingDAOTest {
         when(jdbcTemplate.queryForMap(getMappingSql)).thenReturn(expectedMapping);
         when(jdbcTemplate.queryForList(actualSql)).thenReturn(expected);
 
-        actual = mappingDAO.getSearchableFields(mappingName);
+        actual = mappingDAO.getSearchableFieldsValues(mappingName);
 
         assertEquals(expected, actual);
     }
@@ -142,7 +142,7 @@ public class MappingDAOTest {
         when(BatchUtil.convertResourceOutputToString(searchableResource)).thenReturn(sql);
         when(jdbcTemplate.queryForMap(getMappingSql)).thenReturn(expectedMapping);
 
-        actual = mappingDAO.getSearchableFields(mappingName);
+        actual = mappingDAO.getSearchableFieldsValues(mappingName);
 
         verifyStatic(times(0));
         BatchUtil.convertResourceOutputToString(searchableResource);

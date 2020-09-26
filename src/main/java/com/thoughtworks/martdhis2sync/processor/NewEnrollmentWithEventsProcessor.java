@@ -2,63 +2,72 @@ package com.thoughtworks.martdhis2sync.processor;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
-import com.thoughtworks.martdhis2sync.model.EnrollmentDetails;
-import com.thoughtworks.martdhis2sync.model.Event;
-import com.thoughtworks.martdhis2sync.model.ProcessedTableRow;
+import com.thoughtworks.martdhis2sync.model.*;
+import com.thoughtworks.martdhis2sync.service.EnrollmentService;
+import com.thoughtworks.martdhis2sync.service.TEIService;
 import com.thoughtworks.martdhis2sync.util.EnrollmentUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import lombok.Setter;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITHOUT_TIME;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.getFormattedDateString;
-import static com.thoughtworks.martdhis2sync.util.BatchUtil.hasValue;
+import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
 import static com.thoughtworks.martdhis2sync.util.EventUtil.getDataValues;
 
 @Component
-public class NewEnrollmentWithEventsProcessor extends EnrollmentWithEventProcessor implements ItemProcessor{
+public class NewEnrollmentWithEventsProcessor extends EnrollmentWithEventProcessor implements ItemProcessor {
 
     @Setter
     private Object mappingObj;
+
+    @Autowired
+    private TEIService teiService;
+
+    @Autowired
+    private EnrollmentService enrollmentService;
 
     @Override
     public ProcessedTableRow process(Object tableRow) throws Exception {
         return super.process(tableRow, mappingObj);
     }
 
-    EnrollmentAPIPayLoad getEnrollmentAPIPayLoad(JsonObject tableRowJsonObject, List<Event> events) {
-        List<EnrollmentDetails> enrollmentDetails= TEIUtil.getInstancesWithEnrollments().get(tableRowJsonObject.get("instance_id").getAsString());
+    Optional<EnrollmentAPIPayLoad> getEnrollmentAPIPayLoad(JsonObject localInstanceJsonObject, List<Event> events) throws Exception {
+        List<EnrollmentDetails> enrollmentDetails = TEIUtil.getInstancesWithEnrollments().get(localInstanceJsonObject.get("instance_id").getAsString());
         String enrollmentId = "";
-        if(enrollmentDetails != null) {
+        if (enrollmentDetails != null) {
             Optional<EnrollmentDetails> activeEnrollment = enrollmentDetails.stream()
                     .filter(enrollment -> EnrollmentAPIPayLoad.STATUS_ACTIVE.equals(enrollment.getStatus()))
                     .findFirst();
             enrollmentId = activeEnrollment.isPresent() ? activeEnrollment.get().getEnrollment() : "";
         }
-
-        if("".equals(enrollmentId)) {
-            enrollmentId = EnrollmentUtil.instanceIDEnrollmentIDMap.getOrDefault(tableRowJsonObject.get("instance_id").getAsString(),"");
+        if ("".equals(enrollmentId)) {
+            enrollmentId = EnrollmentUtil.instanceIDEnrollmentIDMap.getOrDefault(localInstanceJsonObject.get("instance_id").getAsString(), "");
         }
 
-        return new EnrollmentAPIPayLoad(
-               enrollmentId,
-               tableRowJsonObject.get("instance_id").getAsString(),
-               tableRowJsonObject.get("enrolled_program").getAsString(),
-               tableRowJsonObject.get("orgunit_id").getAsString(),
-               getFormattedDateString(tableRowJsonObject.get("enr_date").getAsString(),
-                       DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME),
-               getFormattedDateString(tableRowJsonObject.get("incident_date").getAsString(),
-                       DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME),
-               tableRowJsonObject.get("enrollment_status").getAsString(),
-               tableRowJsonObject.get("program_unique_id").getAsString(),
-               events
-        );
+        String uic = localInstanceJsonObject.get("uic").getAsString();
+        List<TrackedEntityInstanceInfo> trackedEntityInstancesInDHIS = teiService.getTrackedEntityInstancesForUIC(uic);
+        if (teiService.instanceExistsInDHIS(localInstanceJsonObject, trackedEntityInstancesInDHIS)) {
+            return Optional.of(new EnrollmentAPIPayLoad(
+                    enrollmentId,
+                    localInstanceJsonObject.get("instance_id").getAsString(),
+                    localInstanceJsonObject.get("enrolled_program").getAsString(),
+                    localInstanceJsonObject.get("orgunit_id").getAsString(),
+                    getFormattedDateString(localInstanceJsonObject.get("enr_date").getAsString(),
+                            DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME),
+                    getFormattedDateString(localInstanceJsonObject.get("incident_date").getAsString(),
+                            DATEFORMAT_WITH_24HR_TIME, DATEFORMAT_WITHOUT_TIME),
+                    localInstanceJsonObject.get("enrollment_status").getAsString(),
+                    localInstanceJsonObject.get("program_unique_id").getAsString(),
+                    events
+            ));
+
+        } else {
+            return Optional.of(new EnrollmentAPIPayLoad());
+        }
     }
 
     Event getEvent(JsonObject tableRow, JsonObject mapping) {

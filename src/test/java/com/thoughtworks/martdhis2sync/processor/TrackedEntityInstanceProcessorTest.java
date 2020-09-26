@@ -3,6 +3,7 @@ package com.thoughtworks.martdhis2sync.processor;
 import com.google.gson.JsonObject;
 import com.thoughtworks.martdhis2sync.model.Attribute;
 import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceInfo;
+import com.thoughtworks.martdhis2sync.service.TEIService;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.junit.Before;
@@ -26,16 +27,21 @@ public class TrackedEntityInstanceProcessorTest {
     @Mock
     private Date teiDate;
 
+    @Mock
+    private TEIService teiService;
+
     private TrackedEntityInstanceProcessor processor;
     private Date bahmniDate = new Date(Long.MIN_VALUE);
     private String dateCreated = "2018-02-02 13:46:23";
     private List<String> dateTimeAttributes = new LinkedList();
     private String dhisAcceptableDate = "2018-02-02T13:46:23";
+    private String uic = "EEYT67RC";
 
     @Before
     public void setUp() throws Exception {
         processor = new TrackedEntityInstanceProcessor();
         setValuesForMemberFields(processor, "teUID", "o0kaqrZaY");
+        setValuesForMemberFields(processor, "teiService", teiService);
         dateTimeAttributes.add("aQLSyCrOb34");
 
         mockStatic(TEIUtil.class);
@@ -57,9 +63,9 @@ public class TrackedEntityInstanceProcessorTest {
     }
 
     @Test
-    public void shouldReturnTeiRequestBodyForAPatientAndShouldUpdateTEIUtilDateIfTheDateCreatedOfTheRecordIsGreater() {
+    public void shouldReturnTeiRequestBodyForAPatientAndShouldUpdateTEIUtilDateIfTheDateCreatedOfTheRecordIsGreater() throws Exception {
         when(teiDate.compareTo(bahmniDate)).thenReturn(0);
-
+        when(teiService.getTrackedEntityInstancesForUIC(uic)).thenReturn(Collections.EMPTY_LIST);
         processor.setMappingObj(getMappingJsonObj());
         String actual = processor.process(getTableRowObject());
 
@@ -70,7 +76,7 @@ public class TrackedEntityInstanceProcessorTest {
     }
 
     @Test
-    public void shouldReturnTeiRequestBodyForAPatientAndShouldNotUpdateTEIUtilDateIfTheDateCreatedOfTheRecordIsLesser() {
+    public void shouldReturnTeiRequestBodyForAPatientAndShouldNotUpdateTEIUtilDateIfTheDateCreatedOfTheRecordIsLesser() throws Exception {
         when(teiDate.compareTo(bahmniDate)).thenReturn(1);
 
         processor.setMappingObj(getMappingJsonObj());
@@ -83,7 +89,7 @@ public class TrackedEntityInstanceProcessorTest {
     }
 
     @Test
-    public void shouldNotIncludeTheColumnInTheAttributesOfTheRequestBodyIfTheMappingIsEmptyForThatColumn() {
+    public void shouldNotIncludeTheColumnInTheAttributesOfTheRequestBodyIfTheMappingIsEmptyForThatColumn() throws Exception {
         when(teiDate.compareTo(bahmniDate)).thenReturn(1);
 
         JsonObject mappingJsonObj = getMappingJsonObj();
@@ -98,7 +104,7 @@ public class TrackedEntityInstanceProcessorTest {
     }
 
     @Test
-    public void shouldAddTheTrackedEntityInstanceIdToRequestBodyIfPatientAlreadyCreatedInDHISAndBahmniDidNotHaveAnyTEI() {
+    public void shouldAddTheTrackedEntityInstanceIdToRequestBodyIfPatientAlreadyCreatedInDHISAndBahmniDidNotHaveAnyTEI() throws Exception {
         when(TEIUtil.getTrackedEntityInstanceInfos()).thenReturn(getTrackedEntityInstances());
 
         JsonObject tableRowObject = getTableRowObject();
@@ -133,7 +139,7 @@ public class TrackedEntityInstanceProcessorTest {
     }
 
     @Test
-    public void shouldNotAddAnyTrackedEntityInstanceToTheRequestBodyIfPatientIsNotCreatedInDHIS() {
+    public void shouldNotAddAnyTrackedEntityInstanceToTheRequestBodyIfPatientIsNotCreatedInDHIS() throws Exception {
         List<TrackedEntityInstanceInfo> trackedEntityInstanceInfos = getTrackedEntityInstances();
         trackedEntityInstanceInfos.get(0).getAttributes().get(0).setValue("UIC00014");
         when(TEIUtil.getTrackedEntityInstanceInfos()).thenReturn(trackedEntityInstanceInfos);
@@ -169,7 +175,7 @@ public class TrackedEntityInstanceProcessorTest {
     }
 
     @Test
-    public void shouldNotAddAnyTrackedEntityInstanceToRequestBodyIfPatientSearchableAttributeIsMatchingButComparableAttributesAreNot() {
+    public void shouldNotAddAnyTrackedEntityInstanceToRequestBodyIfPatientSearchableAttributeIsMatchingButComparableAttributesAreNot() throws Exception {
         when(TEIUtil.getTrackedEntityInstanceInfos()).thenReturn(getTrackedEntityInstances());
 
         JsonObject tableRowObject = getTableRowObject();
@@ -323,6 +329,7 @@ public class TrackedEntityInstanceProcessorTest {
         tableRowObject.addProperty("date_created", dateCreated);
         tableRowObject.addProperty("instance_id", "EmACSYDCxhu");
         tableRowObject.addProperty("orgunit_id", "SxgCPPeiq3c");
+        tableRowObject.addProperty("uic", uic);
 
         return tableRowObject;
     }
@@ -403,5 +410,51 @@ public class TrackedEntityInstanceProcessorTest {
                 "}" +
                 "]" +
                 "}";
+    }
+
+    private List<TrackedEntityInstanceInfo> getTrackedEntityInstance() {
+        List<TrackedEntityInstanceInfo> trackedEntityInstanceInfos = new LinkedList<>();
+        List<Attribute> attributesOfPatient1 = new ArrayList<>();
+
+        attributesOfPatient1.add(new Attribute(
+                "2018-11-26T09:24:57.158",
+                "***REMOVED***",
+                "MMD_PER_NAM",
+                "First name",
+                "2018-11-26T09:24:57.158",
+                "TEXT",
+                "w75KJ2mc4zz",
+                "Michel"
+        ));
+
+        attributesOfPatient1.add(new Attribute(
+                "2018-11-26T09:24:57.153",
+                "***REMOVED***",
+                "",
+                "Last name",
+                "2018-11-26T09:24:57.152",
+                "TEXT",
+                "zDhUuAYrxNC",
+                "Jackson"
+        ));
+
+        trackedEntityInstanceInfos.add(new TrackedEntityInstanceInfo(
+                "2018-09-21T17:54:00.294",
+                "SxgCPPeiq3c",
+                "2018-09-21T17:54:01.337",
+                "w3MoRtzP4SO",
+                "2018-09-21T17:54:01.337",
+                "o0kaqrZa79Y",
+                "2018-09-21T17:54:01.337",
+                false,
+                false,
+                "NONE",
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                attributesOfPatient1
+        ));
+
+        return trackedEntityInstanceInfos;
     }
 }

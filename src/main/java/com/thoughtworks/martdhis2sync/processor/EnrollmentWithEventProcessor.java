@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.DATEFORMAT_WITH_24HR_TIME;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.hasValue;
@@ -39,7 +40,7 @@ public abstract class EnrollmentWithEventProcessor {
         if (event != null) {
             events.add(event);
         }
-        EnrollmentAPIPayLoad enrollmentAPIPayLoad = getEnrollmentAPIPayLoad(tableRowJsonObject, events);
+        EnrollmentAPIPayLoad enrollmentAPIPayLoad = getEnrollmentAPIPayLoad(tableRowJsonObject, events).orElse(null);
 
         JsonElement programUniqueId = tableRowJsonObject.get("program_unique_id");
         JsonElement eventProgramUniqueId = tableRowJsonObject.get("event_program_unique_id");
@@ -51,5 +52,5 @@ public abstract class EnrollmentWithEventProcessor {
     }
 
     abstract Event getEvent(JsonObject tableRow, JsonObject mapping);
-    abstract EnrollmentAPIPayLoad getEnrollmentAPIPayLoad(JsonObject tableRowJsonObject, List<Event> events);
+    abstract Optional<EnrollmentAPIPayLoad> getEnrollmentAPIPayLoad(JsonObject tableRowJsonObject, List<Event> events) throws Exception;
 }

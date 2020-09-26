@@ -1,13 +1,7 @@
 package com.thoughtworks.martdhis2sync.writer;
 
 import com.thoughtworks.martdhis2sync.controller.PushController;
-import com.thoughtworks.martdhis2sync.model.DHISEnrollmentSyncResponse;
-import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
-import com.thoughtworks.martdhis2sync.model.EnrollmentDetails;
-import com.thoughtworks.martdhis2sync.model.EnrollmentImportSummary;
-import com.thoughtworks.martdhis2sync.model.Event;
-import com.thoughtworks.martdhis2sync.model.EventTracker;
-import com.thoughtworks.martdhis2sync.model.ProcessedTableRow;
+import com.thoughtworks.martdhis2sync.model.*;
 import com.thoughtworks.martdhis2sync.repository.SyncRepository;
 import com.thoughtworks.martdhis2sync.responseHandler.EnrollmentResponseHandler;
 import com.thoughtworks.martdhis2sync.responseHandler.EventResponseHandler;
@@ -16,7 +10,6 @@ import com.thoughtworks.martdhis2sync.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -206,6 +199,10 @@ public class NewEnrollmentWithEventsWriter {
     }
 
     protected void processWrite(List<? extends ProcessedTableRow> tableRows) throws Exception {
+        if(tableRows.get(0).getPayLoad().getInstanceId() == null){
+            return;
+        }
+
         PushController.IS_DELTA_EXISTS = true;
         eventTrackers.clear();
         Map<String, EnrollmentAPIPayLoad> groupedEnrollmentPayLoad = getGroupedEnrollmentPayLoad(tableRows);

@@ -33,7 +33,7 @@ public class MappingDAO {
         return jdbcTemplate.queryForMap(sql);
     }
 
-    public List<Map<String, Object>> getSearchableFields(String mappingName) throws IOException {
+    public List<Map<String, Object>> getSearchableFieldsValues(String mappingName) throws IOException {
         StringBuilder columns = new StringBuilder();
         Gson gson = new Gson();
         Map<String, Object> mapping = getMapping(mappingName);
@@ -54,6 +54,18 @@ public class MappingDAO {
                         BatchUtil.convertResourceOutputToString(searchableResource),
                         columns.substring(0, columns.length() - 1),
                         gson.fromJson(mapping.get("lookup_table").toString(), LookupTable.class).getInstance(),
+                        mappingName
+                )
+        );
+    }
+
+    public List<Map<String, Object>> getInstanceFieldsValues(String mappingName) throws IOException {
+        Map<String, Object> mapping = getMapping(mappingName);
+        return jdbcTemplate.queryForList(
+                String.format(
+                        BatchUtil.convertResourceOutputToString(searchableResource),
+                        "*",
+                        new Gson().fromJson(mapping.get("lookup_table").toString(), LookupTable.class).getInstance(),
                         mappingName
                 )
         );

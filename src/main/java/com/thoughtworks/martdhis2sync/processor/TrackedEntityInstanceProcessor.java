@@ -4,13 +4,18 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.thoughtworks.martdhis2sync.model.EnrollmentDetails;
 import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceInfo;
+import com.thoughtworks.martdhis2sync.service.EnrollmentService;
+import com.thoughtworks.martdhis2sync.service.LoggerService;
+import com.thoughtworks.martdhis2sync.service.TEIService;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +33,9 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
     @Value("${tracked.entity.type.person.uid}")
     private String teUID;
 
+    @Value("${tracked.entity.preferred.program}")
+    private String preferredProgramToAutoEnroll;
+
     @Setter
     private Object mappingObj;
 
@@ -37,11 +45,19 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
     @Setter
     private List<String> comparableAttributes;
 
+    @Autowired
+    EnrollmentService enrollmentService;
+
+    @Autowired
+    private TEIService teiService;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    @Autowired
+    private LoggerService loggerService;
+
     @Override
-    public String process(Object tableRow) {
+    public String process(Object tableRow) throws Exception {
 
         Gson gson = new GsonBuilder().setDateFormat(DATEFORMAT_WITH_24HR_TIME).create();
         JsonElement tableRowJsonElement = gson.toJsonTree(tableRow);
@@ -64,32 +80,50 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
         }
     }
 
-    private String createRequestBodyForTrackedEntityInstance(JsonObject tableRowJsonObject, JsonObject mappingJsonObject) {
+    private String createRequestBodyForTrackedEntityInstance(JsonObject tableRowJsonObject, JsonObject mappingJsonObject) throws Exception {
         Set<String> keys = tableRowJsonObject.keySet();
-
-        StringBuilder attributeSet = new StringBuilder(
-                String.format("{\"trackedEntityType\": \"%s\", " +
-                                "\"trackedEntityInstance\": %s, " +
-                                "\"orgUnit\":%s, \"attributes\":[",
-                        teUID,
-                        tableRowJsonObject.get("instance_id").toString(),
-                        tableRowJsonObject.get(ORGUNIT_UID).toString()));
-        for (String key : keys) {
-            if (null != mappingJsonObject.get(key)) {
-                String attribute = mappingJsonObject.get(key).toString();
-                String value = tableRowJsonObject.get(key).toString();
-                if (!EMPTY_STRING.equals(attribute)) {
-                    attributeSet.append(String.format(
-                            "{\"attribute\": %s, \"value\": %s},",
-                            attribute,
-                            changeFormatIfDate(attribute, value)
-                    ));
+        String uic = tableRowJsonObject.get("UIC").getAsString();
+        List<TrackedEntityInstanceInfo> trackedEntityInstances = teiService.getTrackedEntityInstancesForUIC(uic);
+        if (trackedEntityInstances.size() == 0) {
+            StringBuilder attributeSet = new StringBuilder(
+                    String.format("{\"trackedEntityType\": \"%s\", " +
+                                    "\"trackedEntityInstance\": %s, " +
+                                    "\"orgUnit\":%s, \"attributes\":[",
+                            teUID,
+                            tableRowJsonObject.get("instance_id").toString(),
+                            tableRowJsonObject.get(ORGUNIT_UID).toString()));
+            for (String key : keys) {
+                if (null != mappingJsonObject.get(key)) {
+                    String attribute = mappingJsonObject.get(key).toString();
+                    String value = tableRowJsonObject.get(key).toString();
+                    if (!EMPTY_STRING.equals(attribute)) {
+                        attributeSet.append(String.format(
+                                "{\"attribute\": %s, \"value\": %s},",
+                                attribute,
+                                changeFormatIfDate(attribute, value)
+                        ));
+                    }
                 }
             }
+            attributeSet.deleteCharAt(attributeSet.length() - 1);
+            attributeSet.append("]}");
+            return attributeSet.toString();
+        } else if (trackedEntityInstances.size() == 1){
+            loggerService.collateLogMessage("Encountered already existing instance in DHIS with UIC : " + uic);
+            TrackedEntityInstanceInfo teiInfo = trackedEntityInstances.get(0);
+            if(teiService.instanceExistsInDHIS(tableRowJsonObject,Collections.singletonList(teiInfo))){
+                List<EnrollmentDetails> enrollmentsToPreferredProgram = teiInfo.getEnrollments().stream().filter(enrollmentDetails -> enrollmentDetails.getProgram().equals(preferredProgramToAutoEnroll)).collect(Collectors.toList());
+                if(enrollmentsToPreferredProgram.size()==0){
+                    enrollmentService.enrollSingleClientInstanceToPreferredProgram(teiInfo);
+                    loggerService.collateLogMessage("Enrolling one instance into preferred program."+preferredProgramToAutoEnroll);
+                }
+                return "";
+            }
+            else{
+                loggerService.collateLogMessage("Found different client in DHIS with same UIC.Cant proceed creating new client. Skipping client record.");
+            }
         }
-        attributeSet.deleteCharAt(attributeSet.length() - 1);
-        attributeSet.append("]}");
-        return attributeSet.toString();
+        return "";
     }
 
     private void getInstanceId(JsonObject tableRowJsonObject, JsonObject mappingJsonObject) {
