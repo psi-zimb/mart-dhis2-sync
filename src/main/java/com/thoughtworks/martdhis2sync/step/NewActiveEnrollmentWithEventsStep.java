@@ -39,7 +39,7 @@ public class NewActiveEnrollmentWithEventsStep {
         logger.info("result NewActiveEnrollmentWithEventsStep -> " + checkDates(startDate,endDate));
         return stepFactory.build(STEP_NAME,
                 checkDates(startDate,endDate)
-                        ? mappingReader.getNewActiveEnrollmentWithEventsReaderWithDateRange(enrLookupTable, programName, envLookupTable, startDate, endDate)
+                        ? mappingReader.getNewActiveEnrollmentWithEventsReaderWithDateRange(insLookupTable,enrLookupTable, programName, envLookupTable, startDate, endDate)
                         : mappingReader.getNewActiveEnrollmentWithEventsReader(insLookupTable,enrLookupTable, programName, envLookupTable),
                 getProcessor(mappingObj),
                 writer);

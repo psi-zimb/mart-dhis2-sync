@@ -11,7 +11,14 @@ SELECT
   insTracker.instance_id,
   enrolTracker.enrollment_id,
   evntTracker.event_id,
-  'updated_completed_enrollment' AS enrollment_type
+  'updated_completed_enrollment' AS enrollment_type,
+  insTable."UIC" AS UIC,
+  insTable."Mothers_First_Name",
+  insTable."Are_you_Twin",
+  insTable."Last_Name",
+  insTable."Gender",
+  insTable."District_of_Birth",
+  insTable."Date_of_Birth"
 FROM (SELECT enrTable.*
       FROM %s enrTable
           WHERE enrTable.enrollment_date :: DATE <= '%s'
@@ -28,7 +35,8 @@ FROM (SELECT enrTable.*
                          ) AS eventsTable
     ON enrollmentsTable."Patient_Identifier" = eventsTable."Patient_Identifier"
        AND eventsTable.enrollment_date = COALESCE(enrollmentsTable.enrollment_date, eventsTable.enrollment_date)
-  INNER JOIN orgunit_tracker orgTracker ON COALESCE(eventsTable."OrgUnit", enrollmentsTable."OrgUnit") = orgTracker.orgunit
+  INNER JOIN %s insTable ON enrollmentsTable."Patient_Identifier" = insTable."Patient_Identifier"
+    INNER JOIN orgunit_tracker orgTracker ON COALESCE(eventsTable."OrgUnit", enrollmentsTable."OrgUnit") = orgTracker.orgunit
   INNER JOIN instance_tracker insTracker ON COALESCE(eventsTable."Patient_Identifier", enrollmentsTable."Patient_Identifier") = insTracker.patient_id
   LEFT JOIN enrollment_tracker enrolTracker ON COALESCE(enrollmentsTable.program, eventsTable.program) = enrolTracker.program
                                                AND enrolTracker.instance_id = insTracker.instance_id

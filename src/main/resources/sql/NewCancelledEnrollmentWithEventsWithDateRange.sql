@@ -8,10 +8,18 @@ SELECT enrTable.incident_date,
        evnTable.*,
        orgTracker.id               AS orgunit_id,
        insTracker.instance_id,
-       'new_cancelled_enrollment' AS enrollment_type
+       'new_cancelled_enrollment' AS enrollment_type,
+       insTable."UIC" AS UIC,
+       insTable."Mothers_First_Name",
+       insTable."Are_you_Twin",
+       insTable."Last_Name",
+       insTable."Gender",
+       insTable."District_of_Birth",
+       insTable."Date_of_Birth"
 FROM %s enrTable
     LEFT JOIN %s evnTable ON evnTable."Patient_Identifier" = enrTable."Patient_Identifier" AND
     evnTable.enrollment_date = enrTable.enrollment_date
+    INNER JOIN %s insTable ON enrTable."Patient_Identifier" = insTable."Patient_Identifier"
     INNER JOIN instance_tracker insTracker ON insTracker.patient_id = enrTable."Patient_Identifier"
     INNER JOIN orgunit_tracker orgTracker ON orgTracker.orgUnit = enrTable."OrgUnit"
     LEFT JOIN enrollment_tracker enrTracker

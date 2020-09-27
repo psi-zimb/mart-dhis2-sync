@@ -34,7 +34,7 @@ public class UpdatedCancelledEnrollmentWithEventsStep {
         UpdatedCancelledEnrollmentWithEventsWriter.updateLastSyncedDate = checkDates(startDate, endDate);
         return stepFactory.build(STEP_NAME,
                 checkDates(startDate,endDate)
-                        ? mappingReader.getUpdatedCancelledEnrollmentWithEventsReaderWithDateRange(enrLookupTable,programName,envLookupTable,enrollmentsToIgnore,startDate,endDate)
+                        ? mappingReader.getUpdatedCancelledEnrollmentWithEventsReaderWithDateRange(insLookupTable,enrLookupTable,programName,envLookupTable,enrollmentsToIgnore,startDate,endDate)
                         : mappingReader.getUpdatedCancelledEnrollmentWithEventsReader(insLookupTable,enrLookupTable, programName, envLookupTable, enrollmentsToIgnore),
                 getProcessor(mappingObj),
                 writer);

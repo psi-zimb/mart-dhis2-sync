@@ -4,7 +4,6 @@ import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
 import com.thoughtworks.martdhis2sync.processor.UpdatedEnrollmentWithEventsProcessor;
 import com.thoughtworks.martdhis2sync.reader.MappingReader;
 import com.thoughtworks.martdhis2sync.writer.UpdatedActiveEnrollmentWithEventsWriter;
-import com.thoughtworks.martdhis2sync.writer.UpdatedEnrollmentWithEventsWriter;
 import org.springframework.batch.core.Step;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +35,7 @@ public class UpdatedActiveEnrollmentWithEventsStep {
         UpdatedActiveEnrollmentWithEventsWriter.updateLastSyncedDate = checkDates(startDate, endDate);
         return stepFactory.build(STEP_NAME,
                 checkDates(startDate,endDate)
-                        ? mappingReader.getUpdatedActiveEnrollmentWithEventsReaderWithDateRange(enrLookupTable, programName, envLookupTable, enrollmentsToIgnore, startDate, endDate)
+                        ? mappingReader.getUpdatedActiveEnrollmentWithEventsReaderWithDateRange(insLookupTable,enrLookupTable, programName, envLookupTable, enrollmentsToIgnore, startDate, endDate)
                         : mappingReader.getUpdatedActiveEnrollmentWithEventsReader(insLookupTable,enrLookupTable, programName, envLookupTable, enrollmentsToIgnore),
                 getProcessor(mappingObj),
                 writer);
