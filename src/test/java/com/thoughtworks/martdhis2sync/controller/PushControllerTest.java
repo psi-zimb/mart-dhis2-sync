@@ -198,7 +198,7 @@ public class PushControllerTest {
     }
 
     @Test
-    public void shouldThrowExceptionWithNoDataToSync() throws Exception {
+    public void shouldThrowExceptionWithNoDataToSyncForDateRange() throws Exception {
         Map<String, Object> mapping = getMapping();
         DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
         Gson gson = new Gson();
@@ -231,9 +231,51 @@ public class PushControllerTest {
             verify(markerUtil, times(1)).getLastSyncedDate(service, "updated_active_enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "updated_completed_enrollment");
             verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
-            verifyStatic(times(6));
+            verifyStatic(times(5));
             TrackersHandler.clearTrackerLists();
             verify(teiService, times(1)).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service, getDate(startDate), getDate(endDate));
+
+            assertEquals("500 NO DATA TO SYNC", e.getMessage());
+        }
+    }
+
+    @Test
+    public void shouldThrowExceptionWithNoDataToSync() throws Exception {
+        Map<String, Object> mapping = getMapping();
+        DHISSyncRequestBody dhisSyncRequestBody =  getDhisSyncRequestBodyWithStartAndEndDate();
+        Gson gson = new Gson();
+        MappingJson mappingJson = gson.fromJson(mapping.get("mapping_json").toString(), MappingJson.class);
+
+        doNothing().when(teiService).getTrackedEntityInstances(getDhisSyncRequestBody().getService(), mappingJson);
+        doNothing().when(loggerService).addLog(service, user, comment, null, null);
+        doNothing().when(loggerService).updateLog(service, "success");
+        doNothing().when(loggerService).collateLogMessage("No delta data to sync.");
+        when(mappingService.getMapping(service)).thenReturn(mapping);
+        doNothing().when(teiService).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList(), anyString(), anyString());
+        doNothing().when(completedEnrollmentService).triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
+        doNothing().when(completedEnrollmentService).triggerJobForUpdatedCompletedEnrollments(anyString(),anyString(), anyString(), anyString(), anyString(), any(), any(), anyString(), anyString(), anyString());
+
+
+        try {
+            pushController.pushData(dhisSyncRequestBody);
+        } catch (Exception e) {
+            verify(loggerService, times(1)).addLog(service, user, comment, null, null);
+            verify(teiService, times(1)).getTrackedEntityInstances(
+                    getDhisSyncRequestBody().getService(),
+                    mappingJson);
+            verify(loggerService, times(1)).updateLog(service, "success");
+            verify(loggerService, times(1)).collateLogMessage("No delta data to sync.");
+            verify(mappingService, times(1)).getMapping(service);
+            verify(teiService, times(1)).triggerJob(anyString(), anyString(), anyString(), any(), anyList(), anyList(), anyString(), anyString());
+            verify(completedEnrollmentService, times(1)).triggerJobForNewCompletedEnrollments(anyString(), anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyString(), anyString());
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "new_active_enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "new_completed_enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "updated_active_enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "updated_completed_enrollment");
+            verify(markerUtil, times(1)).getLastSyncedDate(service, "event");
+            verifyStatic(times(6));
+            TrackersHandler.clearTrackerLists();
+            verify(teiService, times(1)).getEnrollmentsForInstances("hts_program_enrollment_table", "hts_program_events_table", service, "","");
 
             assertEquals("500 NO DATA TO SYNC", e.getMessage());
         }
@@ -283,7 +325,7 @@ public class PushControllerTest {
     @Test
     public void shouldNotInvokeSecondJobOfActiveEnrollmentServiceIfFirstJobFails() throws Exception {
         Map<String, Object> mapping = getMapping();
-        DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBody();
+        DHISSyncRequestBody dhisSyncRequestBody = getDhisSyncRequestBodyWithStartAndEndDate();
 
         doNothing().when(dhisMetaDataService).filterByTypeDateTime();
         doNothing().when(loggerService).addLog(service, user, comment, startDate, endDate);
@@ -332,6 +374,17 @@ public class PushControllerTest {
         dhisSyncRequestBody.setEndDate(endDate);
         return dhisSyncRequestBody;
     }
+
+    private DHISSyncRequestBody getDhisSyncRequestBodyWithStartAndEndDate() {
+        DHISSyncRequestBody dhisSyncRequestBody = new DHISSyncRequestBody();
+        dhisSyncRequestBody.setService(service);
+        dhisSyncRequestBody.setUser(user);
+        dhisSyncRequestBody.setComment(comment);
+        dhisSyncRequestBody.setStartDate(null);
+        dhisSyncRequestBody.setEndDate(null);
+        return dhisSyncRequestBody;
+    }
+
 
     private String getDate(Date date) {
         return getStringFromDate(date, "yyyy-MM-dd");
