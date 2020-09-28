@@ -1,15 +1,8 @@
 package com.thoughtworks.martdhis2sync.repository;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.thoughtworks.martdhis2sync.controller.PushController;
 import com.thoughtworks.martdhis2sync.model.*;
-import com.thoughtworks.martdhis2sync.service.JobService;
 import com.thoughtworks.martdhis2sync.service.LoggerService;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
 import org.apache.tomcat.util.codec.binary.Base64;
@@ -23,9 +16,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
-
 import java.nio.charset.Charset;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -312,16 +303,5 @@ public class SyncRepository {
                 return true;
         }
         return false;
-    }
-
-    public static void main(String[] args) {
-
-        String requestBody = "{\"enrollments\":[{\"enrollment\":\"XYyPAKFaaaY\", \"trackedEntityInstance\":\"uWTp6ZZctdC\", \"orgUnit\":\"wI7limHiG8V\", \"program\":\"vatFxlZR2lj\", \"enrollmentDate\":\"2020-09-09\", \"incidentDate\":\"2020-09-09\", \"status\":\"ACTIVE\", \"events\":[]}]}";
-        Gson g = new Gson();
-        EnrollmentsList list = g.fromJson(requestBody,EnrollmentsList.class);
-        EnrollmentAPIPayLoadTemp enrollmentData = list.getEnrollments() != null ? list.getEnrollments().get(0) : null;
-//        ObjectMapper mapper = new ObjectMapper();
-//        List<EnrollmentAPIPayLoad> enrollmentData = mapper.readValue(requestBody, new TypeReference<List<EnrollmentAPIPayLoad>>(){});
-        //System.out.println(list.getEnrollments().get(0).getEvents().get(0).getDataValues());
     }
 }
