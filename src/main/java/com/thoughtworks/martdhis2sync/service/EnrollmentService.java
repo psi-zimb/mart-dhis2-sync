@@ -50,7 +50,6 @@ public class EnrollmentService {
         ResponseEntity<DHISEnrollmentSyncResponse> enrollmentResponse;
         try {
             enrollmentResponse = syncRepository.sendEnrollmentData(URI, apiBody);
-            List<EnrollmentImportSummary> enrollmentImportSummaries = enrollmentResponse.getBody().getResponse().getImportSummaries();
             if (HttpStatus.OK.equals(enrollmentResponse.getStatusCode())) {
                 StringBuilder url = new StringBuilder();
                 url.append(TEI_URI).append("&fields=trackedEntityInstance,enrollments[program,enrollment,en" +

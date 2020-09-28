@@ -197,7 +197,7 @@ public class SyncRepository {
             logger.info("Request URI---> "+ uri);
             logger.info("Request body--->\n"+ body);
             logger.info("ISDATARANGESYNC ->"+ PushController.IS_DATE_RANGE_SYNC);
-            boolean dhisSync = PushController.IS_DATE_RANGE_SYNC ? compareEvents(body) : false;
+            boolean dhisSync = compareEvents(body);
             logger.info("Should Send to DHIS or Not ? ------>" + dhisSync);
             if(dhisSync){
                 responseEntity = restTemplate
@@ -250,10 +250,8 @@ public class SyncRepository {
         Gson jsonFormatter = new Gson();
         EnrollmentsList list = jsonFormatter.fromJson(requestBody,EnrollmentsList.class);
         EnrollmentAPIPayLoadTemp enrollmentData = list.getEnrollments() != null ? list.getEnrollments().get(0) : null;
-        logger.info("EnrollmentAPIPayload ->" + enrollmentData.toString());
         if(enrollmentData != null && enrollmentData.getEvents()!=null && enrollmentData.getEvents().size() != 0 ) {
             List<EnrollmentDetails> enrollmentDetails = TEIUtil.getInstancesWithEnrollments().get(enrollmentData.getEvents().get(0).getTrackedEntityInstance());
-            logger.info("Enrollment details -> "+ enrollmentDetails);
             Optional<EnrollmentDetails> matchingEnrollmentObject = enrollmentDetails.stream().
                     filter(p -> p.getEnrollment().equals(enrollmentData.getEnrollment())).
                     findFirst();
@@ -261,18 +259,11 @@ public class SyncRepository {
             logger.info("Enrollment -> " + enrollment);
             if (enrollment != null) {
                 List<EventTemp> source = enrollment.getEvents();
-                logger.info("source -> "+ source);
-                logger.info("enrollment data events ->"+ enrollmentData.getEvents());
-                logger.info("size ->" + enrollmentData.getEvents().size());
                 if (source.size() != 0 && enrollmentData.getEvents() != null & enrollmentData.getEvents().size() != 0) {
                     EventTemp latestEvent = source.get(source.size() - 1);
                     //As We are getting events sorted by date updated, we will take latest Event and compare with current Event from Analytics DB
                     EventTemp destination = enrollmentData.getEvents().get(0);
-                    logger.info("Source DataValues are ->" + latestEvent.getDataValues());
-                    logger.info("Destination DataValues are ->" + destination.getDataValues());
                     if (latestEvent.getDataValues().size() == destination.getDataValues().size()) {
-                        logger.info("Source DataValues are ->" + latestEvent.getDataValues());
-                        logger.info("Destination DataValues are ->" + destination.getDataValues());
                         if (compareDataValues(latestEvent.getDataValues(), destination.getDataValues()))
                             return false;
                     }

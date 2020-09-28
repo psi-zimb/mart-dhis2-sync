@@ -120,7 +120,7 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
                 return "";
             }
             else{
-                loggerService.collateLogMessage("Found different client in DHIS with same UIC.Cant proceed creating new client. Skipping client record.");
+                loggerService.collateLogMessage("Found different client in DHIS with same UIC.Cant proceed creating new client. Skipping client record. UIC :" + uic);
             }
         }
         return "";
