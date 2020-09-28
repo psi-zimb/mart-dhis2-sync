@@ -108,19 +108,17 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
             attributeSet.deleteCharAt(attributeSet.length() - 1);
             attributeSet.append("]}");
             return attributeSet.toString();
-        } else if (trackedEntityInstances.size() == 1){
-            loggerService.collateLogMessage("Encountered already existing instance in DHIS with UIC : " + uic);
-            TrackedEntityInstanceInfo teiInfo = trackedEntityInstances.get(0);
-            if(teiService.instanceExistsInDHIS(tableRowJsonObject,Collections.singletonList(teiInfo))){
-                List<EnrollmentDetails> enrollmentsToPreferredProgram = teiInfo.getEnrollments().stream().filter(enrollmentDetails -> enrollmentDetails.getProgram().equals(preferredProgramToAutoEnroll)).collect(Collectors.toList());
-                if(enrollmentsToPreferredProgram.size()==0){
-                    enrollmentService.enrollSingleClientInstanceToPreferredProgram(teiInfo);
-                    loggerService.collateLogMessage("Enrolling one instance into preferred program."+preferredProgramToAutoEnroll);
+        } else {
+            for (TrackedEntityInstanceInfo teiInfo : trackedEntityInstances){
+                loggerService.collateLogMessage("Encountered already existing instance in DHIS with UIC : " + uic);
+                if(teiService.instanceExistsInDHIS(tableRowJsonObject,Collections.singletonList(teiInfo))){
+                    List<EnrollmentDetails> enrollmentsToPreferredProgram = teiInfo.getEnrollments().stream().filter(enrollmentDetails -> enrollmentDetails.getProgram().equals(preferredProgramToAutoEnroll)).collect(Collectors.toList());
+                    if(enrollmentsToPreferredProgram.size()==0){
+                        enrollmentService.enrollSingleClientInstanceToPreferredProgram(teiInfo);
+                        loggerService.collateLogMessage("Enrolling one instance into preferred program."+preferredProgramToAutoEnroll);
+                    }
+                    return "";
                 }
-                return "";
-            }
-            else{
-                loggerService.collateLogMessage("Found different client in DHIS with same UIC.Cant proceed creating new client. Skipping client record. UIC :" + uic);
             }
         }
         return "";
