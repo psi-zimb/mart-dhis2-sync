@@ -110,14 +110,15 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
             return attributeSet.toString();
         } else {
             for (TrackedEntityInstanceInfo teiInfo : trackedEntityInstances){
-                loggerService.collateLogMessage("Encountered already existing instance in DHIS with UIC : " + uic);
                 if(teiService.instanceExistsInDHIS(tableRowJsonObject,Collections.singletonList(teiInfo))){
                     List<EnrollmentDetails> enrollmentsToPreferredProgram = teiInfo.getEnrollments().stream().filter(enrollmentDetails -> enrollmentDetails.getProgram().equals(preferredProgramToAutoEnroll)).collect(Collectors.toList());
                     if(enrollmentsToPreferredProgram.size()==0){
                         enrollmentService.enrollSingleClientInstanceToPreferredProgram(teiInfo);
-                        loggerService.collateLogMessage("Enrolling one instance into preferred program."+preferredProgramToAutoEnroll);
+                        logger.info("Enrolling one instance into preferred program."+preferredProgramToAutoEnroll);
                     }
                     return "";
+                }else{
+                    logger.info("Client instance is not the same person.");
                 }
             }
         }

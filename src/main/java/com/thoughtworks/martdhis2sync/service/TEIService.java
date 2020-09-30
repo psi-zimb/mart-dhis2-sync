@@ -80,11 +80,6 @@ public class TEIService {
     private JdbcTemplate jdbcTemplate;
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-//
-//
-//    private static final String LOG_PREFIX = "TEI Service: ";
-//    private static final String TEI_JOB_NAME = "Sync Tracked Entity Instance";
-//
 
     public void triggerJob(String service, String user, String lookupTable, Object mappingObj, List<String> searchableAttributes, List<String> comparableAttributes,String startDate, String endDate)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
@@ -138,6 +133,7 @@ public class TEIService {
             if (response != null && response.getBody() != null) {
                 trackedEntityInstanceInfos = response.getBody().getTrackedEntityInstances();
                 if (trackedEntityInstanceInfos.size() > searchableFieldGroup.size()) {
+                    logger.info("Found possible duplicates:" + trackedEntityInstanceInfos.size() + " entries in DHIS for "+searchableFieldGroup.size()+" searchable values");
                     allTEIInfos.addAll(getUniqueInstanceSet(trackedEntityInstanceInfos, mappingName));
                 } else {
                     allTEIInfos.addAll(trackedEntityInstanceInfos);
@@ -156,17 +152,18 @@ public class TEIService {
         instanceFieldsForAllLocalInstances.stream().forEach(localInstance -> {
             JsonObject localInstanceJSON = gson.toJsonTree(localInstance).getAsJsonObject();
             String uic = localInstanceJSON.get("UIC").getAsString();
-            List<TrackedEntityInstanceInfo> teiInfos = getInstancesForUIC(uic, trackedEntityInstanceInfos);
+            List<TrackedEntityInstanceInfo> teiInfos = getInstancesWithUIC(uic, trackedEntityInstanceInfos);
             if (teiInfos.size() == 1) {
                 trackedEntityInstanceInfoList.add(teiInfos.get(0));
             } else if (teiInfos.size() > 1) {
-                trackedEntityInstanceInfoList.add(getDeDuplicatedInstance(teiInfos, localInstanceJSON));
+                Optional<TrackedEntityInstanceInfo> trackedEntityInstanceInfo = getDeDuplicatedInstance(teiInfos, localInstanceJSON);
+                trackedEntityInstanceInfo.ifPresent(trackedEntityInstanceInfoList::add);
             }
         });
         return trackedEntityInstanceInfoList;
     }
 
-    private TrackedEntityInstanceInfo getDeDuplicatedInstance(List<TrackedEntityInstanceInfo> teiInfos, JsonObject tableRowJsonObject) {
+    private Optional<TrackedEntityInstanceInfo> getDeDuplicatedInstance(List<TrackedEntityInstanceInfo> teiInfos, JsonObject tableRowJsonObject) {
         List<TrackedEntityInstanceInfo> teiInfoList = teiInfos.stream().filter(teiInfo -> {
             try {
                 return isSameClient(teiInfo, tableRowJsonObject);
@@ -175,12 +172,12 @@ public class TEIService {
             }
         }).collect(Collectors.toList());
         if (teiInfoList.size() == 1) {
-            return teiInfoList.get(0);
+            return Optional.of(teiInfoList.get(0));
         }
-        return new TrackedEntityInstanceInfo();
+        return Optional.empty();
     }
 
-    private List<TrackedEntityInstanceInfo> getInstancesForUIC(String uic, List<TrackedEntityInstanceInfo> trackedEntityInstanceInfos) {
+    private List<TrackedEntityInstanceInfo> getInstancesWithUIC(String uic, List<TrackedEntityInstanceInfo> trackedEntityInstanceInfos) {
         List<TrackedEntityInstanceInfo> teiInfos = new ArrayList<>();
         for (TrackedEntityInstanceInfo trackedEntityInstanceInfo : trackedEntityInstanceInfos) {
             for (Attribute attribute : trackedEntityInstanceInfo.getAttributes()) {
@@ -194,25 +191,25 @@ public class TEIService {
         return teiInfos;
     }
 
-    private boolean isSameClient(TrackedEntityInstanceInfo tei, JsonObject tableRowJsonObject) throws ParseException {
-        String gender = tableRowJsonObject.get("Gender").getAsString();
-        String mothersFirstName = tableRowJsonObject.get("Mothers_First_Name").getAsString();
-        String dateOfBirth = tableRowJsonObject.get("Date_of_Birth").getAsString();
-        String lastName = tableRowJsonObject.get("Last_Name").getAsString();
-        String districtOfBirth = tableRowJsonObject.get("District_of_Birth").getAsString();
+    private boolean isSameClient(TrackedEntityInstanceInfo trackedEntityInstanceInfo, JsonObject localInstance) throws ParseException {
+        String gender = localInstance.get("Gender").getAsString();
+        String mothersFirstName = localInstance.get("Mothers_First_Name").getAsString();
+        String dateOfBirth = localInstance.get("Date_of_Birth").getAsString();
+        String lastName = localInstance.get("Last_Name").getAsString();
+        String districtOfBirth = localInstance.get("District_of_Birth").getAsString();
         String areYouTwin = "false";
-        if (tableRowJsonObject.has("Are_you_Twin")) {
-            areYouTwin = tableRowJsonObject.get("Are_you_Twin").getAsString();
+        if (localInstance.has("Are_you_Twin")) {
+            areYouTwin = localInstance.get("Are_you_Twin").getAsString();
         }
-        boolean allComparableAttributesArePresent = tei.hasAttribute(mothersFirstNameAttributeId) && tei.hasAttribute(genderAttributeId) && tei.hasAttribute(lastNameAttributeId) && tei.hasAttribute(dateOfBirthAttributeId)
-                && tei.hasAttribute(districtOfBirthAttributeId) && tei.hasAttribute(twinAttributeId);
+        boolean allComparableAttributesArePresent = trackedEntityInstanceInfo.hasAttribute(mothersFirstNameAttributeId) && trackedEntityInstanceInfo.hasAttribute(genderAttributeId) && trackedEntityInstanceInfo.hasAttribute(lastNameAttributeId) && trackedEntityInstanceInfo.hasAttribute(dateOfBirthAttributeId)
+                && trackedEntityInstanceInfo.hasAttribute(districtOfBirthAttributeId) && trackedEntityInstanceInfo.hasAttribute(twinAttributeId);
         if (allComparableAttributesArePresent) {
-            boolean mothersNameMatch = tei.getAttributeValue(mothersFirstNameAttributeId).equals(mothersFirstName);
-            boolean genderMatch = tei.getAttributeValue(genderAttributeId).equals(gender);
-            boolean lastNameMatch = tei.getAttributeValue(lastNameAttributeId).equals(lastName);
-            boolean dateOfBirthNameMatch = new SimpleDateFormat("yyyy-MM-dd").parse(dateOfBirth).equals(new SimpleDateFormat("yyyy-MM-dd").parse(tei.getAttributeValue(dateOfBirthAttributeId)));
-            boolean districtOfBirthMatch = tei.getAttributeValue(districtOfBirthAttributeId).equals(districtOfBirth);
-            boolean twinMatch = tei.getAttributeValue(twinAttributeId).equals(areYouTwin);
+            boolean mothersNameMatch = trackedEntityInstanceInfo.getAttributeValue(mothersFirstNameAttributeId).equals(mothersFirstName);
+            boolean genderMatch = trackedEntityInstanceInfo.getAttributeValue(genderAttributeId).equals(gender);
+            boolean lastNameMatch = trackedEntityInstanceInfo.getAttributeValue(lastNameAttributeId).equals(lastName);
+            boolean dateOfBirthNameMatch = new SimpleDateFormat("yyyy-MM-dd").parse(dateOfBirth).equals(new SimpleDateFormat("yyyy-MM-dd").parse(trackedEntityInstanceInfo.getAttributeValue(dateOfBirthAttributeId)));
+            boolean districtOfBirthMatch = trackedEntityInstanceInfo.getAttributeValue(districtOfBirthAttributeId).equals(districtOfBirth);
+            boolean twinMatch = trackedEntityInstanceInfo.getAttributeValue(twinAttributeId).equals(areYouTwin);
             return mothersNameMatch && genderMatch && lastNameMatch && dateOfBirthNameMatch && districtOfBirthMatch && twinMatch;
         }
        return false;
