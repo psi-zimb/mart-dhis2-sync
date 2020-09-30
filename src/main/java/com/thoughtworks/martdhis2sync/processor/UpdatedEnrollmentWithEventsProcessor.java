@@ -2,9 +2,10 @@ package com.thoughtworks.martdhis2sync.processor;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.thoughtworks.martdhis2sync.model.*;
-import com.thoughtworks.martdhis2sync.service.EnrollmentService;
-import com.thoughtworks.martdhis2sync.service.LoggerService;
+import com.thoughtworks.martdhis2sync.model.EnrollmentAPIPayLoad;
+import com.thoughtworks.martdhis2sync.model.Event;
+import com.thoughtworks.martdhis2sync.model.ProcessedTableRow;
+import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceInfo;
 import com.thoughtworks.martdhis2sync.service.TEIService;
 import lombok.Setter;
 import org.springframework.batch.item.ItemProcessor;
@@ -27,11 +28,6 @@ public class UpdatedEnrollmentWithEventsProcessor extends EnrollmentWithEventPro
     @Autowired
     private TEIService teiService;
 
-    @Autowired
-    private EnrollmentService enrollmentService;
-
-    @Autowired
-    private LoggerService loggerService;
 
     @Override
     public ProcessedTableRow process(Object tableRow) throws Exception {
@@ -67,7 +63,6 @@ public class UpdatedEnrollmentWithEventsProcessor extends EnrollmentWithEventPro
                     events
             ));
         } else {
-            loggerService.collateLogMessage("Instance with UIC :"+ uic + " is already used by different client. " );
             return Optional.of(new EnrollmentAPIPayLoad());
         }
     }

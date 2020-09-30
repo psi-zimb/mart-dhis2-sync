@@ -69,7 +69,6 @@ public class UpdatedEnrollmentWithEventsProcessorTest {
 
         processor = new UpdatedEnrollmentWithEventsProcessor();
         setValuesForMemberFields(processor, "teiService", teiService);
-        setValuesForMemberFields(processor, "enrollmentService", enrollmentService);
         mockStatic(EnrollmentUtil.class);
         mockStatic(EventUtil.class);
 

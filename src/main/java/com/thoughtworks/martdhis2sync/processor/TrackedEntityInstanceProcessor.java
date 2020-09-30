@@ -7,7 +7,6 @@ import com.google.gson.JsonObject;
 import com.thoughtworks.martdhis2sync.model.EnrollmentDetails;
 import com.thoughtworks.martdhis2sync.model.TrackedEntityInstanceInfo;
 import com.thoughtworks.martdhis2sync.service.EnrollmentService;
-import com.thoughtworks.martdhis2sync.service.LoggerService;
 import com.thoughtworks.martdhis2sync.service.TEIService;
 import com.thoughtworks.martdhis2sync.util.BatchUtil;
 import com.thoughtworks.martdhis2sync.util.TEIUtil;
@@ -52,9 +51,6 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
     private TEIService teiService;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
-
-    @Autowired
-    private LoggerService loggerService;
 
     @Override
     public String process(Object tableRow) throws Exception {
@@ -118,7 +114,7 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
                     }
                     return "";
                 }else{
-                    logger.info("Client instance is not the same person.");
+                    logger.debug("Client instance is not the same person.");
                 }
             }
         }
