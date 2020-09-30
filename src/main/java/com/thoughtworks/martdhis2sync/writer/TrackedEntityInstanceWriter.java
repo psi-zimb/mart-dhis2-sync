@@ -133,7 +133,7 @@ public class TrackedEntityInstanceWriter implements ItemWriter {
 
     private void processResponse(List<ImportSummary> importSummaries) {
         if(importSummaries == null || importSummaries.isEmpty()){
-            loggerService.collateLogMessage(String.format("%s", "Skipped creating an instance."));
+            logger.debug(String.format("%s", "Skipped creating an instance."));
             return;
         }
         importSummaries.forEach(importSummary -> {
