@@ -53,8 +53,7 @@ public class TEIService {
     private int TEI_FILTER_URI_LIMIT;
     @Value("${tracked.entity.attribute.uic}")
     private String uicAttributeId;
-    @Value("${tracked.entity.attribute.mothersfirstname}")
-    private String mothersFirstNameAttributeId;
+
     @Value("${tracked.entity.attribute.gender}")
     private String genderAttributeId;
     @Value("${tracked.entity.attribute.dateofbirth}")
@@ -63,8 +62,8 @@ public class TEIService {
     private String districtOfBirthAttributeId;
     @Value("${tracked.entity.attribute.lastname}")
     private String lastNameAttributeId;
-    @Value("${tracked.entity.attribute.twin}")
-    private String twinAttributeId;
+
+
     @Autowired
     private MappingDAO mappingDAO;
     @Autowired
@@ -81,7 +80,7 @@ public class TEIService {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 
-    public void triggerJob(String service, String user, String lookupTable, Object mappingObj, List<String> searchableAttributes, List<String> comparableAttributes,String startDate, String endDate)
+    public void triggerJob(String service, String user, String lookupTable, Object mappingObj, List<String> searchableAttributes, List<String> comparableAttributes, String startDate, String endDate)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException,
             JobRestartException, JobInstanceAlreadyCompleteException, SyncFailedException {
 
@@ -133,7 +132,7 @@ public class TEIService {
             if (response != null && response.getBody() != null) {
                 trackedEntityInstanceInfos = response.getBody().getTrackedEntityInstances();
                 if (trackedEntityInstanceInfos.size() > searchableFieldGroup.size()) {
-                    logger.info("Found possible duplicates:" + trackedEntityInstanceInfos.size() + " entries in DHIS for "+searchableFieldGroup.size()+" searchable values");
+                    logger.info("Found possible duplicates:" + trackedEntityInstanceInfos.size() + " entries in DHIS for " + searchableFieldGroup.size() + " searchable values");
                     allTEIInfos.addAll(getUniqueInstanceSet(trackedEntityInstanceInfos, mappingName));
                 } else {
                     allTEIInfos.addAll(trackedEntityInstanceInfos);
@@ -193,26 +192,20 @@ public class TEIService {
 
     private boolean isSameClient(TrackedEntityInstanceInfo trackedEntityInstanceInfo, JsonObject localInstance) throws ParseException {
         String gender = localInstance.get("Gender").getAsString();
-        String mothersFirstName = localInstance.get("Mothers_First_Name").getAsString();
         String dateOfBirth = localInstance.get("Date_of_Birth").getAsString();
         String lastName = localInstance.get("Last_Name").getAsString();
         String districtOfBirth = localInstance.get("District_of_Birth").getAsString();
-        String areYouTwin = "false";
-        if (localInstance.has("Are_you_Twin")) {
-            areYouTwin = localInstance.get("Are_you_Twin").getAsString();
-        }
-        boolean allComparableAttributesArePresent = trackedEntityInstanceInfo.hasAttribute(mothersFirstNameAttributeId) && trackedEntityInstanceInfo.hasAttribute(genderAttributeId) && trackedEntityInstanceInfo.hasAttribute(lastNameAttributeId) && trackedEntityInstanceInfo.hasAttribute(dateOfBirthAttributeId)
-                && trackedEntityInstanceInfo.hasAttribute(districtOfBirthAttributeId) && trackedEntityInstanceInfo.hasAttribute(twinAttributeId);
+
+        boolean allComparableAttributesArePresent = trackedEntityInstanceInfo.hasAttribute(genderAttributeId) && trackedEntityInstanceInfo.hasAttribute(lastNameAttributeId) && trackedEntityInstanceInfo.hasAttribute(dateOfBirthAttributeId)
+                && trackedEntityInstanceInfo.hasAttribute(districtOfBirthAttributeId);
         if (allComparableAttributesArePresent) {
-            boolean mothersNameMatch = trackedEntityInstanceInfo.getAttributeValue(mothersFirstNameAttributeId).equals(mothersFirstName);
             boolean genderMatch = trackedEntityInstanceInfo.getAttributeValue(genderAttributeId).equals(gender);
             boolean lastNameMatch = trackedEntityInstanceInfo.getAttributeValue(lastNameAttributeId).equals(lastName);
             boolean dateOfBirthNameMatch = new SimpleDateFormat("yyyy-MM-dd").parse(dateOfBirth).equals(new SimpleDateFormat("yyyy-MM-dd").parse(trackedEntityInstanceInfo.getAttributeValue(dateOfBirthAttributeId)));
             boolean districtOfBirthMatch = trackedEntityInstanceInfo.getAttributeValue(districtOfBirthAttributeId).equals(districtOfBirth);
-            boolean twinMatch = trackedEntityInstanceInfo.getAttributeValue(twinAttributeId).equals(areYouTwin);
-            return mothersNameMatch && genderMatch && lastNameMatch && dateOfBirthNameMatch && districtOfBirthMatch && twinMatch;
+            return genderMatch && lastNameMatch && dateOfBirthNameMatch && districtOfBirthMatch;
         }
-       return false;
+        return false;
     }
 
     public Boolean instanceExistsInDHIS(JsonObject tableRowJsonObject, List<TrackedEntityInstanceInfo> trackedEntityInstances) throws ParseException {
@@ -230,9 +223,9 @@ public class TEIService {
         logger.info("Program name is " + programName);
 
         TEIUtil.setInstancesWithEnrollments(new HashMap<>());
-        List<Map<String, Object>> deltaInstanceIds = (startDate != "" && endDate !="" ) ?
+        List<Map<String, Object>> deltaInstanceIds = (startDate != "" && endDate != "") ?
                 patientDAO.getDeltaEnrollmentInstanceIdsWithDateRange(enrollmentTable, eventTable, programName, startDate, endDate)
-                :patientDAO.getDeltaEnrollmentInstanceIds(enrollmentTable, eventTable, programName);
+                : patientDAO.getDeltaEnrollmentInstanceIds(enrollmentTable, eventTable, programName);
 
         logger.info("Delta Instance Ids: " + (deltaInstanceIds != null ? deltaInstanceIds.size() : "null"));
 
@@ -240,7 +233,7 @@ public class TEIService {
             List<String> instanceIdsList = getInstanceIds(deltaInstanceIds);//Get all instance ids for changes
             String program = deltaInstanceIds.get(0).get("program").toString();
             logger.info("instanceIdsList : " + instanceIdsList.size());
-            logger.info("program name is ->"+ program);
+            logger.info("program name is ->" + program);
             int lowerLimit = 0;
             int upperLimit = TEI_FILTER_URI_LIMIT;
             List<TrackedEntityInstanceInfo> result = new ArrayList<>();
