@@ -60,12 +60,6 @@ public class TEIService {
     private String dateOfBirthAttributeId;
     @Value("${tracked.entity.attribute.districtofbirth}")
     private String districtOfBirthAttributeId;
-    @Value("${tracked.entity.attribute.lastname}")
-    private String lastNameAttributeId;
-    @Value("${tracked.entity.attribute.mothersfirstname}")
-    private String mothersFirstNameAttributeId;
-
-
     @Autowired
     private MappingDAO mappingDAO;
     @Autowired
@@ -194,20 +188,16 @@ public class TEIService {
 
     private boolean isSameClient(TrackedEntityInstanceInfo trackedEntityInstanceInfo, JsonObject localInstance) throws ParseException {
         String gender = localInstance.get("Gender").getAsString();
-        String mothersFirstName = localInstance.get("Mothers_First_Name").getAsString();
         String dateOfBirth = localInstance.get("Date_of_Birth").getAsString();
-        String lastName = localInstance.get("Last_Name").getAsString();
         String districtOfBirth = localInstance.get("District_of_Birth").getAsString();
 
-        boolean allComparableAttributesArePresent = trackedEntityInstanceInfo.hasAttribute(mothersFirstNameAttributeId) && trackedEntityInstanceInfo.hasAttribute(genderAttributeId) && trackedEntityInstanceInfo.hasAttribute(lastNameAttributeId) && trackedEntityInstanceInfo.hasAttribute(dateOfBirthAttributeId)
+        boolean allComparableAttributesArePresent =trackedEntityInstanceInfo.hasAttribute(genderAttributeId) && trackedEntityInstanceInfo.hasAttribute(dateOfBirthAttributeId)
                 && trackedEntityInstanceInfo.hasAttribute(districtOfBirthAttributeId);
         if (allComparableAttributesArePresent) {
-            boolean mothersNameMatch = trackedEntityInstanceInfo.getAttributeValue(mothersFirstNameAttributeId).equals(mothersFirstName);
             boolean genderMatch = trackedEntityInstanceInfo.getAttributeValue(genderAttributeId).equals(gender);
-            boolean lastNameMatch = trackedEntityInstanceInfo.getAttributeValue(lastNameAttributeId).equals(lastName);
             boolean dateOfBirthNameMatch = new SimpleDateFormat("yyyy-MM-dd").parse(dateOfBirth).equals(new SimpleDateFormat("yyyy-MM-dd").parse(trackedEntityInstanceInfo.getAttributeValue(dateOfBirthAttributeId)));
             boolean districtOfBirthMatch = trackedEntityInstanceInfo.getAttributeValue(districtOfBirthAttributeId).equals(districtOfBirth);
-            return mothersNameMatch && genderMatch && lastNameMatch && dateOfBirthNameMatch && districtOfBirthMatch ;
+            return genderMatch && dateOfBirthNameMatch && districtOfBirthMatch ;
         }
         return false;
     }
