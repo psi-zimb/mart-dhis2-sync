@@ -13,9 +13,6 @@ SELECT
     evntTracker.event_id,
     'updated_cancelled_enrollment' AS enrollment_type,
     insTable."UIC" AS UIC,
-    insTable."Mothers_First_Name",
-    insTable."Are_you_Twin",
-    insTable."Last_Name",
     insTable."Gender",
     insTable."District_of_Birth",
     insTable."Date_of_Birth"
