@@ -159,7 +159,7 @@ public class UpdatedEnrollmentWithEventsWriter {
                             value.getProgram(),
                             value.getProgramStartDate(),
                             value.getIncidentDate(),
-                            EnrollmentAPIPayLoad.STATUS_ACTIVE,
+                            value.getStatus(),
                             getEventBody(events)
                     ))
                     .append(",");

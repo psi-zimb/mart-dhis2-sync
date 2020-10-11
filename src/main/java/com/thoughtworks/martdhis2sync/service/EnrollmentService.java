@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.thoughtworks.martdhis2sync.controller.PushController.suggestedRemovableDuplicatesSet;
+
 @Component
 public class EnrollmentService {
     private static final String URI = "/api/enrollments?strategy=CREATE_AND_UPDATE";
@@ -56,6 +58,8 @@ public class EnrollmentService {
                         "rollmentDate,completedDate,status]").append("&ou=").append(orgUnitID).append("&ouMode=DESCENDANTS").append("&program=").append(preferredProgramToAutoEnroll).append("&trackedEntityInstance=").append(trackedEntityInstanceInfo.getTrackedEntityInstance());
                 ResponseEntity<TrackedEntityInstanceResponse> response = syncRepository.getTrackedEntityInstances(url.toString());
                 TEIUtil.setInstancesWithEnrollments(getMap(Collections.singletonList(response.getBody().getTrackedEntityInstances().get(0)), preferredProgramToAutoEnroll));
+            }else if(enrollmentResponse.getStatusCode().equals(HttpStatus.CONFLICT)){
+                suggestedRemovableDuplicatesSet.add(trackedEntityInstanceInfo.getAttributeValue("uic"));
             }
         } catch (Exception e) {
             JobService.setIS_JOB_FAILED(true);

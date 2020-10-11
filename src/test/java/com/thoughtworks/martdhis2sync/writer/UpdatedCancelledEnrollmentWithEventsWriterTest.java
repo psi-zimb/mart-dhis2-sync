@@ -664,13 +664,14 @@ public class UpdatedCancelledEnrollmentWithEventsWriterTest {
                         "\"program\":\"%s\", " +
                         "\"enrollmentDate\":\"%s\", " +
                         "\"incidentDate\":\"%s\", " +
-                        "\"status\":\"ACTIVE\"",
+                        "\"status\":\"%s\"",
                 enrollmentId,
                 payLoad.getInstanceId(),
                 payLoad.getOrgUnit(),
                 payLoad.getProgram(),
                 payLoad.getProgramStartDate(),
-                payLoad.getIncidentDate()
+                payLoad.getIncidentDate(),
+                payLoad.getStatus()
         );
     }
 }

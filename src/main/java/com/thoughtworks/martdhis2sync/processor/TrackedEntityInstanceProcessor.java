@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.thoughtworks.martdhis2sync.controller.PushController.sameUICDifferentClientSet;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
 
 @Component
@@ -114,7 +115,8 @@ public class TrackedEntityInstanceProcessor implements ItemProcessor {
                     }
                     return "";
                 }else{
-                    logger.debug("Client instance is not the same person.");
+                    logger.debug("Found existing client(different person) with UIC ",uic);
+                    sameUICDifferentClientSet.add(uic);
                 }
             }
         }

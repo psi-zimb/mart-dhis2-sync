@@ -16,6 +16,7 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 import java.util.Optional;
 
+import static com.thoughtworks.martdhis2sync.controller.PushController.suggestedRemovableDuplicatesSet;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
 import static com.thoughtworks.martdhis2sync.util.EventUtil.getDataValues;
 
@@ -47,8 +48,11 @@ public class UpdatedEnrollmentWithEventsProcessor extends EnrollmentWithEventPro
         JsonElement eventProgramUniqueId = localInstanceJsonObject.get("event_program_unique_id");
         String uic = localInstanceJsonObject.get("uic").getAsString();
 
-        List<TrackedEntityInstanceInfo> trackedEntityInstances = teiService.getTrackedEntityInstancesForUIC(uic);
-        if (teiService.instanceExistsInDHIS(localInstanceJsonObject, trackedEntityInstances)) {
+        List<TrackedEntityInstanceInfo> trackedEntityInstancesInDHIS = teiService.getTrackedEntityInstancesForUIC(uic);
+        if (trackedEntityInstancesInDHIS.size()>1){
+            suggestedRemovableDuplicatesSet.add(uic);
+        }
+        if (teiService.instanceExistsInDHIS(localInstanceJsonObject, trackedEntityInstancesInDHIS)) {
             return Optional.of(new EnrollmentAPIPayLoad(
                     localInstanceJsonObject.get("enrollment_id").getAsString(),
                     localInstanceJsonObject.get("instance_id").getAsString(),

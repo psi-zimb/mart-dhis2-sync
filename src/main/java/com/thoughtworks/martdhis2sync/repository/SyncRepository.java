@@ -24,24 +24,18 @@ import java.util.Optional;
 @Repository
 public class SyncRepository {
 
+    private static final String LOG_PREFIX = "SyncRepository: ";
     @Value("${dhis2.url}")
     private String dhis2Url;
-
     @Value("${dhis2.user}")
     private String dhisUser;
-
     @Value("${dhis2.password}")
     private String dhisPassword;
-
     @Autowired
     private LoggerService loggerService;
-
     @Autowired
     private RestTemplate restTemplate;
-
     private Logger logger = LoggerFactory.getLogger(this.getClass());
-
-    private static final String LOG_PREFIX = "SyncRepository: ";
 
     public ResponseEntity<DHISSyncResponse> sendData(String uri, String body) throws Exception {
         return sync(uri, body, DHISSyncResponse.class);
@@ -76,7 +70,7 @@ public class SyncRepository {
                             new HttpEntity<>(getHttpHeaders()), DataElementResponse.class);
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
 
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error(LOG_PREFIX + e);
             throw e;
         }
@@ -91,7 +85,7 @@ public class SyncRepository {
                             new HttpEntity<>(getHttpHeaders()), TrackedEntityAttributeResponse.class);
             logger.info(LOG_PREFIX + "Received " + responseEntity.getStatusCode() + " status code.");
 
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error(LOG_PREFIX + e);
             throw e;
         }
@@ -101,7 +95,7 @@ public class SyncRepository {
     public ResponseEntity<TrackedEntityInstanceResponse> getTrackedEntityInstances(String uri) throws Exception {
         ResponseEntity<TrackedEntityInstanceResponse> responseEntity = null;
         try {
-            logger.info("Tracked Entity Request URI---> "+ uri);
+            logger.info("Tracked Entity Request URI---> " + uri);
 
             responseEntity = restTemplate
                     .exchange(dhis2Url + uri, HttpMethod.GET,
@@ -144,8 +138,8 @@ public class SyncRepository {
         ResponseEntity<T> responseEntity;
         try {
 
-            logger.info("Request URI---> "+ uri);
-            logger.info("Request body--->\n"+ body);
+            logger.info("Request URI---> " + uri);
+            logger.info("Request body--->\n" + body);
             responseEntity = restTemplate
                     .exchange(dhis2Url + uri, HttpMethod.POST, new HttpEntity<>(body, getHttpHeaders()), type);
 
@@ -158,19 +152,11 @@ public class SyncRepository {
                     e.getStatusCode());
             logger.error("e.getResponseBodyAsString() -> " + e.getResponseBodyAsString());
             if (e.getStatusCode().value() == 409) {
-                if (e.getResponseBodyAsString().contains("conflicts")) {
-                    DHISSyncResponse response = (DHISSyncResponse)responseEntity.getBody();
-                    if(response.getResponse() != null)
-                    {
-                        if(response.getResponse().getImportSummaries() != null)
-                        {
-                            List<Conflict> conflicts = response.getResponse().getImportSummaries().get(0).getConflicts();
-                            for(Conflict conflict : conflicts)
-                                loggerService.collateLogMessage(conflict.getValue());
-                        }
-                    }
-                } else {
-                    loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
+                if (responseEntity.getBody() instanceof DHISSyncResponse) {
+                    processSyncResponse(responseEntity, e);
+                }
+                if (responseEntity.getBody() instanceof DHISEnrollmentSyncResponse) {
+                    processEnrollmentSyncResponse(responseEntity, e);
                 }
             }
             logger.error("HttpClientErrorException -> " + responseEntity.getBody());
@@ -190,16 +176,46 @@ public class SyncRepository {
         return responseEntity;
     }
 
+    private <T> void processEnrollmentSyncResponse(ResponseEntity<T> responseEntity, HttpClientErrorException e) {
+        if (e.getResponseBodyAsString().contains("conflicts")) {
+            DHISEnrollmentSyncResponse response = (DHISEnrollmentSyncResponse) responseEntity.getBody();
+            if (response.getResponse() != null) {
+                if (response.getResponse().getImportSummaries() != null) {
+                    List<Conflict> conflicts = response.getResponse().getImportSummaries().get(0).getConflicts();
+                    for (Conflict conflict : conflicts)
+                        loggerService.collateLogMessage(conflict.getValue());
+                }
+            }
+        } else {
+            loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
+        }
+    }
+
+    private <T> void processSyncResponse(ResponseEntity<T> responseEntity, HttpClientErrorException e) {
+        if (e.getResponseBodyAsString().contains("conflicts")) {
+            DHISSyncResponse response = (DHISSyncResponse) responseEntity.getBody();
+            if (response.getResponse() != null) {
+                if (response.getResponse().getImportSummaries() != null) {
+                    List<Conflict> conflicts = response.getResponse().getImportSummaries().get(0).getConflicts();
+                    for (Conflict conflict : conflicts)
+                        loggerService.collateLogMessage(conflict.getValue());
+                }
+            }
+        } else {
+            loggerService.collateLogMessage(String.format("%s %s", e.getStatusCode(), e.getStatusText()));
+        }
+    }
+
     private <T> ResponseEntity<T> syncEnrollments(String uri, String body, Class<T> type) throws Exception {
         ResponseEntity<T> responseEntity = null;
         try {
 
-            logger.info("Request URI---> "+ uri);
-            logger.info("Request body--->\n"+ body);
-            logger.info("ISDATARANGESYNC ->"+ PushController.IS_DATE_RANGE_SYNC);
+            logger.info("Request URI---> " + uri);
+            logger.info("Request body--->\n" + body);
+            logger.info("ISDATARANGESYNC ->" + PushController.IS_DATE_RANGE_SYNC);
             boolean dhisSync = compareEvents(body);
             logger.info("Should Send to DHIS or Not ? ------>" + dhisSync);
-            if(dhisSync){
+            if (dhisSync) {
                 responseEntity = restTemplate
                         .exchange(dhis2Url + uri, HttpMethod.POST, new HttpEntity<>(body, getHttpHeaders()), type);
 
@@ -215,13 +231,11 @@ public class SyncRepository {
             logger.error("e.getResponseBodyAsString() -> " + e.getResponseBodyAsString());
             if (e.getStatusCode().value() == 409) {
                 if (e.getResponseBodyAsString().contains("conflicts")) {
-                    DHISSyncResponse response = (DHISSyncResponse)responseEntity.getBody();
-                    if(response.getResponse() != null)
-                    {
-                        if(response.getResponse().getImportSummaries() != null)
-                        {
+                    DHISEnrollmentSyncResponse response = (DHISEnrollmentSyncResponse) responseEntity.getBody();
+                    if (response.getResponse() != null) {
+                        if (response.getResponse().getImportSummaries() != null) {
                             List<Conflict> conflicts = response.getResponse().getImportSummaries().get(0).getConflicts();
-                            for(Conflict conflict : conflicts)
+                            for (Conflict conflict : conflicts)
                                 loggerService.collateLogMessage(conflict.getValue());
                         }
                     }
@@ -248,9 +262,9 @@ public class SyncRepository {
 
     private boolean compareEvents(String requestBody) {
         Gson jsonFormatter = new Gson();
-        EnrollmentsList list = jsonFormatter.fromJson(requestBody,EnrollmentsList.class);
+        EnrollmentsList list = jsonFormatter.fromJson(requestBody, EnrollmentsList.class);
         EnrollmentAPIPayLoadTemp enrollmentData = list.getEnrollments() != null ? list.getEnrollments().get(0) : null;
-        if(enrollmentData != null && enrollmentData.getEvents()!=null && enrollmentData.getEvents().size() != 0 ) {
+        if (enrollmentData != null && enrollmentData.getEvents() != null && enrollmentData.getEvents().size() != 0) {
             List<EnrollmentDetails> enrollmentDetails = TEIUtil.getInstancesWithEnrollments().get(enrollmentData.getEvents().get(0).getTrackedEntityInstance());
             Optional<EnrollmentDetails> matchingEnrollmentObject = enrollmentDetails.stream().
                     filter(p -> p.getEnrollment().equals(enrollmentData.getEnrollment())).

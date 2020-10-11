@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 
+import static com.thoughtworks.martdhis2sync.controller.PushController.suggestedRemovableDuplicatesSet;
 import static com.thoughtworks.martdhis2sync.util.BatchUtil.*;
 import static com.thoughtworks.martdhis2sync.util.EventUtil.getDataValues;
 
@@ -50,6 +51,9 @@ public class NewEnrollmentWithEventsProcessor extends EnrollmentWithEventProcess
 
         String uic = localInstanceJsonObject.get("uic").getAsString();
         List<TrackedEntityInstanceInfo> trackedEntityInstancesInDHIS = teiService.getTrackedEntityInstancesForUIC(uic);
+        if (trackedEntityInstancesInDHIS.size()>1){
+            suggestedRemovableDuplicatesSet.add(uic);
+        }
         if (teiService.instanceExistsInDHIS(localInstanceJsonObject, trackedEntityInstancesInDHIS)) {
             return Optional.of(new EnrollmentAPIPayLoad(
                     enrollmentId,
@@ -64,7 +68,6 @@ public class NewEnrollmentWithEventsProcessor extends EnrollmentWithEventProcess
                     localInstanceJsonObject.get("program_unique_id").getAsString(),
                     events
             ));
-
         } else {
             return Optional.of(new EnrollmentAPIPayLoad());
         }

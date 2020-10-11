@@ -31,6 +31,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.thoughtworks.martdhis2sync.controller.PushController.suggestedRemovableDuplicatesSet;
 import static com.thoughtworks.martdhis2sync.util.MarkerUtil.*;
 
 @Component
@@ -151,6 +152,7 @@ public class TEIService {
             if (teiInfos.size() == 1) {
                 trackedEntityInstanceInfoList.add(teiInfos.get(0));
             } else if (teiInfos.size() > 1) {
+                suggestedRemovableDuplicatesSet.add(uic);
                 Optional<TrackedEntityInstanceInfo> trackedEntityInstanceInfo = getDeDuplicatedInstance(teiInfos, localInstanceJSON);
                 trackedEntityInstanceInfo.ifPresent(trackedEntityInstanceInfoList::add);
             }
