@@ -113,22 +113,18 @@ public class PushController {
             triggerEnrollmentsSync(requestBody, lookupTable, mappingJson, config, startDate, endDate);
 
             if (!suggestedRemovableDuplicatesSet.isEmpty()) {
-                logger.info("Possible duplicates with enrollments to remove from DHIS : ");
-                loggerService.collateLogMessage("Duplicates:");
-                StringBuilder stringBuilder = new StringBuilder();
-                suggestedRemovableDuplicatesSet.forEach(uic -> stringBuilder.append(uic).append(" "));
-                logger.info(stringBuilder.toString());
-                loggerService.collateLogMessage(stringBuilder.toString());
+                StringBuilder suggestedRemovableDuplicates = new StringBuilder();
+                suggestedRemovableDuplicatesSet.forEach(uic -> suggestedRemovableDuplicates.append(uic).append(" "));
+                logger.info("suggestedRemovableDuplicatesSet :"+suggestedRemovableDuplicates.toString());
+                loggerService.collateLogMessage("Duplicates : "+suggestedRemovableDuplicates.toString());
             }
             suggestedRemovableDuplicatesSet.clear();
 
             if (!differentPersonsWithSameUIC.isEmpty()) {
-                logger.info("Different persons with same UIC : ");
-                loggerService.collateLogMessage("Same UIC , Different Person :");
-                StringBuilder stringBuilder = new StringBuilder();
-                differentPersonsWithSameUIC.forEach(uic -> stringBuilder.append(uic).append(" "));
-                logger.info(stringBuilder.toString());
-                loggerService.collateLogMessage(stringBuilder.toString());
+                StringBuilder differentPersonsWithSameUIC = new StringBuilder();
+                PushController.differentPersonsWithSameUIC.forEach(uic -> differentPersonsWithSameUIC.append(uic).append(" "));
+                logger.info("differentPersonsWithSameUIC : "+differentPersonsWithSameUIC.toString());
+                loggerService.collateLogMessage("Same UIC Different Person : "+differentPersonsWithSameUIC.toString());
             }
             differentPersonsWithSameUIC.clear();
 
