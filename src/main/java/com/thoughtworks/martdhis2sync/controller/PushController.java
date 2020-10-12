@@ -29,7 +29,7 @@ public class PushController {
     public static boolean IS_DELTA_EXISTS = false;
     public static boolean IS_DATE_RANGE_SYNC = false;
     public static Set<String> suggestedRemovableDuplicatesSet = new HashSet<>();
-    public static Set<String> sameUICDifferentClientSet = new HashSet<>();
+    public static Set<String> differentPersonsWithSameUIC = new HashSet<>();
     @Autowired
     private MappingService mappingService;
     @Autowired
@@ -117,18 +117,20 @@ public class PushController {
                 loggerService.collateLogMessage("Duplicates:");
                 StringBuilder stringBuilder = new StringBuilder();
                 suggestedRemovableDuplicatesSet.forEach(uic -> stringBuilder.append(uic).append(" "));
-                loggerService.collateLogMessage(stringBuilder.toString());
-            }
-            if (!sameUICDifferentClientSet.isEmpty()) {
-                logger.info("Clients with same UIC but different attributes : ");
-                loggerService.collateLogMessage("Different client same UIC:");
-                StringBuilder stringBuilder = new StringBuilder();
-                sameUICDifferentClientSet.forEach(uic -> stringBuilder.append(uic).append(" "));
+                logger.info(stringBuilder.toString());
                 loggerService.collateLogMessage(stringBuilder.toString());
             }
             suggestedRemovableDuplicatesSet.clear();
-            sameUICDifferentClientSet.clear();
 
+            if (!differentPersonsWithSameUIC.isEmpty()) {
+                logger.info("Different persons with same UIC : ");
+                loggerService.collateLogMessage("Same UIC , Different Person :");
+                StringBuilder stringBuilder = new StringBuilder();
+                differentPersonsWithSameUIC.forEach(uic -> stringBuilder.append(uic).append(" "));
+                logger.info(stringBuilder.toString());
+                loggerService.collateLogMessage(stringBuilder.toString());
+            }
+            differentPersonsWithSameUIC.clear();
 
             if (!IS_DELTA_EXISTS) {
                 loggerService.collateLogMessage(NO_DELTA_DATA);

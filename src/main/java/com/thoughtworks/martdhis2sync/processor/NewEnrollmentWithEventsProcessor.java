@@ -51,10 +51,10 @@ public class NewEnrollmentWithEventsProcessor extends EnrollmentWithEventProcess
 
         String uic = localInstanceJsonObject.get("uic").getAsString();
         List<TrackedEntityInstanceInfo> trackedEntityInstancesInDHIS = teiService.getTrackedEntityInstancesForUIC(uic);
-        if (trackedEntityInstancesInDHIS.size()>1){
+        if (trackedEntityInstancesInDHIS.size() > 1) {
             suggestedRemovableDuplicatesSet.add(uic);
         }
-        if (teiService.instanceExistsInDHIS(localInstanceJsonObject, trackedEntityInstancesInDHIS)) {
+        if (trackedEntityInstancesInDHIS.size() <= 1 && teiService.instanceExistsInDHIS(localInstanceJsonObject, trackedEntityInstancesInDHIS)) {
             return Optional.of(new EnrollmentAPIPayLoad(
                     enrollmentId,
                     localInstanceJsonObject.get("instance_id").getAsString(),

@@ -46,6 +46,8 @@ public class EnrollmentService {
     private String preferredProgramToAutoEnroll;
     @Value("${country.org.unit.id.for.patient.data.duplication.check}")
     private String orgUnitID;
+    @Value("${tracked.entity.attribute.uic}")
+    private String uicAttributeId;
 
     public void enrollSingleClientInstanceToPreferredProgram(TrackedEntityInstanceInfo trackedEntityInstanceInfo) throws Exception {
         String apiBody = getAPIBody(trackedEntityInstanceInfo);
@@ -59,7 +61,7 @@ public class EnrollmentService {
                 ResponseEntity<TrackedEntityInstanceResponse> response = syncRepository.getTrackedEntityInstances(url.toString());
                 TEIUtil.setInstancesWithEnrollments(getMap(Collections.singletonList(response.getBody().getTrackedEntityInstances().get(0)), preferredProgramToAutoEnroll));
             }else if(enrollmentResponse.getStatusCode().equals(HttpStatus.CONFLICT)){
-                suggestedRemovableDuplicatesSet.add(trackedEntityInstanceInfo.getAttributeValue("uic"));
+                suggestedRemovableDuplicatesSet.add(trackedEntityInstanceInfo.getAttributeValue(uicAttributeId));
             }
         } catch (Exception e) {
             JobService.setIS_JOB_FAILED(true);

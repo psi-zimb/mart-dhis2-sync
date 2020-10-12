@@ -49,10 +49,10 @@ public class UpdatedEnrollmentWithEventsProcessor extends EnrollmentWithEventPro
         String uic = localInstanceJsonObject.get("uic").getAsString();
 
         List<TrackedEntityInstanceInfo> trackedEntityInstancesInDHIS = teiService.getTrackedEntityInstancesForUIC(uic);
-        if (trackedEntityInstancesInDHIS.size()>1){
+        if (trackedEntityInstancesInDHIS.size() > 1) {
             suggestedRemovableDuplicatesSet.add(uic);
         }
-        if (teiService.instanceExistsInDHIS(localInstanceJsonObject, trackedEntityInstancesInDHIS)) {
+        if (trackedEntityInstancesInDHIS.size() <= 1 && teiService.instanceExistsInDHIS(localInstanceJsonObject, trackedEntityInstancesInDHIS)) {
             return Optional.of(new EnrollmentAPIPayLoad(
                     localInstanceJsonObject.get("enrollment_id").getAsString(),
                     localInstanceJsonObject.get("instance_id").getAsString(),
@@ -82,7 +82,7 @@ public class UpdatedEnrollmentWithEventsProcessor extends EnrollmentWithEventPro
 
         JsonElement eventId = tableRow.get("event_id");
         return new Event(
-                StringUtils.isEmpty(eventId) ? "": eventId.getAsString(),
+                StringUtils.isEmpty(eventId) ? "" : eventId.getAsString(),
                 tableRow.get("instance_id").getAsString(),
                 tableRow.get("enrollment_id").getAsString(),
                 tableRow.get("program").getAsString(),
